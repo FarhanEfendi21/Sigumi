@@ -1,6 +1,6 @@
-# sigumi
+# SIGUMI
 
-SIGUMI - Sistem Informasi Gunung Berapi Mitigasi
+SIGUMI - Sistem Informasi Gunung Berapi Mitigasi Bencana Alam
 
 ## Getting Started
 
