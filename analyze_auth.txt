@@ -1,0 +1,22 @@
+﻿Analyzing auth...                                               
+
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for the form field. This feature was deprecated after v3.33.0-1.0.pre - lib\screens\auth\register_screen.dart:264:37 - deprecated_member_use
+
+flutter : 1 issue found. 
+(ran in 3.9s)
+At line:1 char:1
++ flutter analyze 
+lib/screens/auth/ 2>&1 | 
+Out-File -FilePath analyze_a 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpeci    fied: (1 
+issue fo    und. (ran in 
+3.9s    ):String) [], Rem    
+oteException
+    + FullyQualifiedE    
+rrorId : NativeCo    
+mmandError
+ 
