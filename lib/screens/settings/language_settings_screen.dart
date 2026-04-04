@@ -1,0 +1,218 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:sigumi/config/fonts.dart';
+import 'package:provider/provider.dart';
+import '../../config/theme.dart';
+import '../../providers/volcano_provider.dart';
+
+class LanguageSettingsScreen extends StatelessWidget {
+  const LanguageSettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<VolcanoProvider>(
+      builder: (context, provider, _) {
+        final currentLanguage = provider.language;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            centerTitle: true,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E1E2C), size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              'Pilih Bahasa',
+              style: AppFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                color: const Color(0xFF1E1E2C),
+              ),
+            ),
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader('BAHASA TERSEDIA'),
+                const SizedBox(height: 16),
+                _LanguageOptionCard(
+                  title: 'Bahasa Indonesia',
+                  subtitle: 'Gunakan aplikasi dalam Bahasa Indonesia',
+                  flag: '🇮🇩',
+                  isSelected: currentLanguage == 'id',
+                  onTap: () => provider.setLanguage('id'),
+                ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05, end: 0),
+                const SizedBox(height: 16),
+                _LanguageOptionCard(
+                  title: 'English',
+                  subtitle: 'Use the application in English',
+                  flag: '🇬🇧',
+                  isSelected: currentLanguage == 'en',
+                  onTap: () => provider.setLanguage('en'),
+                ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideX(begin: -0.05, end: 0),
+                const SizedBox(height: 32),
+                _buildInfoNote(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: AppFonts.plusJakartaSans(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        color: const Color(0xFF64748B),
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  Widget _buildInfoNote() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: SigumiTheme.primaryBlue.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: SigumiTheme.primaryBlue.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline_rounded, size: 20, color: SigumiTheme.primaryBlue),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Pengaturan bahasa akan diterapkan ke seluruh halaman aplikasi secara otomatis.',
+              style: AppFonts.plusJakartaSans(
+                fontSize: 13,
+                height: 1.5,
+                color: SigumiTheme.primaryBlue.withValues(alpha: 0.8),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(delay: 500.ms);
+  }
+}
+
+class _LanguageOptionCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String flag;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _LanguageOptionCard({
+    required this.title,
+    required this.subtitle,
+    required this.flag,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? SigumiTheme.primaryBlue : Colors.white,
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected 
+                    ? SigumiTheme.primaryBlue.withValues(alpha: 0.1) 
+                    : Colors.black.withValues(alpha: 0.03),
+                blurRadius: 15,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? SigumiTheme.primaryBlue.withValues(alpha: 0.1) 
+                      : const Color(0xFFF1F5F9),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    flag,
+                    style: const TextStyle(fontSize: 28),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: isSelected ? SigumiTheme.primaryBlue : const Color(0xFF1E1E2C),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Checkmark / Radio indicator
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected ? SigumiTheme.primaryBlue : Colors.transparent,
+                  border: Border.all(
+                    color: isSelected ? SigumiTheme.primaryBlue : const Color(0xFFCBD5E1),
+                    width: 2,
+                  ),
+                ),
+                child: isSelected
+                    ? const Icon(Icons.check, color: Colors.white, size: 16)
+                    : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
