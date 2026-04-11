@@ -223,38 +223,57 @@ class AuthRepository {
     return '$digits@$_emailDomain';
   }
 
-  /// Terjemahkan error auth ke Bahasa Indonesia
+  /// Terjemahkan error auth ke Bahasa Indonesia yang lebih ramah
   String _translateAuthError(String message) {
     final lower = message.toLowerCase();
+    
+    // Invalid credentials
     if (lower.contains('invalid login credentials') ||
         lower.contains('invalid_credentials')) {
-      return 'Nomor telepon atau kata sandi salah.';
+      return 'Nomor telepon atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.';
     }
+    
+    // User already exists
     if (lower.contains('user already registered') ||
         lower.contains('already been registered') ||
         lower.contains('already exists')) {
-      return 'Nomor telepon sudah terdaftar. Silakan masuk.';
+      return 'Nomor telepon ini sudah terdaftar. Silakan gunakan nomor lain atau masuk ke akun Anda.';
     }
+    
+    // Password validation
     if (lower.contains('password') && lower.contains('short')) {
-      return 'Kata sandi terlalu pendek (minimal 6 karakter).';
+      return 'Kata sandi terlalu pendek. Minimal harus 6 karakter.';
     }
+    
+    // Format validation
     if (lower.contains('phone') && lower.contains('invalid')) {
-      return 'Format nomor telepon tidak valid.';
+      return 'Format nomor telepon tidak valid. Pastikan nomor sudah benar.';
     }
     if (lower.contains('email') && lower.contains('invalid')) {
-      return 'Format nomor telepon tidak valid.';
+      return 'Format data tidak valid (email sintetis).';
     }
-    if (lower.contains('network') || lower.contains('connection')) {
-      return 'Tidak ada koneksi internet. Periksa jaringan Anda.';
+    
+    // Connection issues
+    if (lower.contains('network') || lower.contains('connection') || lower.contains('timeout')) {
+      return 'Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi.';
     }
+    
+    // Rate limits
     if (lower.contains('rate limit') || lower.contains('too many')) {
-      return 'Terlalu banyak percobaan. Tunggu beberapa saat.';
+      return 'Terlalu banyak percobaan. Harap tunggu beberapa menit sebelum mencoba lagi.';
     }
+    
+    // Database or internal errors
+    if (lower.contains('database') || lower.contains('internal')) {
+      return 'Maaf, terjadi masalah pada server kami. Silakan coba lagi nanti.';
+    }
+
     if (lower.contains('email not confirmed')) {
-      // Ini terjadi jika email confirmations aktif — kita bisa abaikan
-      return 'Akun berhasil dibuat! Silakan masuk.';
+      return 'Pendaftaran berhasil! Silakan masuk menggunakan akun Anda.';
     }
-    return 'Terjadi kesalahan: $message';
+
+    // Default message
+    return 'Terjadi kesalahan sistem: $message';
   }
 }
 

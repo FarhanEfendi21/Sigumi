@@ -7,6 +7,7 @@ import '../../config/supabase_config.dart';
 import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
+import '../../widgets/sigumi_dialog.dart';
 import 'auth_language_selector.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -116,7 +117,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushReplacementNamed(context, AppRoutes.main);
+      // Tampilkan dialog sukses sebelum pindah ke Login
+      SigumiDialog.show(
+        context: context,
+        title: 'Pendaftaran Berhasil',
+        message: 'Akun Anda telah berhasil dibuat. Silakan masuk menggunakan nomor telepon dan kata sandi Anda.',
+        type: SigumiDialogType.success,
+        buttonText: 'Masuk Sekarang',
+        onConfirm: () {
+          // Pindah ke halaman Login (pop current register screen)
+          Navigator.pop(context);
+        },
+      );
     } else if (provider.authError != null) {
       _showError(provider.authError!);
       provider.clearAuthError();
@@ -125,14 +137,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: AppFonts.plusJakartaSans()),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.all(16),
-      ),
+    SigumiDialog.show(
+      context: context,
+      title: 'Pendaftaran Gagal',
+      message: message,
+      type: SigumiDialogType.error,
     );
   }
 

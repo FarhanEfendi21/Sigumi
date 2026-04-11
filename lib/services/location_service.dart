@@ -10,6 +10,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// Menangani:
 /// - Request permission GPS
 /// - Tracking lokasi real-time
+/// - Deteksi daerah otomatis berdasarkan GPS
 /// - Update lokasi ke Supabase RPC (menghitung zona risiko di database)
 /// - Fallback ke lokasi simulasi jika GPS tidak tersedia
 class LocationService extends ChangeNotifier {
@@ -18,6 +19,16 @@ class LocationService extends ChangeNotifier {
   factory LocationService() => _instance;
   LocationService._internal();
 
+  // ── Definisi daerah cakupan ──
+  // Radius ~40km dari puncak gunung (area sekitar gunung saja)
+  static const double _detectionRadiusKm = 40.0;
+
+  static const Map<String, Map<String, double>> regionCenters = {
+    'Yogyakarta': {'lat': -7.5407, 'lng': 110.4457}, // Merapi
+    'Bali':       {'lat': -8.3433, 'lng': 115.5071}, // Agung
+    'Lombok':     {'lat': -8.4111, 'lng': 116.4573}, // Rinjani
+  };
+
   // ── State lokasi ──
   double _userLat = -7.7956;  // Default: Yogyakarta
   double _userLng = 110.3695;
@@ -25,6 +36,10 @@ class LocationService extends ChangeNotifier {
   bool _isTracking = false;
   String? _locationError;
   DateTime? _lastUpdated;
+
+  // ── Deteksi daerah otomatis ──
+  String? _detectedRegion;        // Daerah yang terdeteksi GPS (null = di luar)
+  bool _isRegionAutoDetected = false;
 
   // ── Gunung berapi aktif (target jarak) ──
   double _activeVolcanoLat = -7.5407;  // Default: Merapi
@@ -57,9 +72,41 @@ class LocationService extends ChangeNotifier {
   String get zoneLabel => _zoneLabel;
   int get volcanoStatusLevel => _volcanoStatusLevel;
 
+  // ── Getters deteksi daerah ──
+  String? get detectedRegion => _detectedRegion;
+  bool get isRegionAutoDetected => _isRegionAutoDetected;
+
   /// Jarak dari gunung terdekat dalam format string
   String get distanceLabel =>
       '${_distanceFromVolcano.toStringAsFixed(1)} km dari puncak $_nearestVolcanoName';
+
+  /// ──────────────────────────────────────────────
+  /// DETEKSI DAERAH — Berdasarkan koordinat GPS
+  /// ──────────────────────────────────────────────
+  /// Mengecek apakah user berada dalam radius ~40km
+  /// dari salah satu dari 3 gunung berapi.
+  /// Return nama daerah atau null jika di luar cakupan.
+  String? detectRegion() {
+    String? closest;
+    double closestDistance = double.infinity;
+
+    for (final entry in regionCenters.entries) {
+      final center = entry.value;
+      final distance = _haversineDistance(
+        _userLat, _userLng,
+        center['lat']!, center['lng']!,
+      );
+
+      if (distance <= _detectionRadiusKm && distance < closestDistance) {
+        closest = entry.key;
+        closestDistance = distance;
+      }
+    }
+
+    _detectedRegion = closest;
+    _isRegionAutoDetected = closest != null;
+    return closest;
+  }
 
   /// ──────────────────────────────────────────────
   /// INISIALISASI — Request permission & mulai tracking

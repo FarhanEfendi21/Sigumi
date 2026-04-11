@@ -35,6 +35,11 @@ class VolcanoProvider extends ChangeNotifier {
   bool _isOffline = false;
   String _selectedRegion = 'Yogyakarta';
 
+  // ── Deteksi lokasi otomatis ──
+  bool _isRegionAutoDetected = false;
+  bool _needsManualRegionSelection = false;
+  bool _locationInitialized = false;
+
   // ── Auth subscription ──
   StreamSubscription<AuthState>? _authSubscription;
 
@@ -56,6 +61,10 @@ class VolcanoProvider extends ChangeNotifier {
   bool get audioGuidance => _audioGuidance;
   bool get isOffline => _isOffline;
   String get selectedRegion => _selectedRegion;
+  bool get isRegionAutoDetected => _isRegionAutoDetected;
+  bool get needsManualRegionSelection => _needsManualRegionSelection;
+  bool get locationInitialized => _locationInitialized;
+  String? get detectedRegion => _locationService.detectedRegion;
 
   // ── Lokasi (delegasi ke LocationService) ──
   double get distanceFromMerapi => _locationService.distanceFromVolcano;
@@ -65,6 +74,45 @@ class VolcanoProvider extends ChangeNotifier {
 
   VolcanoProvider() {
     _initAuthListener();
+  }
+
+  /// ──────────────────────────────────────────────
+  /// AUTO-DETECT REGION — Berdasarkan GPS
+  /// ──────────────────────────────────────────────
+  /// Inisialisasi GPS dan deteksi daerah otomatis.
+  /// Jika terdeteksi → auto-set region.
+  /// Jika tidak → set flag untuk pemilihan manual.
+  Future<void> autoDetectAndSetRegion() async {
+    if (_locationInitialized) return;  // Jangan double-init
+
+    await _locationService.initialize();
+    _locationInitialized = true;
+
+    if (_locationService.isUsingRealGps) {
+      final detected = _locationService.detectRegion();
+      if (detected != null) {
+        // Daerah terdeteksi → auto-set
+        _isRegionAutoDetected = true;
+        _needsManualRegionSelection = false;
+        setRegion(detected);
+      } else {
+        // Di luar cakupan → perlu pilih manual
+        _isRegionAutoDetected = false;
+        _needsManualRegionSelection = true;
+        notifyListeners();
+      }
+    } else {
+      // GPS tidak tersedia → perlu pilih manual
+      _isRegionAutoDetected = false;
+      _needsManualRegionSelection = true;
+      notifyListeners();
+    }
+  }
+
+  /// Setelah user memilih daerah manual, dismiss flag
+  void dismissManualSelection() {
+    _needsManualRegionSelection = false;
+    notifyListeners();
   }
 
   /// ──────────────────────────────────────────────
