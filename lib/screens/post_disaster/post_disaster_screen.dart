@@ -862,8 +862,9 @@ class _DetailSheet extends StatelessWidget {
                   label: 'Buka Maps',
                   color: SigumiTheme.primaryBlue,
                   onTap: () async {
+                    final query = Uri.encodeComponent(shelter.name);
                     final uri = Uri.parse(
-                        'https://maps.google.com/?q=${shelter.latitude},${shelter.longitude}');
+                        'https://www.google.com/maps/search/?api=1&query=$query');
                     if (await canLaunchUrl(uri)) {
                       await launchUrl(uri,
                           mode: LaunchMode.externalApplication);

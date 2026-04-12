@@ -187,7 +187,7 @@ class _ReportScreenState extends State<ReportScreen> {
           'Lapor Kejadian',
           style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
-            fontSize: 20,
+            fontSize: 18,
             color: const Color(0xFF1E1E2C),
           ),
         ),

@@ -60,25 +60,5 @@ class AppConstants {
     'id': 'Bahasa Indonesia',
   };
 
-  // Onboarding Pages
-  static const List<Map<String, String>> onboardingPages = [
-    {
-      'title': 'Selamat Datang di SIGUMI',
-      'desc':
-          'Sistem Informasi Gunung Berapi Mitigasi - Informasi bencana gunung berapi yang akurat dan terpercaya untuk keselamatan Anda.',
-      'icon': 'volcano',
-    },
-    {
-      'title': 'Peringatan Dini & Evakuasi',
-      'desc':
-          'Dapatkan peringatan dini adaptif dan jalur evakuasi teraman berdasarkan lokasi GPS, arah angin, dan kepadatan jalur.',
-      'icon': 'warning',
-    },
-    {
-      'title': 'Akses Online & Offline',
-      'desc':
-          'Informasi penting tetap tersedia meskipun tanpa koneksi internet. Panduan lengkap sebelum, saat, dan setelah erupsi.',
-      'icon': 'offline',
-    },
-  ];
+
 }

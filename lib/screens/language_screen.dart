@@ -18,7 +18,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
   void _proceed() {
     context.read<VolcanoProvider>().setLanguage(_selected);
-    Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
+    Navigator.pushReplacementNamed(context, AppRoutes.login);
   }
 
   @override
