@@ -2,294 +2,384 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
+import '../../models/eruption_history.dart';
 import '../../providers/volcano_provider.dart';
 
-class VisualMerapiScreen extends StatelessWidget {
+class VisualMerapiScreen extends StatefulWidget {
   const VisualMerapiScreen({super.key});
 
   @override
+  State<VisualMerapiScreen> createState() => _VisualMerapiScreenState();
+}
+
+class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch data riwayat erupsi saat masuk halaman
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<VolcanoProvider>().fetchEruptionHistory();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final volcano = context.read<VolcanoProvider>().volcano;
+    return Consumer<VolcanoProvider>(
+      builder: (context, provider, _) {
+        final volcano = provider.volcano;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Live Visual',
-          style: AppFonts.plusJakartaSans(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: const Color(0xFF1E1E2C),
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Live View Section ──
-            Container(
-              height: 240,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: Text(
+              'Live Visual',
+              style: AppFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: const Color(0xFF1E1E2C),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
-                children: [
-                  // Mock Camera View / Mountain Silhouette
-                  CustomPaint(
-                    size: const Size(double.infinity, 240),
-                    painter: _MountainPainter(),
+            ),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
+            centerTitle: true,
+          ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Live View Section ──
+                Container(
+                  height: 240,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  
-                  // Top Left: Live Badge
-                  Positioned(
-                    top: 14,
-                    left: 14,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+                  clipBehavior: Clip.antiAlias,
+                  child: Stack(
+                    children: [
+                      // Mock Camera View / Mountain Silhouette
+                      CustomPaint(
+                        size: const Size(double.infinity, 240),
+                        painter: _MountainPainter(),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.redAccent.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-                           .fade(duration: 800.ms, begin: 0.2, end: 1.0),
-                          const SizedBox(width: 6),
-                          Text(
-                            'LIVE',
-                            style: AppFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
+                      
+                      // Top Left: Live Badge
+                      Positioned(
+                        top: 14,
+                        left: 14,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // Top Right: Actions (Refresh, Fullscreen)
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Row(
-                      children: [
-                        _buildGlassButton(Icons.refresh_rounded, () {
-                          // TODO: Refresh action
-                        }),
-                        const SizedBox(width: 8),
-                        _buildGlassButton(Icons.fullscreen_rounded, () {
-                          // TODO: Fullscreen action
-                        }),
-                      ],
-                    ),
-                  ),
-
-                  // Center: Info Overlay
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.videocam_rounded,
-                          color: const Color(0xFF1E1E2C).withValues(alpha: 0.3),
-                          size: 40,
-                        ),
-                        const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.white, width: 1.5),
+                            color: Colors.redAccent.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Column(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                'CCTV ${volcano.name}',
-                                style: AppFonts.plusJakartaSans(
-                                  color: const Color(0xFF1E1E2C),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
                                 ),
-                              ),
+                              ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                               .fade(duration: 800.ms, begin: 0.2, end: 1.0),
+                              const SizedBox(width: 6),
                               Text(
-                                'Sumber: BPPTKG',
+                                'LIVE',
                                 style: AppFonts.plusJakartaSans(
-                                  color: const Color(0xFF6B6B78),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
+
+                      // Top Right: Actions (Refresh, Fullscreen)
+                      Positioned(
+                        top: 10,
+                        right: 10,
+                        child: Row(
+                          children: [
+                            _buildGlassButton(Icons.refresh_rounded, () {
+                              // TODO: Refresh action
+                            }),
+                            const SizedBox(width: 8),
+                            _buildGlassButton(Icons.fullscreen_rounded, () {
+                              // TODO: Fullscreen action
+                            }),
+                          ],
+                        ),
+                      ),
+
+                      // Center: Info Overlay
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.videocam_rounded,
+                              color: const Color(0xFF1E1E2C).withValues(alpha: 0.3),
+                              size: 40,
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white, width: 1.5),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'CCTV ${volcano.name}',
+                                    style: AppFonts.plusJakartaSans(
+                                      color: const Color(0xFF1E1E2C),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Sumber: BPPTKG',
+                                    style: AppFonts.plusJakartaSans(
+                                      color: const Color(0xFF6B6B78),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.05, end: 0),
+
+                const SizedBox(height: 28),
+                
+                // ── Informasi Terkini ──
+                Text(
+                  'Informasi Terkini',
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1E1E2C),
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.7, 
+                  children: [
+                    _buildInfoGridCard(
+                      icon: Icons.thermostat_rounded,
+                      title: 'Suhu Kawah',
+                      value: '${volcano.temperature ?? '-'}°C',
+                      color: Colors.orange,
                     ),
+                    _buildInfoGridCard(
+                      icon: Icons.air_rounded,
+                      title: 'Arah Angin',
+                      value: volcano.windDirection ?? '-',
+                      color: Colors.blue,
+                    ),
+                    _buildInfoGridCard(
+                      icon: Icons.speed_rounded,
+                      title: 'Kecepatan',
+                      value: '${volcano.windSpeed ?? '-'} km/h',
+                      color: Colors.teal,
+                    ),
+                    _buildInfoGridCard(
+                      icon: Icons.height_rounded,
+                      title: 'Elevasi',
+                      value: '${volcano.elevation} mdpl',
+                      color: Colors.indigo,
+                    ),
+                  ],
+                ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
+
+                const SizedBox(height: 32),
+
+                // ── Riwayat Erupsi (dari database admin) ──
+                Text(
+                  'Riwayat Erupsi',
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1E1E2C),
                   ),
-                ],
-              ),
-            ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.05, end: 0),
+                ),
+                const SizedBox(height: 16),
 
-            const SizedBox(height: 28),
-            
-            // ── Informasi Terkini ──
-            Text(
-              'Informasi Terkini',
-              style: AppFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1E2C),
-              ),
-            ),
-            const SizedBox(height: 14),
+                _buildEruptionHistoryContent(provider),
 
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.7, 
-              children: [
-                _buildInfoGridCard(
-                  icon: Icons.thermostat_rounded,
-                  title: 'Suhu Kawah',
-                  value: '${volcano.temperature ?? '-'}°C',
-                  color: Colors.orange,
+                const SizedBox(height: 32),
+
+                // ── Galeri Visual ──
+                Text(
+                  'Galeri Visual',
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1E1E2C),
+                  ),
                 ),
-                _buildInfoGridCard(
-                  icon: Icons.air_rounded,
-                  title: 'Arah Angin',
-                  value: volcano.windDirection ?? '-',
-                  color: Colors.blue,
-                ),
-                _buildInfoGridCard(
-                  icon: Icons.speed_rounded,
-                  title: 'Kecepatan',
-                  value: '${volcano.windSpeed ?? '-'} km/h',
-                  color: Colors.teal,
-                ),
-                _buildInfoGridCard(
-                  icon: Icons.height_rounded,
-                  title: 'Elevasi',
-                  value: '${volcano.elevation} mdpl',
-                  color: Colors.indigo,
-                ),
+                const SizedBox(height: 14),
+
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.2,
+                  children: [
+                    _GalleryItem('Puncak Kawah', Icons.landscape_rounded, Colors.brown),
+                    _GalleryItem('Kubah Lava', Icons.local_fire_department_rounded, Colors.redAccent),
+                    _GalleryItem('Guguran Vulkanik', Icons.cloud_rounded, Colors.grey.shade700),
+                    _GalleryItem('Aliran Lahar', Icons.water_drop_rounded, Colors.blueAccent),
+                  ],
+                ).animate().fadeIn(delay: 450.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
+                
+                const SizedBox(height: 32),
               ],
-            ).animate().fadeIn(delay: 150.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
-
-            const SizedBox(height: 32),
-
-            // ── Riwayat Erupsi ──
-            Text(
-              'Riwayat Erupsi',
-              style: AppFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1E2C),
-              ),
             ),
-            const SizedBox(height: 16),
+          ),
+        );
+      },
+    );
+  }
 
+  /// Konten Riwayat Erupsi — dari database atau empty state
+  Widget _buildEruptionHistoryContent(VolcanoProvider provider) {
+    // Loading state
+    if (provider.isLoadingEruptions) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Memuat riwayat erupsi...',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: const Color(0xFF9E9EAE),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Empty state — tabel belum ada atau belum ada data dari admin
+    if (!provider.hasEruptionHistory) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Column(
+          children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF3F4F6),
+                shape: BoxShape.circle,
               ),
-              child: Column(
-                children: [
-                  const _TimelineItem(
-                    year: '2023',
-                    desc: 'Guguran lava pijar dan awan panas. Status Siaga (Level III).',
-                    isLatest: true,
-                  ),
-                  const _TimelineItem(
-                    year: '2021',
-                    desc: 'Erupsi besar dengan awan panas guguran hingga 3 km. Evakuasi massal dilakukan.',
-                  ),
-                  const _TimelineItem(
-                    year: '2018',
-                    desc: 'Erupsi freatik. Kolom abu setinggi 5.5 km di atas puncak.',
-                  ),
-                  const _TimelineItem(
-                    year: '2010',
-                    desc: 'Erupsi dahsyat VEI 4. 353 korban jiwa. Evakuasi 400.000 warga.',
-                  ),
-                  const _TimelineItem(
-                    year: '2006',
-                    desc: 'Erupsi menghasilkan awan panas dan lava. Evakuasi ribuan warga.',
-                    isLast: true,
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
-
-            const SizedBox(height: 32),
-
-            // ── Galeri Visual ──
-            Text(
-              'Galeri Visual',
-              style: AppFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1E2C),
+              child: const Icon(
+                Icons.volcano_rounded,
+                size: 28,
+                color: Color(0xFFB0B0BE),
               ),
             ),
             const SizedBox(height: 14),
-
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.2,
-              children: [
-                _GalleryItem('Puncak Kawah', Icons.landscape_rounded, Colors.brown),
-                _GalleryItem('Kubah Lava', Icons.local_fire_department_rounded, Colors.redAccent),
-                _GalleryItem('Guguran Vulkanik', Icons.cloud_rounded, Colors.grey.shade700),
-                _GalleryItem('Aliran Lahar', Icons.water_drop_rounded, Colors.blueAccent),
-              ],
-            ).animate().fadeIn(delay: 450.ms, duration: 400.ms).slideY(begin: 0.05, end: 0),
-            
-            const SizedBox(height: 32),
+            Text(
+              'Belum Ada Riwayat Erupsi',
+              textAlign: TextAlign.center,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF6B6B78),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Data historis erupsi gunung akan ditampilkan di sini '
+              'setelah diinput oleh admin PVMBG/BPPTKG.',
+              textAlign: TextAlign.center,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 11,
+                color: const Color(0xFF9E9EAE),
+                height: 1.5,
+              ),
+            ),
           ],
         ),
+      ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.05, end: 0);
+    }
+
+    // Data tersedia — tampilkan timeline dari database
+    final eruptions = provider.eruptionHistory;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-    );
+      child: Column(
+        children: List.generate(
+          eruptions.length,
+          (i) => _EruptionTimelineItem(
+            eruption: eruptions[i],
+            isLatest: i == 0,
+            isLast: i == eruptions.length - 1,
+          ),
+        ),
+      ),
+    ).animate().fadeIn(delay: 300.ms, duration: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
   Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
@@ -381,15 +471,14 @@ class VisualMerapiScreen extends StatelessWidget {
   }
 }
 
-class _TimelineItem extends StatelessWidget {
-  final String year;
-  final String desc;
+/// Timeline item untuk riwayat erupsi dari database
+class _EruptionTimelineItem extends StatelessWidget {
+  final EruptionHistory eruption;
   final bool isLatest;
   final bool isLast;
 
-  const _TimelineItem({
-    required this.year,
-    required this.desc,
+  const _EruptionTimelineItem({
+    required this.eruption,
     this.isLatest = false,
     this.isLast = false,
   });
@@ -429,29 +518,103 @@ class _TimelineItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  year,
-                  style: AppFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: isLatest ? Colors.redAccent : const Color(0xFF1E1E2C),
-                  ),
+                // Tahun + VEI badge
+                Row(
+                  children: [
+                    Text(
+                      eruption.year.toString(),
+                      style: AppFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color: isLatest ? Colors.redAccent : const Color(0xFF1E1E2C),
+                      ),
+                    ),
+                    if (eruption.veiLabel != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withAlpha(15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: Colors.red.withAlpha(30),
+                          ),
+                        ),
+                        child: Text(
+                          eruption.veiLabel!,
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.red.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 4),
+                // Deskripsi erupsi
                 Text(
-                  desc,
+                  eruption.description,
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
                     height: 1.5,
                     color: const Color(0xFF6B6B78),
                   ),
                 ),
+                // Korban & evakuasi (jika ada)
+                if (eruption.hasCasualties || eruption.hasEvacuees) ...[
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if (eruption.hasCasualties)
+                        _buildStatBadge(
+                          '${eruption.casualties} korban jiwa',
+                          Colors.red,
+                        ),
+                      if (eruption.hasEvacuees)
+                        _buildStatBadge(
+                          '${_formatNumber(eruption.evacuees)} mengungsi',
+                          Colors.orange,
+                        ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
         ),
       ],
     );
+  }
+
+  Widget _buildStatBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withAlpha(12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: AppFonts.plusJakartaSans(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  String _formatNumber(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}jt';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(0)}rb';
+    return n.toString();
   }
 }
 
@@ -568,4 +731,3 @@ class _MountainPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
-

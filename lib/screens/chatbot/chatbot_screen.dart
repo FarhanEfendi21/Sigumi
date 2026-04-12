@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/theme.dart';
+import '../../config/fonts.dart';
 import '../../config/constants.dart';
 import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
@@ -15,7 +17,8 @@ class ChatbotScreen extends StatefulWidget {
   State<ChatbotScreen> createState() => _ChatbotScreenState();
 }
 
-class _ChatbotScreenState extends State<ChatbotScreen> {
+class _ChatbotScreenState extends State<ChatbotScreen>
+    with TickerProviderStateMixin {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   final VoiceService _voiceService = VoiceService();
@@ -23,11 +26,37 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
   bool _isTyping = false;
   String _selectedLanguage = 'id';
 
+  // State untuk voice UI
+  bool _isListening = false;
+  bool _permissionChecked = false;
+
+  // Animasi pulse untuk mic aktif
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  // Animasi wave bars saat merekam
+  late AnimationController _waveController;
+
   @override
   void initState() {
     super.initState();
-    _initVoiceService();
-    
+    _initTts();
+
+    // Setup animasi pulse mic
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.6).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeOut),
+    );
+
+    // Setup animasi wave bars
+    _waveController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
     // Defer accessing Provider to avoid context errors in initState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _selectedLanguage = context.read<VolcanoProvider>().language;
@@ -35,20 +64,232 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     });
   }
 
-  Future<void> _initVoiceService() async {
-    await _voiceService.init();
-    setState(() {});
+  /// Init TTS saja dulu (tidak butuh permission khusus)
+  Future<void> _initTts() async {
+    await _voiceService.initTts();
+  }
+
+  /// Init speech recognition dengan handling permission yang proper
+  /// Dipanggil saat user pertama kali tap tombol mic
+  Future<bool> _initSpeechWithPermission() async {
+    if (_voiceService.isSpeechEnabled) return true;
+
+    // Tampilkan dialog info sebelum minta permission
+    if (!_permissionChecked) {
+      final shouldProceed = await _showPermissionInfoDialog();
+      if (!shouldProceed) return false;
+      _permissionChecked = true;
+    }
+
+    final status = await _voiceService.init();
+
+    switch (status) {
+      case SpeechPermissionStatus.granted:
+        return true;
+
+      case SpeechPermissionStatus.denied:
+        if (mounted) {
+          _showPermissionDeniedDialog();
+        }
+        return false;
+
+      case SpeechPermissionStatus.error:
+        if (mounted) {
+          _showErrorSnackBar(
+              'Terjadi kesalahan saat mengakses mikrofon. Coba lagi nanti.');
+        }
+        return false;
+    }
+  }
+
+  /// Dialog informatif sebelum minta permission microphone
+  Future<bool> _showPermissionInfoDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Dialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Ikon mikrofon dengan background lingkaran
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: SigumiTheme.primaryBlue.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.mic_rounded,
+                      size: 36,
+                      color: SigumiTheme.primaryBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    'Izin Akses Mikrofon',
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1E1E2C),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+
+                  Text(
+                    'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.',
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 14,
+                      color: const Color(0xFF6B6B78),
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Tombol Izinkan
+                  SizedBox(
+                    width: double.infinity,
+                    child: ShadButton(
+                      height: 48,
+                      backgroundColor: SigumiTheme.primaryBlue,
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: Text(
+                        'Izinkan Akses',
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Tombol Nanti
+                  SizedBox(
+                    width: double.infinity,
+                    child: ShadButton.outline(
+                      height: 48,
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: Text(
+                        'Nanti Saja',
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF6B6B78),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ) ??
+        false;
+  }
+
+  /// Dialog ketika permission ditolak
+  void _showPermissionDeniedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Ikon warning
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.mic_off_rounded,
+                  size: 36,
+                  color: Colors.orange.shade600,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              Text(
+                'Akses Mikrofon Ditolak',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF1E1E2C),
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+
+              Text(
+                'Fitur voice input memerlukan akses ke mikrofon.\n\nAnda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: const Color(0xFF6B6B78),
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                child: ShadButton(
+                  height: 48,
+                  backgroundColor: SigumiTheme.primaryBlue,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(
+                    'Mengerti',
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: AppFonts.plusJakartaSans(color: Colors.white, fontSize: 13),
+        ),
+        backgroundColor: SigumiTheme.statusAwas,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   void _sendWelcomeMessage() {
     setState(() {
       _messages.add(ChatMessage.system(
-        AiService.getWelcomeMessage(_selectedLanguage) +
-        '\n\nℹ️ Chatbot ini memahami bahasa Indonesia, English, Jawa, Sunda, dan Bali. Anda bebas mengetik atau menggunakan suara.',
+        '${AiService.getWelcomeMessage(_selectedLanguage)}\n\nℹ️ Chatbot ini memahami bahasa Indonesia, English, Jawa, Sunda, dan Bali. Anda bebas mengetik atau menggunakan suara.',
         language: _selectedLanguage,
       ));
     });
-    // Auto speak welcome if TTS is desired (optional, maybe not on start to avoid startling)
   }
 
   @override
@@ -57,6 +298,8 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     _voiceService.stopSpeaking();
     _messageController.dispose();
     _scrollController.dispose();
+    _pulseController.dispose();
+    _waveController.dispose();
     super.dispose();
   }
 
@@ -81,40 +324,44 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     // Voice Service stop
     if (_voiceService.isListening) {
       await _voiceService.stopListening();
+      _stopListeningUI();
     }
 
     // Simulate thinking delay
     Future.delayed(const Duration(milliseconds: 1000), () async {
       if (mounted) {
-        final response = AiService.getResponse(text, language: _selectedLanguage, isVoice: isVoice);
+        final response = AiService.getResponse(text,
+            language: _selectedLanguage, isVoice: isVoice);
         setState(() {
           _messages.add(response);
           _isTyping = false;
         });
         _scrollToBottom();
-        
+
         // Speak response using TTS
-        await _voiceService.speak(response.content, language: _selectedLanguage);
+        await _voiceService.speak(response.content,
+            language: _selectedLanguage);
       }
     });
   }
 
+  /// Memulai/menghentikan pengenalan suara dengan visual feedback
   Future<void> _toggleListening() async {
-    if (_voiceService.isListening) {
+    if (_isListening) {
+      // Berhenti mendengarkan
       await _voiceService.stopListening();
-      setState(() {});
+      _stopListeningUI();
     } else {
-      if (!_voiceService.isSpeechEnabled) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Akses mikrofon ditolak atau tidak tersedia.')),
-        );
-        return;
-      }
-      
+      // Cek & minta permission dulu (hanya pertama kali)
+      final hasPermission = await _initSpeechWithPermission();
+      if (!hasPermission) return;
+
       // Stop ongoing TTS when user starts speaking
       await _voiceService.stopSpeaking();
-      
+
       String localeId = _selectedLanguage == 'en' ? 'en_US' : 'id_ID';
+
+      _startListeningUI();
 
       await _voiceService.startListening(
         (recognizedText) {
@@ -123,13 +370,33 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
           });
           // Send immediately if the user stops speaking
           if (!_voiceService.isListening && recognizedText.isNotEmpty) {
+            _stopListeningUI();
             _sendMessage(isVoice: true);
           }
         },
         localeId: localeId,
       );
-      setState(() {}); // Update mic icon
     }
+  }
+
+  /// Aktifkan animasi dan state saat mulai mendengarkan
+  void _startListeningUI() {
+    setState(() {
+      _isListening = true;
+    });
+    _pulseController.repeat();
+    _waveController.repeat(reverse: true);
+  }
+
+  /// Matikan animasi dan state saat selesai mendengarkan
+  void _stopListeningUI() {
+    setState(() {
+      _isListening = false;
+    });
+    _pulseController.stop();
+    _pulseController.reset();
+    _waveController.stop();
+    _waveController.reset();
   }
 
   void _scrollToBottom() {
@@ -144,43 +411,92 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     });
   }
 
+  void _quickSend(String text) {
+    _messageController.text = text;
+    _sendMessage();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Styling constants matching Live Visual
+    const Color bgColor = Color(0xFFF8F9FA);
+    const Color headerTextColor = Color(0xFF1E1E2C);
+
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text('AI Chatbot SIGUMI'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: const IconThemeData(color: headerTextColor),
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Tanya Si Gumi',
+              style: AppFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                color: headerTextColor,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade500,
+                      shape: BoxShape.circle,
+                    ),
+                  )
+                      .animate(
+                          onPlay: (controller) =>
+                              controller.repeat(reverse: true))
+                      .fade(duration: 800.ms, begin: 0.3, end: 1.0),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Aktif',
+                    style: AppFonts.plusJakartaSans(
+                      color: Colors.green.shade700,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
         actions: [
           _buildLanguageDropdown(),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            height: 1,
+            color: const Color(0xFFE5E7EB),
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // Info banner
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: SigumiTheme.primaryBlue.withOpacity(0.05),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, size: 16, color: SigumiTheme.primaryBlue),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Chatbot ini dilengkapi fitur NLP, Voice Command, dan Text-to-Speech.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: SigumiTheme.primaryBlue.withOpacity(0.8),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Chat messages
+          // Chat messages area
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(16),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               itemCount: _messages.length + (_isTyping ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _messages.length && _isTyping) {
@@ -192,93 +508,282 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
             ),
           ),
 
-          // Quick actions
-          SizedBox(
-            height: 40,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+          // Listening Overlay — Tampil saat mic aktif
+          if (_isListening) _buildListeningOverlay(),
+
+          // Quick Actions (Horizontal Scroll)
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.only(top: 12, bottom: 8),
+            child: SizedBox(
+              height: 36,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _QuickActionButton('Status Gunung',
+                      () => _quickSend('status gunung hari ini?')),
+                  _QuickActionButton('Jalur Evakuasi',
+                      () => _quickSend('jalur evakuasi mana?')),
+                  _QuickActionButton('Zona Bahaya',
+                      () => _quickSend('berapa zona bahayanya?')),
+                  _QuickActionButton('Tips Hujan Abu',
+                      () => _quickSend('tips saat hujan abu')),
+                  _QuickActionButton('Nomor Darurat',
+                      () => _quickSend('nomor telepon darurat')),
+                ],
+              ),
+            ),
+          ),
+
+          // Input Area Bottom Bar
+          _buildInputBar(context),
+        ],
+      ),
+    );
+  }
+
+  /// Widget overlay saat mic sedang mendengarkan — tampilkan visual feedback
+  Widget _buildListeningOverlay() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            SigumiTheme.primaryBlue.withValues(alpha: 0.05),
+            Colors.red.withValues(alpha: 0.04),
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        border: const Border(
+          top: BorderSide(color: Color(0xFFE5E7EB), width: 0.5),
+          bottom: BorderSide(color: Color(0xFFE5E7EB), width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Animated mic icon
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.mic_rounded,
+              color: Colors.red.shade500,
+              size: 20,
+            ),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                begin: const Offset(0.9, 0.9),
+                end: const Offset(1.1, 1.1),
+                duration: 600.ms,
+              ),
+
+          const SizedBox(width: 12),
+
+          // "Listening" text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _QuickAction('Status', () => _quickSend('status merapi sekarang?')),
-                _QuickAction('Evakuasi', () => _quickSend('jalur evakuasi mana?')),
-                _QuickAction('Zona', () => _quickSend('berapa zona bahayanya?')),
-                _QuickAction('P3K', () => _quickSend('pertolongan pertama jika kena abu')),
-                _QuickAction('Abu', () => _quickSend('tips hujan abu vulkanik')),
-                _QuickAction('Bantuan', () => _quickSend('nomor telepon bantuan darurat')),
+                Text(
+                  'Mendengarkan...',
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red.shade600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Silakan bicara dengan jelas',
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: const Color(0xFF9CA3AF),
+                  ),
+                ),
               ],
             ),
           ),
 
-          // Input
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  // Microphone Button
-                  GestureDetector(
-                    onTap: _toggleListening,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: _voiceService.isListening 
-                            ? SigumiTheme.statusAwas 
-                            : SigumiTheme.primaryBlue.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        _voiceService.isListening ? Icons.mic : Icons.mic_none,
-                        color: _voiceService.isListening 
-                            ? Colors.white 
-                            : SigumiTheme.primaryBlue,
-                        size: 24,
-                      ),
-                    ).animate(target: _voiceService.isListening ? 1 : 0)
-                     .scale(end: const Offset(1.2, 1.2), duration: 200.ms),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      enabled: !_voiceService.isListening,
-                      decoration: InputDecoration(
-                        hintText: _voiceService.isListening ? 'Mendengarkan...' : 'Ketik kalimat...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: SigumiTheme.background,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                      ),
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
+          // Wave bars animasi
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(5, (i) {
+              return AnimatedBuilder(
+                animation: _waveController,
+                builder: (context, child) {
+                  // Setiap bar punya tinggi yang berbeda berdasarkan offset-nya
+                  final value = (_waveController.value + i * 0.15) % 1.0;
+                  final height = 8.0 + (value * 16.0);
+                  return Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                    width: 3,
+                    height: height,
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade400.withValues(
+                          alpha: 0.5 + value * 0.5),
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    decoration: const BoxDecoration(
-                      color: SigumiTheme.primaryBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      onPressed: () => _sendMessage(),
-                      icon: const Icon(Icons.send_rounded,
-                          color: Colors.white, size: 20),
-                    ),
+                  );
+                },
+              );
+            }),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Tombol stop
+          GestureDetector(
+            onTap: _toggleListening,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.red.shade500,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.red.shade300.withValues(alpha: 0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
+              ),
+              child: const Icon(
+                Icons.stop_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  /// Input bar (bottom) dengan mic button yang sudah diupgrade
+  Widget _buildInputBar(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 12,
+        bottom: 12 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: const Border(
+          top: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Mic Button — dengan pulse & warna dinamis
+          _buildMicButton(),
+
+          const SizedBox(width: 8),
+
+          // Text Input Field
+          Expanded(
+            child: ShadInput(
+              controller: _messageController,
+              placeholder: Text(
+                  _isListening ? 'Mendengarkan suara...' : 'Tanya Si Gumi...'),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              maxLines: 4,
+              minLines: 1,
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _sendMessage(),
+              style: AppFonts.plusJakartaSans(
+                fontSize: 14,
+                color: const Color(0xFF1E1E2C),
+              ),
+              placeholderStyle: AppFonts.plusJakartaSans(
+                fontSize: 14,
+                color: _isListening
+                    ? Colors.red.shade400
+                    : const Color(0xFF9CA3AF),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          // Send Button
+          ShadButton(
+            width: 48,
+            height: 48,
+            padding: EdgeInsets.zero,
+            backgroundColor: SigumiTheme.primaryBlue,
+            onPressed: () => _sendMessage(),
+            child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Tombol mic dengan 3 layer visual:
+  /// 1. Pulse ring (outer glow saat aktif)
+  /// 2. Background tombol (berubah warna)
+  /// 3. Icon mic (berubah state)
+  Widget _buildMicButton() {
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Layer 1: Pulse ring — hanya tampil saat listening
+          if (_isListening)
+            AnimatedBuilder(
+              animation: _pulseAnimation,
+              builder: (context, child) {
+                return Container(
+                  width: 48 * _pulseAnimation.value,
+                  height: 48 * _pulseAnimation.value,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.red.shade300
+                        .withValues(alpha: 0.3 * (2 - _pulseAnimation.value)),
+                  ),
+                );
+              },
+            ),
+
+          // Layer 2: Tombol utama
+          ShadButton.outline(
+            width: 48,
+            height: 48,
+            padding: EdgeInsets.zero,
+            backgroundColor:
+                _isListening ? Colors.red.shade50 : Colors.white,
+            onPressed: _toggleListening,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                color: _isListening
+                    ? Colors.red.shade600
+                    : const Color(0xFF6B6B78),
+                size: 22,
               ),
             ),
           ),
@@ -287,148 +792,223 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
     );
   }
 
-  void _quickSend(String text) {
-    _messageController.text = text;
-    _sendMessage();
-  }
-
   Widget _buildLanguageDropdown() {
     return Container(
-      margin: const EdgeInsets.only(right: 12, top: 12, bottom: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
-      child: DropdownButton<String>(
-        value: _selectedLanguage,
-        dropdownColor: SigumiTheme.primaryBlue,
-        icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-        underline: const SizedBox(),
-        onChanged: (String? newValue) {
-          if (newValue != null) {
-            setState(() {
-              _selectedLanguage = newValue;
-              _voiceService.stopSpeaking();
-            });
-          }
-        },
-        items: AppConstants.supportedLanguages.keys.map<DropdownMenuItem<String>>((String key) {
-          return DropdownMenuItem<String>(
-            value: key,
-            child: Text(
-              key.toUpperCase(),
-              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-            ),
-          );
-        }).toList(),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedLanguage,
+          dropdownColor: Colors.white,
+          icon: const Icon(Icons.keyboard_arrow_down_rounded,
+              color: Color(0xFF6B6B78), size: 18),
+          elevation: 2,
+          isDense: true,
+          onChanged: (String? newValue) {
+            if (newValue != null) {
+              setState(() {
+                _selectedLanguage = newValue;
+                _voiceService.stopSpeaking();
+              });
+            }
+          },
+          items: AppConstants.supportedLanguages.keys
+              .map<DropdownMenuItem<String>>((String key) {
+            return DropdownMenuItem<String>(
+              value: key,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Text(
+                  key.toUpperCase(),
+                  style: AppFonts.plusJakartaSans(
+                    color: const Color(0xFF1E1E2C),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
       ),
     );
   }
 
   Widget _buildMessageBubble(ChatMessage message, int index) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment:
-            message.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (!message.isUser) ...[
-            Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: message.messageType == MessageType.system 
-                    ? SigumiTheme.statusWaspada.withOpacity(0.2)
-                    : SigumiTheme.primaryBlue.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                message.messageType == MessageType.system ? Icons.info : Icons.smart_toy,
-                size: 18, 
-                color: message.messageType == MessageType.system 
-                    ? SigumiTheme.statusSiaga 
-                    : SigumiTheme.primaryBlue
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Column(
-              crossAxisAlignment: message.isUser 
-                  ? CrossAxisAlignment.end 
-                  : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: message.isUser
-                        ? SigumiTheme.primaryBlue
-                        : message.messageType == MessageType.system 
-                           ? SigumiTheme.surface
-                           : Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(16),
-                      topRight: const Radius.circular(16),
-                      bottomLeft: Radius.circular(message.isUser ? 16 : 4),
-                      bottomRight: Radius.circular(message.isUser ? 4 : 16),
-                    ),
-                    border: message.messageType == MessageType.system
-                        ? Border.all(color: SigumiTheme.statusWaspada, width: 1)
-                        : null,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: message.isUser 
-                        ? CrossAxisAlignment.end 
-                        : CrossAxisAlignment.start,
-                    children: [
-                      if (message.isVoice)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.mic, size: 12, color: message.isUser ? Colors.white70 : SigumiTheme.textSecondary),
-                              const SizedBox(width: 4),
-                              Text('Pesan Suara', style: TextStyle(fontSize: 10, color: message.isUser ? Colors.white70 : SigumiTheme.textSecondary)),
-                            ],
-                          ),
-                        ),
-                      Text(
-                        message.content,
-                        style: TextStyle(
-                          color: message.isUser ? Colors.white : SigumiTheme.textPrimary,
-                          fontSize: 14,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
+    if (message.messageType == MessageType.system) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-                // Confidence Badge for Bot Responses
-                if (!message.isUser && message.confidence != null && message.messageType != MessageType.system)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4, left: 4),
-                    child: Text(
-                      'Match: ${(message.confidence! * 100).toStringAsFixed(0)}% • ${message.confidenceLabel}',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: SigumiTheme.textSecondary,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
               ],
             ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.info_outline_rounded,
+                      size: 14, color: SigumiTheme.primaryBlue),
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    message.content,
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: const Color(0xFF6B6B78),
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+        ),
+      );
+    }
+
+    final isUser = message.isUser;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment:
+            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Bot Avatar
+          if (!isUser) ...[
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Image.asset(
+                    'assets/images/SIGUMI-logo.png',
+                    errorBuilder: (ctx, err, stack) => const Icon(
+                        Icons.smart_toy_rounded,
+                        size: 20,
+                        color: SigumiTheme.primaryBlue),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
+
+          // Bubble
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isUser ? SigumiTheme.primaryBlue : Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(16),
+                  topRight: const Radius.circular(16),
+                  bottomLeft: Radius.circular(isUser ? 16 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 16),
+                ),
+                border: isUser
+                    ? null
+                    : Border.all(color: const Color(0xFFE5E7EB)),
+                boxShadow: [
+                  BoxShadow(
+                    color: isUser
+                        ? SigumiTheme.primaryBlue.withValues(alpha: 0.2)
+                        : Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment:
+                    isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  if (message.isVoice)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.mic_rounded,
+                            size: 14,
+                            color: isUser
+                                ? Colors.white.withValues(alpha: 0.7)
+                                : const Color(0xFF9CA3AF),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Pesan Suara',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: isUser
+                                  ? Colors.white.withValues(alpha: 0.7)
+                                  : const Color(0xFF9CA3AF),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Text(
+                    message.content,
+                    style: AppFonts.plusJakartaSans(
+                      color:
+                          isUser ? Colors.white : const Color(0xFF1E1E2C),
+                      fontSize: 14,
+                      height: 1.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0),
           ),
+
+          if (isUser)
+            const SizedBox(width: 4), // Small padding from edge
         ],
       ),
     );
@@ -436,86 +1016,91 @@ class _ChatbotScreenState extends State<ChatbotScreen> {
 
   Widget _buildTypingIndicator() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: SigumiTheme.primaryBlue.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.smart_toy,
-                size: 18, color: SigumiTheme.primaryBlue),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: const Icon(Icons.smart_toy_rounded,
+                size: 20, color: SigumiTheme.primaryBlue),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(16),
+              ),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(3, (i) {
                 return Container(
                   margin: const EdgeInsets.symmetric(horizontal: 2),
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: SigumiTheme.primaryBlue.withOpacity(0.4),
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF9CA3AF),
                     shape: BoxShape.circle,
                   ),
                 )
                     .animate(onPlay: (c) => c.repeat())
                     .moveY(
                       begin: 0,
-                      end: -6,
-                      duration: 500.ms,
+                      end: -4,
+                      duration: 400.ms,
                       delay: Duration(milliseconds: i * 150),
                       curve: Curves.easeInOut,
                     )
                     .then()
                     .moveY(
-                      begin: -6,
+                      begin: -4,
                       end: 0,
-                      duration: 500.ms,
+                      duration: 400.ms,
                       curve: Curves.easeInOut,
                     );
               }),
             ),
-          ),
+          ).animate().fadeIn(duration: 200.ms),
         ],
       ),
     );
   }
 }
 
-class _QuickAction extends StatelessWidget {
+class _QuickActionButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _QuickAction(this.label, this.onTap);
+  const _QuickActionButton(this.label, this.onTap);
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: SigumiTheme.primaryBlue.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: SigumiTheme.primaryBlue.withOpacity(0.2)),
-        ),
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      child: ShadButton.outline(
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        onPressed: onTap,
+        backgroundColor: Colors.white,
         child: Text(
           label,
-          style: const TextStyle(
+          style: AppFonts.plusJakartaSans(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: SigumiTheme.primaryBlue,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF4B5563),
           ),
         ),
       ),

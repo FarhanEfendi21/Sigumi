@@ -35,6 +35,38 @@ class VolcanoModel {
     this.windSpeed,
   });
 
+  VolcanoModel copyWith({
+    String? id,
+    String? name,
+    double? latitude,
+    double? longitude,
+    double? elevation,
+    int? statusLevel,
+    String? statusDescription,
+    DateTime? lastUpdate,
+    String? lastEruption,
+    List<String>? recentActivities,
+    double? temperature,
+    String? windDirection,
+    double? windSpeed,
+  }) {
+    return VolcanoModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      elevation: elevation ?? this.elevation,
+      statusLevel: statusLevel ?? this.statusLevel,
+      statusDescription: statusDescription ?? this.statusDescription,
+      lastUpdate: lastUpdate ?? this.lastUpdate,
+      lastEruption: lastEruption ?? this.lastEruption,
+      recentActivities: recentActivities ?? this.recentActivities,
+      temperature: temperature ?? this.temperature,
+      windDirection: windDirection ?? this.windDirection,
+      windSpeed: windSpeed ?? this.windSpeed,
+    );
+  }
+
   /// Mengembalikan UUID database yang sesuai berdasarkan ID mock atau UUID asli.
   /// Digunakan untuk query ke Supabase (tabel shelters, dll).
   String? get dbId {
@@ -60,13 +92,13 @@ class VolcanoModel {
   String get statusLabel {
     switch (statusLevel) {
       case 1:
-        return 'Normal (Level I)';
+        return 'Level I • Normal';
       case 2:
-        return 'Waspada (Level II)';
+        return 'Level II • Waspada';
       case 3:
-        return 'Siaga (Level III)';
+        return 'Level III • Siaga';
       case 4:
-        return 'Awas (Level IV)';
+        return 'Level IV • Awas';
       default:
         return 'Tidak Diketahui';
     }

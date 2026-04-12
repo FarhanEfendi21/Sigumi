@@ -202,15 +202,15 @@ class SigumiTheme {
   static String getStatusLabel(int level) {
     switch (level) {
       case 1:
-        return 'Normal';
+        return 'Level I • Normal';
       case 2:
-        return 'Waspada';
+        return 'Level II • Waspada';
       case 3:
-        return 'Siaga';
+        return 'Level III • Siaga';
       case 4:
-        return 'Awas';
+        return 'Level IV • Awas';
       default:
-        return 'Normal';
+        return 'Level I • Normal';
     }
   }
 }

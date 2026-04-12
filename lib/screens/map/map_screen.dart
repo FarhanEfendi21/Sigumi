@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
+import '../../config/fonts.dart';
 import '../../config/routes.dart';
 import '../../config/theme.dart';
 import '../../providers/volcano_provider.dart';
@@ -23,10 +25,14 @@ class MapScreen extends StatefulWidget {
   State<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMixin {
+class _MapScreenState extends State<MapScreen>
+    with SingleTickerProviderStateMixin {
   late final MapController _mapController;
   late final AnimationController _glowController;
   bool _isMapFocused = false;
+
+  // State untuk GPS error feedback
+  bool _hasShownInitialError = false;
 
   @override
   void initState() {
@@ -46,18 +52,130 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
   /// Inisialisasi GPS dan mulai tracking lokasi real-time
   Future<void> _initLocation() async {
     final locationService = context.read<LocationService>();
+    
+    // Listen ke perubahan lokasi untuk auto-update peta
+    locationService.addListener(_onLocationChanged);
+    
     await locationService.initialize();
     locationService.startTracking(distanceFilterMeters: 30);
+    
+    // Tampilkan error awal jika ada, tapi hanya sekali sebagai snackbar
+    if (locationService.locationError != null && !_hasShownInitialError) {
+      _hasShownInitialError = true;
+      _showLocationSnackbar(
+        locationService.locationError!,
+        isError: true,
+        showRetry: locationService.gpsStatus == GpsStatus.error || 
+                   locationService.gpsStatus == GpsStatus.denied,
+      );
+    }
+  }
+
+  /// Callback saat lokasi berubah dari LocationService
+  void _onLocationChanged() {
+    if (!mounted) return;
+    final locationService = context.read<LocationService>();
+    
+    // Jika ada error baru yang belum pernah ditampilkan
+    if (locationService.locationError != null) {
+      // Hanya tampilkan snackbar kalau statusnya baru berubah ke error
+      if (locationService.gpsStatus == GpsStatus.error && !_hasShownInitialError) {
+        _hasShownInitialError = true;
+        _showLocationSnackbar(
+          locationService.locationError!,
+          isError: true,
+          showRetry: true,
+        );
+      }
+    } else {
+      // Error cleared — reset flag
+      _hasShownInitialError = false;
+    }
+  }
+
+  /// Tampilkan snackbar sementara (bukan persistent) untuk status GPS
+  void _showLocationSnackbar(
+    String message, {
+    bool isError = false,
+    bool showRetry = false,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    if (!mounted) return;
+    
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isError ? Icons.gps_off_rounded : Icons.gps_fixed_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: AppFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: isError 
+            ? Colors.orange.shade700 
+            : SigumiTheme.statusNormal,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.of(context).size.height * 0.22,
+          left: 16,
+          right: 16,
+        ),
+        duration: duration,
+        action: showRetry
+            ? SnackBarAction(
+                label: 'Coba Lagi',
+                textColor: Colors.white,
+                onPressed: () {
+                  final ls = context.read<LocationService>();
+                  ls.retryTracking();
+                  _hasShownInitialError = false;
+                },
+              )
+            : null,
+      ),
+    );
   }
 
   @override
   void dispose() {
+    // Remove listener saat dispose
+    try {
+      context.read<LocationService>().removeListener(_onLocationChanged);
+    } catch (_) {
+      // Service mungkin sudah dispose
+    }
     _glowController.dispose();
     _mapController.dispose();
     super.dispose();
   }
 
   double _kmToMeter(double km) => km * 1000;
+
+  /// Recenter peta ke posisi user saat ini
+  void _recenterToUser(LocationService locationService) {
+    // Refresh lokasi dulu, lalu pindah kamera
+    locationService.refreshLocation().then((_) {
+      if (mounted) {
+        final pos = LatLng(locationService.userLat, locationService.userLng);
+        _mapController.move(pos, 13);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +214,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'com.sigumi.app',
                     maxZoom: 19,
                   ),
@@ -145,9 +264,9 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                       // User Marker — posisi dari GPS real-time
                       Marker(
                         point: userPos,
-                        width: 40,
-                        height: 40,
-                        child: _buildUserMarker(locationService.isUsingRealGps),
+                        width: 48,
+                        height: 48,
+                        child: _buildUserMarker(locationService),
                       ),
                       // Volcano Marker — dengan glow animasi
                       Marker(
@@ -162,7 +281,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.red.withAlpha((100 * _glowController.value).toInt()),
+                                    color: Colors.red.withAlpha(
+                                        (100 * _glowController.value).toInt()),
                                     blurRadius: 20 * _glowController.value,
                                     spreadRadius: 10 * _glowController.value,
                                   ),
@@ -176,7 +296,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                             decoration: BoxDecoration(
                               color: Colors.red.shade600,
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+                              border:
+                                  Border.all(color: Colors.white, width: 2),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withAlpha(40),
@@ -185,7 +306,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.volcano_rounded, color: Colors.white, size: 24),
+                            child: const Icon(Icons.volcano_rounded,
+                                color: Colors.white, size: 24),
                           ),
                         ),
                       ),
@@ -210,13 +332,14 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                 ),
               ).animate().fadeIn(),
 
-              // ── GPS status indicator ──
-              if (locationService.locationError != null)
+              // ── GPS Status Badge (Subtle) ──
+              // Badge kecil di pojok kiri bawah top bar — hanya tampil saat ada masalah
+              if (locationService.gpsStatus != GpsStatus.active && 
+                  locationService.gpsStatus != GpsStatus.unknown)
                 Positioned(
                   top: MediaQuery.of(context).padding.top + kToolbarHeight + 8,
                   left: 16,
-                  right: 16,
-                  child: _buildLocationWarning(locationService),
+                  child: _buildGpsBadge(locationService),
                 ),
 
               // ── Kontrol Overlay UI ──
@@ -229,26 +352,33 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                     children: [
                       // Layer 3: Floating Map Controls (Right)
                       Positioned(
-                        top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                        top: MediaQuery.of(context).padding.top +
+                            kToolbarHeight +
+                            16,
                         right: 16,
                         child: MapControls(
-                          onLocateMerapi: () => _mapController.move(volcanoPos, 11),
-                          onLocateUser: () {
-                            // Refresh lokasi sebelum pindah
-                            locationService.refreshLocation();
-                            _mapController.move(userPos, 13);
-                          },
+                          onLocateMerapi: () =>
+                              _mapController.move(volcanoPos, 11),
+                          onLocateUser: () =>
+                              _recenterToUser(locationService),
                         ),
                       ).animate().fadeIn().slideX(begin: 0.2),
 
                       // Layer: Floating Posko & Faskes Button (Left)
                       Positioned(
-                        top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                        top: MediaQuery.of(context).padding.top +
+                            kToolbarHeight +
+                            16 +
+                            // Beri space kalau ada GPS badge
+                            (locationService.gpsStatus != GpsStatus.active && 
+                             locationService.gpsStatus != GpsStatus.unknown
+                                ? 44 : 0),
                         left: 16,
                         child: ShadcnMapButton(
                           icon: Icons.health_and_safety_rounded,
                           tooltip: 'Posko & Faskes',
-                          onTap: () => Navigator.pushNamed(context, AppRoutes.postDisaster),
+                          onTap: () => Navigator.pushNamed(
+                              context, AppRoutes.postDisaster),
                         ),
                       ).animate().fadeIn().slideX(begin: -0.2),
 
@@ -256,7 +386,8 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
                       Positioned(
                         left: 0,
                         right: 0,
-                        bottom: MediaQuery.of(context).size.height * 0.18 + 16,
+                        bottom:
+                            MediaQuery.of(context).size.height * 0.18 + 16,
                         child: Hero(
                           tag: 'primary_info_card',
                           child: PrimaryInfoCard(
@@ -283,65 +414,158 @@ class _MapScreenState extends State<MapScreen> with SingleTickerProviderStateMix
   }
 
   /// User marker — biru untuk real GPS, abu-abu untuk simulasi
-  Widget _buildUserMarker(bool isRealGps) {
+  /// Dengan pulse ring saat GPS aktif
+  Widget _buildUserMarker(LocationService locationService) {
+    final isRealGps = locationService.isUsingRealGps;
+    final isActive = locationService.gpsStatus == GpsStatus.active;
     final color = isRealGps ? const Color(0xFF2563EB) : Colors.grey.shade500;
-    return Container(
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: color.withAlpha(100),
-            blurRadius: 10,
-            spreadRadius: 2,
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Pulse ring — hanya tampil saat GPS aktif & tracking
+        if (isActive)
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withAlpha(30),
+            ),
+          )
+              .animate(onPlay: (c) => c.repeat())
+              .scale(
+                begin: const Offset(0.6, 0.6),
+                end: const Offset(1.2, 1.2),
+                duration: 2000.ms,
+                curve: Curves.easeOut,
+              )
+              .fadeOut(
+                begin: 0.6,
+                duration: 2000.ms,
+              ),
+
+        // Marker utama
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 3),
+            boxShadow: [
+              BoxShadow(
+                color: color.withAlpha(100),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Icon(
-        isRealGps ? Icons.my_location : Icons.location_searching,
-        color: Colors.white,
-        size: 20,
-      ),
+          child: Icon(
+            isRealGps ? Icons.my_location : Icons.location_searching,
+            color: Colors.white,
+            size: 16,
+          ),
+        ),
+      ],
     );
   }
 
-  /// Warning banner saat GPS error
-  Widget _buildLocationWarning(LocationService locationService) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.amber.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber.shade400),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(10),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.gps_off, size: 16, color: Colors.amber.shade800),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              locationService.locationError ?? 'Lokasi GPS tidak tersedia',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.amber.shade900,
-                fontWeight: FontWeight.w500,
+  /// Badge GPS kecil yang subtle — hanya tampil saat ada masalah
+  Widget _buildGpsBadge(LocationService locationService) {
+    final status = locationService.gpsStatus;
+    
+    IconData icon;
+    Color bgColor;
+    Color iconColor;
+    String label;
+    bool showRetry = false;
+
+    switch (status) {
+      case GpsStatus.unstable:
+        icon = Icons.gps_not_fixed_rounded;
+        bgColor = Colors.orange.shade50;
+        iconColor = Colors.orange.shade600;
+        label = 'GPS Tidak Stabil';
+        break;
+      case GpsStatus.error:
+        icon = Icons.gps_off_rounded;
+        bgColor = Colors.red.shade50;
+        iconColor = Colors.red.shade500;
+        label = 'GPS Error';
+        showRetry = true;
+        break;
+      case GpsStatus.disabled:
+        icon = Icons.location_disabled_rounded;
+        bgColor = Colors.grey.shade100;
+        iconColor = Colors.grey.shade600;
+        label = 'GPS Nonaktif';
+        break;
+      case GpsStatus.denied:
+        icon = Icons.block_rounded;
+        bgColor = Colors.red.shade50;
+        iconColor = Colors.red.shade400;
+        label = 'Izin Ditolak';
+        showRetry = true;
+        break;
+      default:
+        return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      onTap: showRetry
+          ? () {
+              locationService.retryTracking();
+              _hasShownInitialError = false;
+            }
+          : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: iconColor.withAlpha(40)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(10),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Loading spinner saat retrying
+            if (locationService.isRetrying) ...[
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(iconColor),
+                ),
+              ),
+            ] else ...[
+              Icon(icon, size: 14, color: iconColor),
+            ],
+            const SizedBox(width: 6),
+            Text(
+              locationService.isRetrying ? 'Mencoba...' : label,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: iconColor,
               ),
             ),
-          ),
-          GestureDetector(
-            onTap: () => locationService.refreshLocation(),
-            child: Icon(Icons.refresh, size: 18, color: Colors.amber.shade800),
-          ),
-        ],
+            if (showRetry && !locationService.isRetrying) ...[
+              const SizedBox(width: 4),
+              Icon(Icons.refresh_rounded, size: 12, color: iconColor),
+            ],
+          ],
+        ),
       ),
-    ).animate().fadeIn().slideY(begin: -0.3);
+    ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.2, end: 0);
   }
 }

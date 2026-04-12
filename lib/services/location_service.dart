@@ -5,6 +5,16 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// Status kesehatan GPS tracking
+enum GpsStatus {
+  unknown,     // Belum dicek
+  active,      // GPS aktif dan tracking berjalan lancar
+  unstable,    // Ada error tapi masih retry
+  error,       // Error persisten setelah beberapa kali retry
+  disabled,    // GPS dimatikan oleh user
+  denied,      // Permission ditolak
+}
+
 /// Service untuk lokasi GPS real-time dan integrasi PostGIS Supabase.
 ///
 /// Menangani:
@@ -13,6 +23,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// - Deteksi daerah otomatis berdasarkan GPS
 /// - Update lokasi ke Supabase RPC (menghitung zona risiko di database)
 /// - Fallback ke lokasi simulasi jika GPS tidak tersedia
+/// - Auto-retry mechanism saat tracking error
 class LocationService extends ChangeNotifier {
   // Singleton pattern
   static final LocationService _instance = LocationService._internal();
@@ -29,6 +40,11 @@ class LocationService extends ChangeNotifier {
     'Lombok':     {'lat': -8.4111, 'lng': 116.4573}, // Rinjani
   };
 
+  // ── Konfigurasi retry ──
+  static const int _maxRetryAttempts = 3;
+  static const Duration _retryDelay = Duration(seconds: 5);
+  static const Duration _errorCooldown = Duration(seconds: 30);
+
   // ── State lokasi ──
   double _userLat = -7.7956;  // Default: Yogyakarta
   double _userLng = 110.3695;
@@ -36,6 +52,13 @@ class LocationService extends ChangeNotifier {
   bool _isTracking = false;
   String? _locationError;
   DateTime? _lastUpdated;
+  GpsStatus _gpsStatus = GpsStatus.unknown;
+
+  // ── Error tracking ──
+  int _consecutiveErrors = 0;
+  DateTime? _lastErrorShown;
+  Timer? _retryTimer;
+  bool _isRetrying = false;
 
   // ── Deteksi daerah otomatis ──
   String? _detectedRegion;        // Daerah yang terdeteksi GPS (null = di luar)
@@ -64,6 +87,8 @@ class LocationService extends ChangeNotifier {
   bool get isTracking => _isTracking;
   String? get locationError => _locationError;
   DateTime? get lastUpdated => _lastUpdated;
+  GpsStatus get gpsStatus => _gpsStatus;
+  bool get isRetrying => _isRetrying;
 
   String? get nearestVolcanoId => _nearestVolcanoId;
   String get nearestVolcanoName => _nearestVolcanoName;
@@ -117,6 +142,7 @@ class LocationService extends ChangeNotifier {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         _locationError = 'GPS tidak aktif. Aktifkan lokasi di pengaturan.';
+        _gpsStatus = GpsStatus.disabled;
         _calculateLocalDistance(); // Fallback ke kalkulasi lokal
         notifyListeners();
         return;
@@ -128,6 +154,7 @@ class LocationService extends ChangeNotifier {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           _locationError = 'Izin lokasi ditolak.';
+          _gpsStatus = GpsStatus.denied;
           _calculateLocalDistance();
           notifyListeners();
           return;
@@ -137,6 +164,7 @@ class LocationService extends ChangeNotifier {
       if (permission == LocationPermission.deniedForever) {
         _locationError =
             'Izin lokasi diblokir permanen. Buka pengaturan untuk mengizinkan.';
+        _gpsStatus = GpsStatus.denied;
         _calculateLocalDistance();
         notifyListeners();
         return;
@@ -155,6 +183,8 @@ class LocationService extends ChangeNotifier {
       _userLng = position.longitude;
       _isUsingRealGps = true;
       _lastUpdated = DateTime.now();
+      _gpsStatus = GpsStatus.active;
+      _consecutiveErrors = 0;
       
       // Update ke Supabase & hitung zona risiko
       await _updateLocationToSupabase();
@@ -163,18 +193,27 @@ class LocationService extends ChangeNotifier {
     } catch (e) {
       debugPrint('[LocationService] Init error: $e');
       _locationError = 'Gagal mendapatkan lokasi GPS.';
+      _gpsStatus = GpsStatus.error;
       _calculateLocalDistance();
       notifyListeners();
     }
   }
 
   /// ──────────────────────────────────────────────
-  /// START TRACKING — Real-time GPS updates
+  /// START TRACKING — Real-time GPS updates dengan auto-retry
   /// ──────────────────────────────────────────────
   void startTracking({int distanceFilterMeters = 50}) {
     if (_isTracking) return;
 
     _isTracking = true;
+    _consecutiveErrors = 0;
+    _startPositionStream(distanceFilterMeters);
+    notifyListeners();
+  }
+
+  /// Internal: start/restart position stream
+  void _startPositionStream(int distanceFilterMeters) {
+    _positionStream?.cancel();
     _positionStream = Geolocator.getPositionStream(
       locationSettings: LocationSettings(
         accuracy: LocationAccuracy.high,
@@ -186,7 +225,12 @@ class LocationService extends ChangeNotifier {
         _userLng = position.longitude;
         _isUsingRealGps = true;
         _lastUpdated = DateTime.now();
+        
+        // Reset error state saat berhasil dapat posisi baru
         _locationError = null;
+        _consecutiveErrors = 0;
+        _isRetrying = false;
+        _gpsStatus = GpsStatus.active;
 
         // Update lokasi ke Supabase (akan menghitung zona risiko juga)
         await _updateLocationToSupabase();
@@ -195,10 +239,79 @@ class LocationService extends ChangeNotifier {
       },
       onError: (error) {
         debugPrint('[LocationService] Stream error: $error');
-        _locationError = 'Tracking lokasi terganggu.';
-        notifyListeners();
+        _handleTrackingError(distanceFilterMeters);
       },
     );
+  }
+
+  /// Handle tracking error dengan retry logic
+  void _handleTrackingError(int distanceFilterMeters) {
+    _consecutiveErrors++;
+
+    if (_consecutiveErrors <= _maxRetryAttempts) {
+      // ── Retry: coba reconnect otomatis ──
+      _gpsStatus = GpsStatus.unstable;
+      _isRetrying = true;
+      
+      // Jangan spam error message — hanya tampilkan sekali
+      final now = DateTime.now();
+      if (_lastErrorShown == null || 
+          now.difference(_lastErrorShown!) > _errorCooldown) {
+        _locationError = 'Lokasi tidak stabil, mencoba memperbarui…';
+        _lastErrorShown = now;
+      }
+      
+      notifyListeners();
+
+      // Auto retry setelah delay
+      _retryTimer?.cancel();
+      _retryTimer = Timer(_retryDelay, () {
+        if (_isTracking) {
+          debugPrint('[LocationService] Retry attempt $_consecutiveErrors/$_maxRetryAttempts');
+          _startPositionStream(distanceFilterMeters);
+        }
+      });
+    } else {
+      // ── Error persisten — beri tahu user tapi jangan blocking ──
+      _gpsStatus = GpsStatus.error;
+      _isRetrying = false;
+      _locationError = 'GPS tidak tersedia. Menggunakan lokasi terakhir.';
+      
+      // Tetap pakai lokasi terakhir yang valid (fallback UX)
+      // Jangan kosongkan data atau hapus peta
+      
+      notifyListeners();
+    }
+  }
+
+  /// ──────────────────────────────────────────────
+  /// RETRY MANUAL — Dipanggil saat user tap "Coba Lagi"
+  /// ──────────────────────────────────────────────
+  Future<void> retryTracking() async {
+    _consecutiveErrors = 0;
+    _isRetrying = true;
+    _locationError = null;
+    _gpsStatus = GpsStatus.unstable;
+    notifyListeners();
+
+    // Coba init ulang dulu
+    await initialize();
+    
+    // Jika berhasil, restart tracking
+    if (_gpsStatus == GpsStatus.active) {
+      stopTracking();
+      startTracking(distanceFilterMeters: 30);
+    } else {
+      _isRetrying = false;
+      notifyListeners();
+    }
+  }
+
+  /// ──────────────────────────────────────────────
+  /// CLEAR ERROR — Untuk dismiss error dari UI
+  /// ──────────────────────────────────────────────
+  void clearLocationError() {
+    _locationError = null;
     notifyListeners();
   }
 
@@ -208,7 +321,10 @@ class LocationService extends ChangeNotifier {
   void stopTracking() {
     _positionStream?.cancel();
     _positionStream = null;
+    _retryTimer?.cancel();
+    _retryTimer = null;
     _isTracking = false;
+    _isRetrying = false;
     notifyListeners();
   }
 
@@ -258,29 +374,22 @@ class LocationService extends ChangeNotifier {
     try {
       final client = Supabase.instance.client;
       
-      // Hanya update ke Supabase jika user sudah login
+      // Update data lokasi ke Supabase jika login
       if (client.auth.currentUser != null) {
-        final result = await client.rpc('update_user_location', params: {
+        await client.rpc('update_user_location', params: {
           'p_lat': _userLat,
           'p_lng': _userLng,
         });
-
-        if (result != null && result['success'] == true) {
-          final volcano = result['nearest_volcano'];
-          _nearestVolcanoId = volcano['id'];
-          _nearestVolcanoName = volcano['name'] ?? 'Gunung Merapi';
-          _distanceFromVolcano = (volcano['distance_km'] as num).toDouble();
-          _zoneLevel = volcano['zone_level'] as int;
-          _zoneLabel = volcano['zone_label'] ?? 'ZONA RELATIF AMAN';
-          _volcanoStatusLevel = volcano['status_level'] as int;
-        }
-      } else {
-        // Jika belum login, hitung lokal sebagai fallback
-        _calculateLocalDistance();
       }
+      
+      // KEMBALIKAN LOGIKA LOKASI: 
+      // Selalu gunakan kalkulasi lokal agar jarak yang ditampilkan
+      // secara real-time selalu mengacu pada gunung yang dipilih user
+      // (active volcano) dan tidak di-override oleh hasil RPC Supabase.
+      _calculateLocalDistance();
+      
     } catch (e) {
       debugPrint('[LocationService] Supabase update error: $e');
-      // Fallback ke kalkulasi lokal jika Supabase gagal
       _calculateLocalDistance();
     }
   }
@@ -345,11 +454,14 @@ class LocationService extends ChangeNotifier {
       _isUsingRealGps = true;
       _lastUpdated = DateTime.now();
       _locationError = null;
+      _gpsStatus = GpsStatus.active;
+      _consecutiveErrors = 0;
 
       await _updateLocationToSupabase();
       notifyListeners();
     } catch (e) {
       _locationError = 'Gagal refresh lokasi.';
+      _gpsStatus = GpsStatus.error;
       notifyListeners();
     }
   }
