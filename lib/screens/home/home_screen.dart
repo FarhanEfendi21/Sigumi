@@ -492,7 +492,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
 
-                  // Berita Terkini Section
+                  // Berita Terkini Section (Disembunyikan sementara menunggu fitur Admin selesai)
+                 
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
                     child: Row(
@@ -528,6 +529,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   // News Carousel Slider
                   NewsCarousel(newsItems: provider.newsItems),
+          
 
                   const SizedBox(height: 100),
                 ],

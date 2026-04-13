@@ -8,7 +8,7 @@ import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
-import 'auth_language_selector.dart';
+
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -160,17 +160,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: SafeArea(
               child: Column(
                 children: [
-                  // Language selector at top right
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16, right: 28),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: const AuthLanguageSelector().animate().fadeIn(
-                        duration: 400.ms,
-                      ),
-                    ),
-                  ),
-
                   // Scrollable content
                   Expanded(
                     child: SingleChildScrollView(

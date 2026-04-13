@@ -131,10 +131,6 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
             elevation: 0,
             iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
             centerTitle: true,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: Color(0xFF1E1E2C)),
-              onPressed: () => Navigator.pop(context),
-            ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),
               child: Container(

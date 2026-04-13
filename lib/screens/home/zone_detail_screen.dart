@@ -3,25 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
-import '../../models/volcano_activity.dart';
 import '../../providers/volcano_provider.dart';
 
-class ZoneDetailScreen extends StatefulWidget {
+class ZoneDetailScreen extends StatelessWidget {
   const ZoneDetailScreen({super.key});
-
-  @override
-  State<ZoneDetailScreen> createState() => _ZoneDetailScreenState();
-}
-
-class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Fetch data aktivitas saat masuk halaman
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<VolcanoProvider>().fetchRecentActivities();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,12 +127,34 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
 
                       const SizedBox(height: 14),
 
-                      // ── Aktivitas Terkini (dari database admin) ──
+                      // ── Aktivitas Terkini ──
                       _buildSectionCard(
                         icon: Icons.history_rounded,
                         iconColor: Colors.deepPurple,
                         title: 'Aktivitas Terkini',
-                        child: _buildActivitiesContent(provider),
+                        child: volcano.recentActivities.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                child: Text(
+                                  'Belum ada data aktivitas terkini untuk saat ini.',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: const Color(0xFF9E9EAE),
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              )
+                            : Column(
+                                children: List.generate(
+                                  volcano.recentActivities.length,
+                                  (i) => _buildActivityItem(
+                                    volcano.recentActivities[i],
+                                    i,
+                                    volcano.recentActivities.length,
+                                    SigumiTheme.getStatusColor(volcano.statusLevel),
+                                  ),
+                                ),
+                              ),
                       ),
 
                       const SizedBox(height: 20),
@@ -270,105 +277,6 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
           ),
         );
       },
-    );
-  }
-
-  /// Konten Aktivitas Terkini — dari database atau empty state
-  Widget _buildActivitiesContent(VolcanoProvider provider) {
-    // Loading state
-    if (provider.isLoadingActivities) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Center(
-          child: Column(
-            children: [
-              const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                'Memuat aktivitas...',
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 12,
-                  color: const Color(0xFF9E9EAE),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    // Empty state — tabel belum ada atau belum ada data dari admin
-    if (!provider.hasActivities) {
-      return _buildEmptyState(
-        icon: Icons.history_rounded,
-        title: 'Belum Ada Data Aktivitas',
-        subtitle: 'Data aktivitas terkini gunung akan ditampilkan di sini '
-            'setelah diinput oleh admin PVMBG/BPPTKG.',
-      );
-    }
-
-    // Data tersedia — tampilkan timeline
-    return Column(
-      children: List.generate(
-        provider.recentActivities.length,
-        (i) => _buildActivityItem(
-          provider.recentActivities[i],
-          i,
-          provider.recentActivities.length,
-          SigumiTheme.getStatusColor(provider.volcano.statusLevel),
-        ),
-      ),
-    );
-  }
-
-  /// Empty state widget yang konsisten
-  Widget _buildEmptyState({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF3F4F6),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              size: 28,
-              color: const Color(0xFFB0B0BE),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: AppFonts.plusJakartaSans(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF6B6B78),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: AppFonts.plusJakartaSans(
-              fontSize: 11,
-              color: const Color(0xFF9E9EAE),
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -559,27 +467,13 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     );
   }
 
-  /// Item timeline untuk aktivitas dari database
   Widget _buildActivityItem(
-    VolcanoActivity activity,
+    String activity,
     int index,
     int total,
     Color statusColor,
   ) {
     final isLast = index == total - 1;
-
-    // Warna berdasarkan severity
-    final Color dotColor;
-    switch (activity.severityLevel) {
-      case 3:
-        dotColor = Colors.red;
-        break;
-      case 2:
-        dotColor = Colors.orange;
-        break;
-      default:
-        dotColor = statusColor;
-    }
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,10 +488,10 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 height: 10,
                 margin: const EdgeInsets.only(top: 4),
                 decoration: BoxDecoration(
-                  color: index == 0 ? dotColor : dotColor.withAlpha(50),
+                  color: index == 0 ? statusColor : statusColor.withAlpha(50),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: dotColor.withAlpha(100),
+                    color: statusColor.withAlpha(100),
                     width: 1.5,
                   ),
                 ),
@@ -615,48 +509,21 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Deskripsi aktivitas
                 Text(
-                  activity.description,
+                  activity,
                   style: AppFonts.plusJakartaSans(
                     fontSize: 12,
                     color: const Color(0xFF3A3A4A),
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 4),
-                // Badge tipe + timestamp
-                Row(
-                  children: [
-                    // Badge tipe aktivitas
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        '${activity.activityTypeEmoji} ${activity.activityTypeLabel}',
-                        style: AppFonts.plusJakartaSans(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF6B6B78),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Timestamp asli dari database
-                    Text(
-                      _formatTime(activity.observedAt),
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 10,
-                        color: const Color(0xFF9E9EAE),
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 3),
+                Text(
+                  _fakeTimestamp(index),
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 10,
+                    color: const Color(0xFF9E9EAE),
+                  ),
                 ),
               ],
             ),
@@ -664,6 +531,30 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
         ),
       ],
     );
+  }
+
+  String _fakeTimestamp(int index) {
+    final now = DateTime.now();
+    final offset = Duration(hours: index * 6 + 2);
+    final dt = now.subtract(offset);
+    final months = [
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return '${dt.day} ${months[dt.month]}, '
+        '${dt.hour.toString().padLeft(2, '0')}:'
+        '${dt.minute.toString().padLeft(2, '0')} WIB';
   }
 
   String _zoneEmoji(int level) {

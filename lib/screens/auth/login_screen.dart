@@ -7,7 +7,6 @@ import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
-import 'auth_language_selector.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -114,14 +113,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         const SizedBox(height: 16),
-
-                        // Language selector at top right
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: const AuthLanguageSelector().animate().fadeIn(
-                            duration: 400.ms,
-                          ),
-                        ),
 
                         const Spacer(flex: 2),
 

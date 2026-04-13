@@ -4,6 +4,7 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../config/theme.dart';
+import '../../config/fonts.dart';
 import '../../providers/volcano_provider.dart';
 import '../../services/location_service.dart';
 
@@ -34,19 +35,13 @@ class _EvacuationScreenState extends State<EvacuationScreen> {
         scrolledUnderElevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
-        title: const Text(
+        title: Text(
           'Titik Aman Evakuasi',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
+          style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
             fontSize: 20,
-            color: Color(0xFF1E1E2C),
+            color: const Color(0xFF1E1E2C),
           ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Color(0xFF1E1E2C), size: 20),
-          onPressed: () => Navigator.pop(context),
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),

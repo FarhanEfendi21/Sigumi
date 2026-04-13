@@ -250,13 +250,13 @@ class VolcanoProvider extends ChangeNotifier {
   String _generateStatusDescriptionFor(String name, int level) {
     switch (level) {
       case 4:
-        return 'AWAS! Peningkatan aktivitas $name sangat signifikan mengancam pemukiman wilayah terdekat. Bersiap Evakuasi Ikuti Arahan BPBD.';
+        return 'AWAS! Status Gunung $name berada pada Level IV. Data detail aktivitas sedang diperbarui...';
       case 3:
-        return 'Aktivitas vulkanik status Siaga. Telah terjadi serangkaian vulkanik dalam. Hindari zona bahaya dalam radius 5 km.';
+        return 'SIAGA! Status Gunung $name berada pada Level III. Data detail aktivitas sedang diperbarui...';
       case 2:
-        return 'Peningkatan aktivitas $name waspada ringan. Terdapat gempa sesekali dan hembusan asap kawah.';
+        return 'WASPADA! Status Gunung $name berada pada Level II. Data detail aktivitas sedang diperbarui...';
       default:
-        return 'Aktivitas vulkanik tergolong normal dan stabil secara visual dan instrumental.';
+        return 'Status Gunung $name Normal (Level I). Data detail aktivitas sedang diperbarui...';
     }
   }
 
@@ -504,9 +504,7 @@ class VolcanoProvider extends ChangeNotifier {
               ? DateTime.parse(json['last_update'])
               : DateTime.now(),
           lastEruption: json['last_eruption'],
-          recentActivities: (json['recent_activities'] as List?)
-              ?.map((e) => e.toString())
-              .toList() ?? [],
+          recentActivities: [], // Paksa kosong sementara menunggu data real dari admin panel
           temperature: (json['temperature'] as num?)?.toDouble(),
           windDirection: json['wind_direction'],
           windSpeed: (json['wind_speed'] as num?)?.toDouble(),
