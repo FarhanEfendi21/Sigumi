@@ -75,7 +75,7 @@ class LocationService extends ChangeNotifier {
   double _distanceFromVolcano = 0;
   int _zoneLevel = 1;
   String _zoneLabel = 'ZONA RELATIF AMAN';
-  int _volcanoStatusLevel = 1;
+  final int _volcanoStatusLevel = 1;
 
   // ── Stream subscription ──
   StreamSubscription<Position>? _positionStream;

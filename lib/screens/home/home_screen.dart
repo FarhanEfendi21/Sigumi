@@ -397,9 +397,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // Menu Grid
+                  // Tourism Promo Banner
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    child: _TourismBannerCard(region: provider.selectedRegion),
+                  ),
+
+                  // Menu Grid
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                     child: Text(
                       'Menu Utama',
                       style: Theme.of(context).textTheme.titleLarge,
@@ -426,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       _ShadMenuCard(
                         icon: Icons.camera_alt_rounded,
-                        label: 'Live\nVisual',
+                        label: 'CCTV\nGunung',
                         color: Colors.teal,
                         onTap:
                             () => Navigator.pushNamed(
@@ -461,13 +467,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         onTap:
                             () =>
                                 Navigator.pushNamed(context, AppRoutes.chatbot),
-                      ),
-                      _ShadMenuCard(
-                        icon: Icons.volcano_rounded,
-                        label: 'Aplikasi\nMagma',
-                        color: const Color(0xFFB71C1C),
-                        onTap:
-                            () => Navigator.pushNamed(context, AppRoutes.magma),
                       ),
                       _ShadMenuCard(
                         icon: Icons.phone_in_talk_rounded,
@@ -964,6 +963,122 @@ class _ShadMenuCard extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// TOURISM BANNER CARD (FEATURED)
+// ─────────────────────────────────────────────────────────────────
+
+class _TourismBannerCard extends StatelessWidget {
+  final String region;
+
+  const _TourismBannerCard({required this.region});
+
+  static const Map<String, Color> _regionColors = {
+    'Yogyakarta': Color(0xFF1B2E7B),
+    'Bali': Color(0xFF1A6B4A),
+    'Lombok': Color(0xFF0D4F7C),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    // Default fallback to signature blue if region not strictly matched
+    final bgColor = _regionColors[region] ?? const Color(0xFF1B2E7B);
+
+    return Container(
+      width: double.infinity,
+      height: 120, // Clean, balanced height
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            bgColor,
+            bgColor.withAlpha(200),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: bgColor.withAlpha(50),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => Navigator.pushNamed(context, AppRoutes.tourism),
+          child: Stack(
+            children: [
+              // Decorative Background Icon
+              Positioned(
+                right: -20,
+                bottom: -20,
+                child: Icon(
+                  Icons.explore_rounded,
+                  size: 140,
+                  color: Colors.white.withAlpha(25),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Title Typography Hierarchy
+                    Text(
+                      'Jelajahi Wisata $region',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    // Subtitle & Action Indicator (Hierarchical Spacing)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Temukan destinasi & agenda budaya menarik',
+                            style: TextStyle(
+                              color: Colors.white.withAlpha(200),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(40),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

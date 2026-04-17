@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flip_card/flip_card.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../../config/theme.dart';
 import '../../models/education_model.dart';
@@ -102,38 +104,69 @@ class _GeneralEducationGrid extends StatelessWidget {
   }
 }
 
-class _ChildrenEducationGrid extends StatelessWidget {
+class _ChildrenEducationGrid extends StatefulWidget {
   const _ChildrenEducationGrid();
+
+  @override
+  State<_ChildrenEducationGrid> createState() => _ChildrenEducationGridState();
+}
+
+class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     final cards = EducationMockData.childrenTopics;
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
+    return Column(
+      children: [
+        Padding(
           padding: const EdgeInsets.all(16),
-          sliver: SliverToBoxAdapter(
-            child: _AnimatedHeader(
-              title: 'Belajar Bersama Anak-Anak 🎈',
-              subtitle: 'Kenali gunung berapi dan cara aman dengan bahasa yang mudah untuk si kecil.',
-              icon: Icons.child_care_rounded,
-            ),
+          child: const _AnimatedHeader(
+            title: 'Petualangan Anak Hebat! 🎈',
+            subtitle: 'Geser kartu di bawah ini dan mainkan kuis serunya!',
+            icon: Icons.child_care_rounded,
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) => _ChildGridCard(card: cards[index], index: index),
-              childCount: cards.length,
-            ),
+        const Spacer(),
+        CarouselSlider.builder(
+          itemCount: cards.length,
+          itemBuilder: (context, index, realIndex) {
+            return _ChildFlashcardItem(card: cards[index], index: index);
+          },
+          options: CarouselOptions(
+            height: MediaQuery.of(context).size.height * 0.55,
+            enlargeCenterPage: true,
+            viewportFraction: 0.85,
+            enableInfiniteScroll: false,
+            onPageChanged: (index, reason) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
           ),
         ),
-        const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+        const Spacer(),
+        // Dot indicator
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: cards.asMap().entries.map((entry) {
+            return Container(
+              width: _currentIndex == entry.key ? 24.0 : 8.0,
+              height: 8.0,
+              margin: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 4.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                color: (cards[entry.key]['color'] as Color)
+                    .withValues(alpha: _currentIndex == entry.key ? 0.9 : 0.3),
+              ),
+            );
+          }).toList(),
+        ),
       ],
     );
   }
 }
+
 
 class _DisabilityEducationGrid extends StatelessWidget {
   const _DisabilityEducationGrid();
@@ -363,184 +396,270 @@ class _TopicGridCard extends StatelessWidget {
   }
 }
 
-class _ChildGridCard extends StatelessWidget {
+class _ChildFlashcardItem extends StatefulWidget {
   final Map<String, dynamic> card;
   final int index;
 
-  const _ChildGridCard({required this.card, required this.index});
+  const _ChildFlashcardItem({required this.card, required this.index});
+
+  @override
+  State<_ChildFlashcardItem> createState() => _ChildFlashcardItemState();
+}
+
+class _ChildFlashcardItemState extends State<_ChildFlashcardItem> {
+  int? _selectedAnswerIndex;
+  bool _hasAnswered = false;
 
   @override
   Widget build(BuildContext context) {
-    final color = card['color'] as Color;
-    
+    final color = widget.card['color'] as Color;
+
+    return FlipCard(
+      direction: FlipDirection.HORIZONTAL,
+      front: _buildFrontCard(color),
+      back: _buildBackCard(color),
+    );
+  }
+
+  Widget _buildFrontCard(Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(36), // Bubbly corners
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 3),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: color.withValues(alpha: 0.15),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // New Illustration Header like General Section
-          Container(
-            width: double.infinity,
-            height: 140,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-            ),
-            child: Center(
-              child: Text(
-                card['emoji'] as String,
-                style: const TextStyle(fontSize: 60),
+          // Header Image/Emoji
+          Expanded(
+            flex: 4,
+            child: Container(
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(33)),
+              ),
+              child: Center(
+                child: Text(
+                  widget.card['emoji'] as String,
+                  style: const TextStyle(fontSize: 80),
+                ).animate(onPlay: (controller) => controller.repeat(reverse: true))
+                 .scaleXY(end: 1.08, duration: 1.5.seconds, curve: Curves.easeInOutSine)
+                 .slideY(end: -0.1, duration: 1.5.seconds, curve: Curves.easeInOutSine),
               ),
             ),
           ),
-          
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                Text(
-                  card['title'] as String,
-                  style: AppFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 20,
-                    color: color,
+          // Content
+          Expanded(
+            flex: 6,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.card['title'] as String,
+                    textAlign: TextAlign.center,
+                    style: AppFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                      color: color,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                
-                // Intro
-                _buildHighlightedText(card['intro'] as String, color, fontSize: 15.5),
-                const SizedBox(height: 18),
-                
-                // Bullets
-                if (card['bullets'] != null)
-                  ...((card['bullets'] as List<String>).map((bullet) => Padding(
-                        padding: const EdgeInsets.only(bottom: 12.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(top: 8, right: 12),
-                              width: 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            Expanded(
-                              child: _buildHighlightedText(bullet, color, fontSize: 14.5),
-                            ),
-                          ],
-                        ),
-                      ))),
-                
-                // Fun Fact / Tip
-                if (card['tip'] != null) ...[
                   const SizedBox(height: 12),
+                  Text(
+                    widget.card['intro'] as String,
+                    textAlign: TextAlign.center,
+                    style: AppFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: Colors.black87,
+                      height: 1.5,
+                    ),
+                  ),
+                  const Spacer(),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.04),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: color.withValues(alpha: 0.08),
-                        width: 1,
-                      ),
+                      color: color,
+                      borderRadius: BorderRadius.circular(24),
                     ),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('💡', style: TextStyle(fontSize: 20)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'TAHUKAH KAMU?',
-                                style: AppFonts.plusJakartaSans(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: color,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              _buildHighlightedText(card['tip'] as String, color, fontSize: 14),
-                            ],
-                          ),
-                        ),
+                        const Text('Ketuk untuk main kuis!',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.touch_app, color: Colors.white, size: 18),
                       ],
                     ),
-                  ),
+                  ).animate(onPlay: (controller) => controller.repeat(reverse: true)).scaleXY(end: 1.05, duration: 800.ms),
                 ],
-              ],
+              ),
             ),
           ),
         ],
       ),
-    ).animate().fadeIn(
-      delay: Duration(milliseconds: 100 * index),
-      duration: 400.ms,
-    ).slideY(
-      begin: 0.05,
-      end: 0,
-      curve: Curves.easeOutCubic,
-      duration: 400.ms,
-      delay: Duration(milliseconds: 100 * index),
     );
   }
 
-  Widget _buildHighlightedText(String text, Color highlightColor, {double fontSize = 14.0}) {
-    final spans = <TextSpan>[];
-    final parts = text.split('*');
-    for (int i = 0; i < parts.length; i++) {
-      if (i % 2 == 1) {
-        // Highlighted part - Now consistent with user request: Not bold & black
-        spans.add(TextSpan(
-          text: parts[i],
-          style: AppFonts.plusJakartaSans(
-            fontWeight: FontWeight.w500, // Medium but not bold
-            color: Colors.black.withValues(alpha: 0.9),
-          ),
-        ));
-      } else {
-        // Normal part
-        spans.add(TextSpan(
-          text: parts[i],
-          style: AppFonts.plusJakartaSans(
-            fontWeight: FontWeight.w400,
-            color: Colors.black87,
-          ),
-        ));
-      }
+  Widget _buildBackCard(Color color) {
+    if (widget.card['quizAnswers'] == null) {
+      return Container(
+         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(36)),
+         child: const Center(child: Text('Belum ada kuis untuk bagian ini!')),
+      );
     }
-    return RichText(
-      text: TextSpan(
-        style: AppFonts.plusJakartaSans(
-          fontSize: fontSize,
-          height: 1.6, // Better line height for children's reading
+    
+    final answers = widget.card['quizAnswers'] as List<String>;
+    final correctAnswerIndex = widget.card['correctAnswerIndex'] as int;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(color: color.withValues(alpha: 0.5), width: 3),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.2),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Column(
+          children: [
+            Text(
+              'Ayo Jawab!',
+              style: AppFonts.plusJakartaSans(
+                fontWeight: FontWeight.w900,
+                fontSize: 22,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              widget.card['quizQuestion'] as String,
+              textAlign: TextAlign.center,
+              style: AppFonts.plusJakartaSans(
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Expanded(
+              child: ListView.separated(
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: answers.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                itemBuilder: (context, i) {
+                  final isSelected = _selectedAnswerIndex == i;
+                  final isCorrect = i == correctAnswerIndex;
+                  
+                  Color btnColor = Colors.grey.shade100;
+                  Color textColor = Colors.black87;
+                  
+                  if (_hasAnswered) {
+                    if (isCorrect) {
+                      btnColor = Colors.green.shade100;
+                      textColor = Colors.green.shade800;
+                    } else if (isSelected && !isCorrect) {
+                      btnColor = Colors.red.shade100;
+                      textColor = Colors.red.shade800;
+                    }
+                  } else if (isSelected) {
+                    btnColor = color.withValues(alpha: 0.2);
+                  }
+
+                  return InkWell(
+                    onTap: _hasAnswered ? null : () {
+                      setState(() {
+                        _selectedAnswerIndex = i;
+                        _hasAnswered = true;
+                      });
+                    },
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: btnColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: (_hasAnswered && isCorrect) 
+                             ? Colors.green 
+                             : ((_hasAnswered && isSelected && !isCorrect) ? Colors.red : Colors.transparent),
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              answers[i],
+                              style: AppFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13.5,
+                                color: textColor,
+                              ),
+                            ),
+                          ),
+                          if (_hasAnswered && isCorrect)
+                            const Icon(Icons.check_circle, color: Colors.green),
+                          if (_hasAnswered && isSelected && !isCorrect)
+                            const Icon(Icons.cancel, color: Colors.red),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (_hasAnswered)
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _selectedAnswerIndex == correctAnswerIndex 
+                      ? Colors.green.shade50 
+                      : Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: _selectedAnswerIndex == correctAnswerIndex
+                        ? Colors.green.shade200
+                        : Colors.orange.shade200,
+                  )
+                ),
+                child: Text(
+                  widget.card['explanation'] as String,
+                  textAlign: TextAlign.center,
+                  style: AppFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: _selectedAnswerIndex == correctAnswerIndex
+                        ? Colors.green.shade800
+                        : Colors.orange.shade800,
+                  ),
+                ),
+              ).animate().fadeIn().slideY(begin: 0.2, end: 0),
+          ],
         ),
-        children: spans,
       ),
     );
   }
 }
+
 
 class _DisabilityGridCard extends StatelessWidget {
   final Map<String, dynamic> item;

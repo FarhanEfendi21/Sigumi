@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../config/theme.dart';
 import '../config/routes.dart';
+import 'onboarding/onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,11 +17,26 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 3000), () {
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
-      }
-    });
+    // Tunggu animasi selesai, lalu putuskan rute berikutnya
+    Future.delayed(const Duration(milliseconds: 2800), _navigateNext);
+  }
+
+  /// Cek apakah user sudah pernah melewati onboarding.
+  /// - Belum pernah → OnboardingScreen
+  /// - Sudah → LoginScreen
+  Future<void> _navigateNext() async {
+    if (!mounted) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingDone = prefs.getBool(kOnboardingDoneKey) ?? false;
+
+    if (!mounted) return;
+
+    if (onboardingDone) {
+      Navigator.pushReplacementNamed(context, AppRoutes.login);
+    } else {
+      Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
+    }
   }
 
   @override
@@ -27,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
     final size = MediaQuery.of(context).size;
     final shortSide = size.shortestSide;
 
-    // Responsive logo size: 18% of shortest side, clamped between 60-120
+    // Ukuran logo responsif: 18% sisi terpendek, dibatasi 60–120
     final logoSize = (shortSide * 0.18).clamp(60.0, 120.0);
     final titleSize = (shortSide * 0.026).clamp(11.0, 15.0);
 
@@ -41,12 +58,12 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             const Spacer(flex: 4),
 
-            // Logo with smooth scale + fade
+            // Logo dengan animasi scale + fade
             Image.asset(
-                  'assets/images/SIGUMI-logo.png',
-                  height: logoSize,
-                  fit: BoxFit.contain,
-                )
+              'assets/images/SIGUMI-logo.png',
+              height: logoSize,
+              fit: BoxFit.contain,
+            )
                 .animate()
                 .fadeIn(duration: 900.ms, curve: Curves.easeOut)
                 .scale(
@@ -58,17 +75,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
             SizedBox(height: logoSize * 0.15),
 
-            // Subtitle text
+            // Teks subtitle
             Text(
-                  'Sistem Informasi Gunung Berapi\nMitigasi Bencana',
-                  textAlign: TextAlign.center,
-                  style: AppFonts.plusJakartaSans(
-                    color: SigumiTheme.primaryBlue.withAlpha(160),
-                    fontSize: titleSize,
-                    height: 1.5,
-                    letterSpacing: 0.3,
-                  ),
-                )
+              'Sistem Informasi Gunung Berapi\nMitigasi Bencana',
+              textAlign: TextAlign.center,
+              style: AppFonts.plusJakartaSans(
+                color: SigumiTheme.primaryBlue.withAlpha(160),
+                fontSize: titleSize,
+                height: 1.5,
+                letterSpacing: 0.3,
+              ),
+            )
                 .animate()
                 .fadeIn(delay: 500.ms, duration: 800.ms, curve: Curves.easeOut)
                 .moveY(
@@ -95,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             const SizedBox(height: 12),
 
-            // Version text
+            // Versi aplikasi
             Text(
               'v1.0.0',
               style: AppFonts.plusJakartaSans(
@@ -111,4 +128,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-

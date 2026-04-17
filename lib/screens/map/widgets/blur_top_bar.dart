@@ -5,13 +5,15 @@ import 'package:sigumi/config/fonts.dart';
 class BlurTopBar extends StatelessWidget {
   final String title;
   final bool isMapFocused;
-  final VoidCallback onToggleFocus;
+  final VoidCallback? onToggleFocus;
+  final VoidCallback? onBack;
 
   const BlurTopBar({
     super.key,
     required this.title,
     required this.isMapFocused,
-    required this.onToggleFocus,
+    this.onToggleFocus,
+    this.onBack,
   });
 
   @override
@@ -49,22 +51,43 @@ class BlurTopBar extends StatelessWidget {
                   ),
                 ),
               ),
-              // Tombol Toggle Fokus Map
-              Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8, bottom: 4),
-                  child: IconButton(
-                    onPressed: onToggleFocus,
-                    icon: Icon(
-                      isMapFocused ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
-                      color: const Color(0xFF1E1E2C),
-                      size: 26,
+              // Tombol Kembali
+              if (onBack != null)
+                Align(
+                  alignment: Alignment.bottomLeft,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 4),
+                    child: IconButton(
+                      onPressed: onBack,
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        color: Color(0xFF1E1E2C),
+                        size: 20,
+                      ),
+                      tooltip: 'Kembali',
                     ),
-                    tooltip: isMapFocused ? 'Keluar Layar Penuh' : 'Lihat Layar Penuh',
                   ),
                 ),
-              ),
+              // Tombol Toggle Fokus Map
+              if (onToggleFocus != null)
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8, bottom: 4),
+                    child: IconButton(
+                      onPressed: onToggleFocus,
+                      icon: Icon(
+                        isMapFocused
+                            ? Icons.fullscreen_exit_rounded
+                            : Icons.fullscreen_rounded,
+                        color: const Color(0xFF1E1E2C),
+                        size: 26,
+                      ),
+                      tooltip:
+                          isMapFocused ? 'Keluar Layar Penuh' : 'Lihat Layar Penuh',
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
