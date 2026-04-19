@@ -33,6 +33,7 @@ dependencies:
   supabase_flutter: ^2.12.2
   speech_to_text: ^7.0.0
   string_similarity: ^2.2.0
+  flutter_map_cancellable_tile_provider: ^3.0.2
 
 dev_dependencies:
   flutter_test:

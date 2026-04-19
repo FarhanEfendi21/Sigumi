@@ -12,8 +12,10 @@ import 'package:google_fonts/google_fonts.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Matikan pengambilan font runtime untuk memaksa penggunaan aset lokal
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // Izinkan Google Fonts mengambil font fallback (Noto Sans) saat runtime
+  // agar karakter emoji dan aksara daerah tampil dengan benar di Flutter Web.
+  // Font utama (Plus Jakarta Sans) tetap menggunakan aset lokal.
+  GoogleFonts.config.allowRuntimeFetching = true;
 
   // Inisialisasi Supabase (skip jika config belum diisi)
   if (SupabaseConfig.isConfigured) {

@@ -8,6 +8,7 @@ import '../../config/constants.dart';
 import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
 import '../../services/voice_service.dart';
+import '../../services/location_service.dart';
 import '../../providers/volcano_provider.dart';
 
 class ChatbotScreen extends StatefulWidget {
@@ -24,7 +25,6 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   final VoiceService _voiceService = VoiceService();
   final List<ChatMessage> _messages = [];
   bool _isTyping = false;
-  String _selectedLanguage = 'id';
 
   // State untuk voice UI
   bool _isListening = false;
@@ -59,7 +59,6 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
     // Defer accessing Provider to avoid context errors in initState
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _selectedLanguage = context.read<VolcanoProvider>().language;
       _sendWelcomeMessage();
     });
   }
@@ -284,10 +283,11 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   }
 
   void _sendWelcomeMessage() {
+    final provider = context.read<VolcanoProvider>();
+    final user = provider.currentUser;
     setState(() {
       _messages.add(ChatMessage.system(
-        '${AiService.getWelcomeMessage(_selectedLanguage)}\n\nℹ️ Chatbot ini memahami bahasa Indonesia, English, Jawa, Sunda, dan Bali. Anda bebas mengetik atau menggunakan suara.',
-        language: _selectedLanguage,
+        '${AiService.getWelcomeMessage('id', user: user)}\n\nℹ️ Chatbot ini dapat mendeteksi bahasa otomatis (id, en, jv, su, ba, sas). Anda bebas mengetik atau menggunakan suara.',
       ));
     });
   }
@@ -312,7 +312,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
         content: text,
         isUser: true,
         timestamp: DateTime.now(),
-        language: _selectedLanguage,
+        // language property handled by auto-detect later, default to user input text
+        language: 'id',
         isVoice: isVoice,
       ));
       _isTyping = true;
@@ -330,17 +331,23 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     // Simulate thinking delay
     Future.delayed(const Duration(milliseconds: 1000), () async {
       if (mounted) {
-        final response = AiService.getResponse(text,
-            language: _selectedLanguage, isVoice: isVoice);
+        // Ambil data user dan lokasi untuk personalisasi chatbot
+        final provider = context.read<VolcanoProvider>();
+        final user = provider.currentUser;
+        final locationService = LocationService();
+
+        final response = await AiService.getResponse(
+          text,
+          isVoice: isVoice,
+          user: user,
+          userLat: locationService.userLat,
+          userLng: locationService.userLng,
+        );
         setState(() {
           _messages.add(response);
           _isTyping = false;
         });
         _scrollToBottom();
-
-        // Speak response using TTS
-        await _voiceService.speak(response.content,
-            language: _selectedLanguage);
       }
     });
   }
@@ -359,7 +366,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       // Stop ongoing TTS when user starts speaking
       await _voiceService.stopSpeaking();
 
-      String localeId = _selectedLanguage == 'en' ? 'en_US' : 'id_ID';
+      // Default id_ID, tapi the language detection doesn't have a direct impact on speech-to-text since we can't switch it dynamically while listening easily.
+      // So default STT to id_ID.
+      String localeId = 'id_ID';
 
       _startListeningUI();
 
@@ -478,9 +487,6 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             ),
           ],
         ),
-        actions: [
-          _buildLanguageDropdown(),
-        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
@@ -792,53 +798,6 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     );
   }
 
-  Widget _buildLanguageDropdown() {
-    return Container(
-      margin: const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedLanguage,
-          dropdownColor: Colors.white,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded,
-              color: Color(0xFF6B6B78), size: 18),
-          elevation: 2,
-          isDense: true,
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              setState(() {
-                _selectedLanguage = newValue;
-                _voiceService.stopSpeaking();
-              });
-            }
-          },
-          items: AppConstants.supportedLanguages.keys
-              .map<DropdownMenuItem<String>>((String key) {
-            return DropdownMenuItem<String>(
-              value: key,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: Text(
-                  key.toUpperCase(),
-                  style: AppFonts.plusJakartaSans(
-                    color: const Color(0xFF1E1E2C),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
   Widget _buildMessageBubble(ChatMessage message, int index) {
     if (message.messageType == MessageType.system) {
       return Padding(
@@ -995,13 +954,72 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   Text(
                     message.content,
                     style: AppFonts.plusJakartaSans(
-                      color:
-                          isUser ? Colors.white : const Color(0xFF1E1E2C),
+                      color: isUser ? Colors.white : const Color(0xFF1E1E2C),
                       fontSize: 14,
                       height: 1.5,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  if (!isUser) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 1,
+                      color: const Color(0xFFE5E7EB),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Theme(
+                          data: Theme.of(context).copyWith(
+                            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: InkWell(
+                            onTap: () async {
+                               // Manual tts
+                               await _voiceService.speak(message.content, language: message.language);
+                            },
+                            borderRadius: BorderRadius.circular(20),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.volume_up_rounded, size: 16, color: SigumiTheme.primaryBlue),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Dengarkan',
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: SigumiTheme.primaryBlue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (message.language != 'id') ...[
+                           const SizedBox(width: 12),
+                           Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                message.language.toUpperCase(),
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: SigumiTheme.primaryBlue,
+                                ),
+                              ),
+                           ),
+                        ]
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.05, end: 0),

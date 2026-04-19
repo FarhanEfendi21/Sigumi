@@ -1,58 +1,75 @@
-import 'package:string_similarity/string_similarity.dart';
+import 'package:flutter/foundation.dart';
 import 'nlp_knowledge_base.dart';
+import 'intent_classifier.dart';
 import '../models/chat_message.dart';
 
+/// Engine NLP lokal untuk chatbot SIGUMI.
 class NlpEngine {
-  /// Simple NLP processing using Cosine Similarity on character n-grams.
-  /// Returns a record with detected Intent and Confidence Score.
-  static ({String intent, double confidence}) detectIntent(String query) {
+  static IntentClassifier? _classifier;
+
+  /// Inisialisasi classifier (Dual-Engine)
+  static Future<void> init() async {
+    if (_classifier != null) return;
+    
+    // Pilih engine berdasarkan platform
+    if (kIsWeb) {
+      _classifier = DictionaryIntentClassifier();
+    } else {
+      _classifier = TFLiteIntentClassifier();
+    }
+    await _classifier!.init();
+  }
+
+  /// Deteksi bahasa secara otomatis dari input text
+  static String detectLanguage(String query) {
+    if (query.trim().isEmpty) return 'id';
+    
+    String normalized = _normalizeText(query);
+    List<String> words = normalized.split(' ');
+    
+    Map<String, int> scores = {
+      'id': 0, 'en': 0, 'jv': 0, 'su': 0, 'ba': 0, 'sas': 0
+    };
+    
+    for (String word in words) {
+      NlpKnowledgeBase.languageMarkers.forEach((lang, markers) {
+        if (markers.contains(word)) {
+          scores[lang] = (scores[lang] ?? 0) + 1;
+        }
+      });
+    }
+    
+    String detectedLang = 'id';
+    int maxScore = 0;
+    scores.forEach((lang, score) {
+      if (score > maxScore) {
+        maxScore = score;
+        detectedLang = lang;
+      }
+    });
+
+    return detectedLang;
+  }
+
+  /// Deteksi intent dari query user menggunakan Classifier abstrak
+  static Future<({String intent, double confidence})> detectIntent(String query) async {
+    if (_classifier == null) {
+      await init();
+    }
+
     if (query.trim().isEmpty) {
       return (intent: 'default', confidence: 0.0);
     }
     
-    // 1. Lowercase and basic punctuation removal
     String normalizedQuery = _normalizeText(query);
-    
-    // 2. Translate regional words to Indonesian to help the matcher
     normalizedQuery = _translateRegionalWords(normalizedQuery);
     
-    // 3. Match against all training phrases using string_similarity
-    String bestIntent = 'default';
-    double bestConfidence = 0.0;
-    
-    for (var entry in NlpKnowledgeBase.trainingPhrases.entries) {
-      String intent = entry.key;
-      List<String> phrases = entry.value;
-      
-      for (String phrase in phrases) {
-        // Find similarities
-        // Dice's coefficient is good for short conversational sentences mapping
-        double sim = phrase.similarityTo(normalizedQuery);
-        
-        // Boost score if keyword exactly matches
-        if (normalizedQuery.contains(phrase) || phrase.contains(normalizedQuery)) {
-           sim += 0.3; 
-           if (sim > 1.0) sim = 1.0;
-        }
-
-        if (sim > bestConfidence) {
-          bestConfidence = sim;
-          bestIntent = intent;
-        }
-      }
-    }
-    
-    // Fallback if confidence is too low (< 0.25)
-    if (bestConfidence < 0.25) {
-      return (intent: 'default', confidence: bestConfidence);
-    }
-    
-    return (intent: bestIntent, confidence: bestConfidence);
+    return await _classifier!.classify(normalizedQuery);
   }
 
   static String _normalizeText(String text) {
     return text.toLowerCase()
-        .replaceAll(RegExp(r'[^\w\s]'), '') // Remove punctuation
+        .replaceAll(RegExp(r'[^\w\s]'), '')
         .trim();
   }
 
@@ -67,32 +84,68 @@ class NlpEngine {
     return words.join(' ');
   }
 
-  /// Generate a response based on NLP intent
-  static ChatMessage processMessage(String text, {String language = 'id', bool isVoice = false}) {
-    final result = detectIntent(text);
+  /// Generate ChatMessage respons berdasarkan bahasa terbaca dan NLP intent
+  static Future<ChatMessage> processMessage(
+    String text, {
+    bool isVoice = false,
+    String ageCategory = 'dewasa',
+  }) async {
+    // 1. Auto detect bahasa
+    String detectedLanguage = detectLanguage(text);
+
+    // 2. Deteksi intent dengan model/dictionary
+    final result = await detectIntent(text);
     final intent = result.intent;
     
-    // Get localized response
-    Map<String, String>? localizedResponses = NlpKnowledgeBase.responses[intent];
-    String responseText;
-    
-    if (localizedResponses != null && localizedResponses.containsKey(language)) {
-      responseText = localizedResponses[language]!;
-    } else if (localizedResponses != null && localizedResponses.containsKey('id')) {
-      responseText = localizedResponses['id']!;
-    } else {
-      responseText = NlpKnowledgeBase.responses['default']![language] ?? NlpKnowledgeBase.responses['default']!['id']!;
-    }
+    // 3. Ambil respons sesuai bahasa
+    String responseText = _getLocalizedResponse(
+      intent: intent,
+      language: detectedLanguage,
+      ageCategory: ageCategory,
+    );
 
     return ChatMessage(
       content: responseText,
       isUser: false,
       timestamp: DateTime.now(),
-      language: language,
+      language: detectedLanguage, // simpan bahasa terdeteksi
       messageType: MessageType.text,
       confidence: result.confidence,
       detectedIntent: intent,
-      isVoice: false, // The bot's response is presented as text initially
+      isVoice: false,
     );
+  }
+
+  static String _getLocalizedResponse({
+    required String intent,
+    required String language,
+    required String ageCategory,
+  }) {
+    final responses = NlpKnowledgeBase.responses;
+
+    if (responses.containsKey(intent)) {
+      final intentResponses = responses[intent]!;
+
+      if (intentResponses.containsKey(language)) {
+        return intentResponses[language]!;
+      }
+
+      // Fallback ke id
+      if (intentResponses.containsKey('id')) {
+        return intentResponses['id']!;
+      }
+    }
+
+    if (responses.containsKey('default')) {
+      final def = responses['default']!;
+      if (def.containsKey(language)) {
+          return def[language]!;
+      }
+      if (def.containsKey('id')) {
+          return def['id']!;
+      }
+    }
+
+    return 'Maaf, saya kurang paham. Anda bisa bertanya tentang: status merapi, titik kumpul evakuasi, zona bahaya, atau nomor bantuan darurat.';
   }
 }
