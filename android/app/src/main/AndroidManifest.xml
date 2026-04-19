@@ -2,6 +2,13 @@
     <!-- Permission untuk fitur Voice Input (Speech-to-Text) -->
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
+    <!-- Permission untuk Location Service (GPS Real-Time) -->
+    <!-- Wajib ada agar geolocator dapat mengakses GPS di Android -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <!-- Background location untuk tracking saat app diminimize -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+
     <application
         android:label="sigumi"
         android:name="${applicationName}"

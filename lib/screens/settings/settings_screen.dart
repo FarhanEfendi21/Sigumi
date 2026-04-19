@@ -25,7 +25,7 @@ class SettingsScreen extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1E2C),
+                color: Color(0xFF1E1E2C),
                 fontSize: 18,
               ),
             ),

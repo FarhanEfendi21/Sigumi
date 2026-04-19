@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import 'package:sigumi/config/fonts.dart';
+import '../providers/volcano_provider.dart';
 import '../config/theme.dart';
 import '../config/routes.dart';
 
@@ -17,7 +19,12 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(milliseconds: 3000), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
+        final provider = context.read<VolcanoProvider>();
+        if (provider.isFirstTime) {
+          Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
+        } else {
+          Navigator.pushReplacementNamed(context, AppRoutes.login);
+        }
       }
     });
   }

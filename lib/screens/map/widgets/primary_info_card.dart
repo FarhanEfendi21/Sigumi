@@ -20,9 +20,10 @@ class PrimaryInfoCard extends StatelessWidget {
   });
 
   String get _statusText {
-    if (distance <= 5.0) return 'BAHAYA';
-    if (distance <= 15.0) return 'WASPADA';
-    return 'RELATIF AMAN';
+    if (distance <= 5.0) return 'Zona Bahaya';
+    if (distance <= 10.0) return 'Zona Waspada';
+    if (distance <= 15.0) return 'Zona Perhatian';
+    return 'Zona Aman';
   }
 
   Color get _statusColor {
@@ -32,9 +33,9 @@ class PrimaryInfoCard extends StatelessWidget {
   }
   
   String get _descriptionText {
-    // Sesuai UX Logic di instructions:
     if (distance <= 5.0) return 'Bahaya! Segera cari titik evakuasi yang aman.';
-    if (distance <= 15.0) return 'Zona rawan terdampak. Tetap bersiaga.';
+    if (distance <= 10.0) return 'Peringatan siaga! Zona rawan terdampak.';
+    if (distance <= 15.0) return 'Berpotensi terkena dampak sekunder, tetap waspada.';
     return 'Kamu berada di zona aman, tetap pantau kondisi.';
   }
 

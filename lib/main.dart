@@ -5,6 +5,7 @@ import 'config/supabase_config.dart';
 import 'config/theme.dart';
 import 'config/routes.dart';
 import 'providers/volcano_provider.dart';
+import 'providers/tourism_provider.dart';
 import 'services/location_service.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,6 +31,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => VolcanoProvider()),
         ChangeNotifierProvider(create: (_) => LocationService()),
+        ChangeNotifierProvider(create: (_) => TourismProvider()),
       ],
       child: const SigumiApp(),
     ),

@@ -161,7 +161,7 @@ class ZoneDetailScreen extends StatelessWidget {
 
                       // ── All Zones ──
                       Text(
-                        'Pembagian Zona KRB Merapi',
+                        'Pembagian Zona KRB',
                         style: AppFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -180,7 +180,7 @@ class ZoneDetailScreen extends StatelessWidget {
 
                       _buildZoneCard(
                         level: 4,
-                        title: 'ZONA BAHAYA UTAMA',
+                        title: 'Zona Bahaya',
                         subtitle: 'KRB III — Radius ≤ 5 km',
                         description:
                             'Area terlarang untuk aktivitas apapun. Rawan awan panas, '
@@ -190,7 +190,7 @@ class ZoneDetailScreen extends StatelessWidget {
                       ),
                       _buildZoneCard(
                         level: 3,
-                        title: 'ZONA WASPADA',
+                        title: 'Zona Waspada',
                         subtitle: 'KRB II — Radius 5–10 km',
                         description:
                             'Rawan lahar hujan, hujan abu vulkanik, dan potensi awan '
@@ -200,7 +200,7 @@ class ZoneDetailScreen extends StatelessWidget {
                       ),
                       _buildZoneCard(
                         level: 2,
-                        title: 'ZONA PERHATIAN',
+                        title: 'Zona Perhatian',
                         subtitle: 'KRB I — Radius 10–15 km',
                         description:
                             'Berpotensi terkena hujan abu dan lahar hujan melalui '
@@ -210,7 +210,7 @@ class ZoneDetailScreen extends StatelessWidget {
                       ),
                       _buildZoneCard(
                         level: 1,
-                        title: 'ZONA RELATIF AMAN',
+                        title: 'Zona Aman',
                         subtitle: 'Di luar KRB — Radius > 15 km',
                         description:
                             'Di luar kawasan rawan bencana langsung. Tetap pantau '
@@ -219,45 +219,7 @@ class ZoneDetailScreen extends StatelessWidget {
                         delay: 400,
                       ),
 
-                      const SizedBox(height: 14),
 
-                      // ── Weather ──
-                      if (volcano.temperature != null ||
-                          volcano.windDirection != null)
-                        _buildSectionCard(
-                          icon: Icons.air_rounded,
-                          iconColor: Colors.blue,
-                          title: 'Kondisi Cuaca',
-                          child: Column(
-                            children: [
-                              if (volcano.temperature != null)
-                                _buildInfoRow(
-                                  'Suhu',
-                                  '${volcano.temperature!.toInt()}°C',
-                                  Icons.thermostat_rounded,
-                                ),
-                              if (volcano.temperature != null &&
-                                  volcano.windDirection != null)
-                                const Divider(height: 20),
-                              if (volcano.windDirection != null)
-                                _buildInfoRow(
-                                  'Arah Angin',
-                                  volcano.windDirection!,
-                                  Icons.navigation_rounded,
-                                ),
-                              if (volcano.windSpeed != null) ...[
-                                const Divider(height: 20),
-                                _buildInfoRow(
-                                  'Kec. Angin',
-                                  '${volcano.windSpeed!.toInt()} km/jam',
-                                  Icons.speed_rounded,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ).animate().fadeIn(delay: 500.ms, duration: 400.ms),
-
-                      const SizedBox(height: 24),
 
                       Center(
                         child: Text(

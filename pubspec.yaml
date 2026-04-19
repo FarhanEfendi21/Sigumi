@@ -33,8 +33,12 @@ dependencies:
   supabase_flutter: ^2.12.2
   speech_to_text: ^7.0.0
   string_similarity: ^2.2.0
+
   flutter_map_cancellable_tile_provider: ^3.0.2
   webview_flutter: ^4.10.0
+  flip_card: ^0.7.0
+  carousel_slider: ^5.1.2
+
 
 dev_dependencies:
   flutter_test:

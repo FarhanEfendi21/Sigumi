@@ -109,7 +109,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
           backgroundColor: Colors.white,
           appBar: AppBar(
             title: Text(
-              'Live Visual',
+              'CCTV Gunung',
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,

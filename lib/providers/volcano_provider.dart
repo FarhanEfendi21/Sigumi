@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 import '../models/eruption_history.dart';
@@ -7,7 +8,9 @@ import '../models/news_item.dart';
 import '../models/user_model.dart';
 import '../models/volcano_activity.dart';
 import '../models/volcano_model.dart';
+import '../models/emergency_contact.dart';
 import '../repositories/auth_repository.dart';
+import '../repositories/emergency_repository.dart';
 import '../repositories/volcano_repository.dart';
 import '../services/location_service.dart';
 
@@ -19,49 +22,55 @@ import '../services/location_service.dart';
 /// - Preferensi user (bahasa, font, aksesibilitas)
 /// - Data lokasi & zona risiko (via LocationService)
 class VolcanoProvider extends ChangeNotifier {
-  // â”€â”€ Data gunung berapi â”€â”€
+  // ── Data gunung berapi ──
   VolcanoModel _volcano = VolcanoModel.mockMerapi();
   List<VolcanoModel> _allVolcanoes = [];
   final List<NewsItem> _newsItems = NewsItem.mockNews();
 
-  // â”€â”€ Aktivitas & Riwayat Erupsi (dari Supabase, diinput admin) â”€â”€
+  // ── Aktivitas & Riwayat Erupsi (dari Supabase, diinput admin) ──
   List<VolcanoActivity> _recentActivities = [];
   List<EruptionHistory> _eruptionHistory = [];
   bool _isLoadingActivities = false;
   bool _isLoadingEruptions = false;
 
-  // â”€â”€ Auth & user state â”€â”€
+  // ── Nomor Telepon Darurat ──
+  List<EmergencyContact> _emergencyContacts = [];
+  bool _isLoadingContacts = false;
+
+  // ── Auth & user state ──
   UserModel? _currentUser;
   bool _isAuthenticated = false;
   bool _isAuthLoading = false;
   String? _authError;
 
-  // â”€â”€ Preferensi â”€â”€
+  // ── Preferensi ──
   String _language = 'id';
+  bool _isFirstTime = true; // Flag untuk onboarding
   double _fontSize = 1.0;
   bool _highContrast = false;
   bool _audioGuidance = false;
   bool _isOffline = false;
   String _selectedRegion = 'Yogyakarta';
 
-  // â”€â”€ Deteksi lokasi otomatis â”€â”€
+  // ── Deteksi lokasi otomatis ──
   bool _isRegionAutoDetected = false;
   bool _needsManualRegionSelection = false;
   bool _locationInitialized = false;
 
-  // â”€â”€ Auth subscription â”€â”€
+  // ── Auth subscription ──
   StreamSubscription<AuthState>? _authSubscription;
 
-  // â”€â”€ Repository â”€â”€
+  // ── Repository ──
   final AuthRepository _authRepo = AuthRepository();
   final VolcanoRepository _volcanoRepo = VolcanoRepository();
+  final EmergencyRepository _emergencyRepo = EmergencyRepository();
   final LocationService _locationService = LocationService();
 
-  // â”€â”€ Multi-Client MAGMA Web â”€â”€
+  // ── Multi-Client MAGMA Web ──
   SupabaseClient? _magmaClient;
   RealtimeChannel? _magmaChannel;
 
-  // â”€â”€ Getters â”€â”€
+  // ── Getters ──
   VolcanoModel get volcano => _volcano;
   List<VolcanoModel> get allVolcanoes => _allVolcanoes;
   List<NewsItem> get newsItems => _newsItems;
@@ -78,9 +87,10 @@ class VolcanoProvider extends ChangeNotifier {
   bool get isRegionAutoDetected => _isRegionAutoDetected;
   bool get needsManualRegionSelection => _needsManualRegionSelection;
   bool get locationInitialized => _locationInitialized;
+  bool get isFirstTime => _isFirstTime;
   String? get detectedRegion => _locationService.detectedRegion;
 
-  // â”€â”€ Getters Aktivitas & Riwayat Erupsi â”€â”€
+  // ── Getters Aktivitas & Riwayat Erupsi ──
   List<VolcanoActivity> get recentActivities => _recentActivities;
   List<EruptionHistory> get eruptionHistory => _eruptionHistory;
   bool get isLoadingActivities => _isLoadingActivities;
@@ -88,7 +98,11 @@ class VolcanoProvider extends ChangeNotifier {
   bool get hasActivities => _recentActivities.isNotEmpty;
   bool get hasEruptionHistory => _eruptionHistory.isNotEmpty;
 
-  // â”€â”€ Lokasi (delegasi ke LocationService) â”€â”€
+  // ── Getters Nomor Darurat ──
+  List<EmergencyContact> get emergencyContacts => _emergencyContacts;
+  bool get isLoadingContacts => _isLoadingContacts;
+
+  // ── Lokasi (delegasi ke LocationService) ──
   double get distanceFromMerapi => _locationService.distanceFromVolcano;
   String get distanceLabel => _locationService.distanceLabel;
   String get zoneLabel => _locationService.zoneLabel;
@@ -97,6 +111,15 @@ class VolcanoProvider extends ChangeNotifier {
   VolcanoProvider() {
     _initAuthListener();
     _initMagmaRealtime();
+    _initPrefs();
+  }
+
+  /// Inisialisasi preferensi lokal
+  Future<void> _initPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isFirstTime = prefs.getBool('is_first_time') ?? true;
+    _language = prefs.getString('language') ?? 'id';
+    notifyListeners();
   }
 
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -621,11 +644,21 @@ class VolcanoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setLanguage(String lang) {
+  void setLanguage(String lang) async {
     _language = lang;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', lang);
     if (_isAuthenticated) {
       _authRepo.updateProfileTable(language: lang);
     }
+    notifyListeners();
+  }
+
+  /// Menandai onboarding selesai
+  void completeOnboarding() async {
+    _isFirstTime = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_first_time', false);
     notifyListeners();
   }
 
@@ -694,6 +727,9 @@ class VolcanoProvider extends ChangeNotifier {
     // Fetch data aktivitas & erupsi untuk gunung yang dipilih
     fetchRecentActivities();
     fetchEruptionHistory();
+
+    // Fetch nomor darurat sesuai region baru
+    fetchEmergencyContacts();
 
     // Sinkronisasi status real-time dari MAGMA untuk gunung baru.
     // Ini memastikan saat ganti region, statusLevel langsung terupdate
@@ -796,6 +832,28 @@ class VolcanoProvider extends ChangeNotifier {
     }
 
     _isLoadingEruptions = false;
+    notifyListeners();
+  }
+
+  /// ──────────────────────────────────────────────────
+  /// FETCH NOMOR TELEPON DARURAT dari Supabase
+  /// ──────────────────────────────────────────────────
+  /// Mengambil kontak darurat berdasarkan region aktif.
+  /// Fallback ke data statis jika tabel belum ada / offline.
+  Future<void> fetchEmergencyContacts() async {
+    _isLoadingContacts = true;
+    notifyListeners();
+
+    try {
+      _emergencyContacts = await _emergencyRepo.getContacts(
+        region: _selectedRegion,
+      );
+    } catch (e) {
+      debugPrint('[SIGUMI] fetchEmergencyContacts error: $e');
+      _emergencyContacts = [];
+    }
+
+    _isLoadingContacts = false;
     notifyListeners();
   }
 
