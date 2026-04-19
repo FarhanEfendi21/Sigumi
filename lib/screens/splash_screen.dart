@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../providers/volcano_provider.dart';
+import '../providers/auth_provider.dart';
 import '../config/theme.dart';
 import '../config/routes.dart';
 
@@ -17,16 +18,38 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(milliseconds: 3000), () {
-      if (mounted) {
-        final provider = context.read<VolcanoProvider>();
-        if (provider.isFirstTime) {
-          Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
-        } else {
-          Navigator.pushReplacementNamed(context, AppRoutes.login);
-        }
+    _navigateAfterDelay();
+  }
+
+  /// Tunggu session di-restore, kemudian navigasi sesuai auth state
+  Future<void> _navigateAfterDelay() async {
+    final authProvider = context.read<AuthProvider>();
+
+    // Tunggu session di-restore oleh Supabase (max 5 detik)
+    int attempts = 0;
+    while (!authProvider.isSessionRestored && attempts < 50) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      attempts++;
+    }
+
+    // Tunggu minimal 3 detik untuk tampilan splash
+    await Future.delayed(const Duration(milliseconds: 3000));
+
+    if (!mounted) return;
+
+    // Routing berdasarkan auth state
+    if (authProvider.isAuthenticated) {
+      // User sudah login, langsung ke main
+      Navigator.pushReplacementNamed(context, AppRoutes.main);
+    } else {
+      // User belum login
+      final volcanoProvider = context.read<VolcanoProvider>();
+      if (volcanoProvider.isFirstTime) {
+        Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
+      } else {
+        Navigator.pushReplacementNamed(context, AppRoutes.login);
       }
-    });
+    }
   }
 
   @override
@@ -118,4 +141,3 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 }
-
