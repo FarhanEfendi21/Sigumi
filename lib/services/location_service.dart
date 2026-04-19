@@ -74,7 +74,7 @@ class LocationService extends ChangeNotifier {
   String _nearestVolcanoName = 'Gunung Merapi';
   double _distanceFromVolcano = 0;
   int _zoneLevel = 1;
-  String _zoneLabel = 'ZONA RELATIF AMAN';
+  String _zoneLabel = 'Zona Aman';
   final int _volcanoStatusLevel = 1;
 
   // ── Stream subscription ──
@@ -407,16 +407,16 @@ class LocationService extends ChangeNotifier {
 
     if (_distanceFromVolcano <= 5) {
       _zoneLevel = 4;
-      _zoneLabel = 'ZONA BAHAYA UTAMA';
+      _zoneLabel = 'Zona Bahaya';
     } else if (_distanceFromVolcano <= 10) {
       _zoneLevel = 3;
-      _zoneLabel = 'ZONA WASPADA';
+      _zoneLabel = 'Zona Waspada';
     } else if (_distanceFromVolcano <= 15) {
       _zoneLevel = 2;
-      _zoneLabel = 'ZONA PERHATIAN';
+      _zoneLabel = 'Zona Perhatian';
     } else {
       _zoneLevel = 1;
-      _zoneLabel = 'ZONA RELATIF AMAN';
+      _zoneLabel = 'Zona Aman';
     }
   }
 
@@ -466,9 +466,14 @@ class LocationService extends ChangeNotifier {
     }
   }
 
+  /// Singleton tidak memanggil super.dispose() karena akan membuat
+  /// ChangeNotifier tidak bisa dipakai lagi setelah logout/re-init.
+  /// Cukup stop tracking saja.
   @override
   void dispose() {
     stopTracking();
-    super.dispose();
+    // CATATAN: sengaja TIDAK memanggil super.dispose() karena
+    // LocationService adalah singleton — jika dispose dipanggil,
+    // instance tetap hidup dan harus tetap bisa notify listeners.
   }
 }

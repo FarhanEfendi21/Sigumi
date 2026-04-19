@@ -418,7 +418,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Styling constants matching Live Visual
+  
     const Color bgColor = Color(0xFFF8F9FA);
     const Color headerTextColor = Color(0xFF1E1E2C);
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../screens/splash_screen.dart';
+import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/language_screen.dart';
 import '../screens/auth/login_screen.dart';
-import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/auth/register_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/map/map_screen.dart';

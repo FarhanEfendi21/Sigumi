@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
 import '../models/eruption_history.dart';
@@ -44,6 +45,7 @@ class VolcanoProvider extends ChangeNotifier {
 
   // ── Preferensi ──
   String _language = 'id';
+  bool _isFirstTime = true; // Flag untuk onboarding
   double _fontSize = 1.0;
   bool _highContrast = false;
   bool _audioGuidance = false;
@@ -85,6 +87,7 @@ class VolcanoProvider extends ChangeNotifier {
   bool get isRegionAutoDetected => _isRegionAutoDetected;
   bool get needsManualRegionSelection => _needsManualRegionSelection;
   bool get locationInitialized => _locationInitialized;
+  bool get isFirstTime => _isFirstTime;
   String? get detectedRegion => _locationService.detectedRegion;
 
   // ── Getters Aktivitas & Riwayat Erupsi ──
@@ -108,6 +111,15 @@ class VolcanoProvider extends ChangeNotifier {
   VolcanoProvider() {
     _initAuthListener();
     _initMagmaRealtime();
+    _initPrefs();
+  }
+
+  /// Inisialisasi preferensi lokal
+  Future<void> _initPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    _isFirstTime = prefs.getBool('is_first_time') ?? true;
+    _language = prefs.getString('language') ?? 'id';
+    notifyListeners();
   }
 
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -632,11 +644,21 @@ class VolcanoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setLanguage(String lang) {
+  void setLanguage(String lang) async {
     _language = lang;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language', lang);
     if (_isAuthenticated) {
       _authRepo.updateProfileTable(language: lang);
     }
+    notifyListeners();
+  }
+
+  /// Menandai onboarding selesai
+  void completeOnboarding() async {
+    _isFirstTime = false;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_first_time', false);
     notifyListeners();
   }
 
