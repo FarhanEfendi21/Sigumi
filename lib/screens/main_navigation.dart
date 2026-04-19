@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../config/theme.dart';
 import 'home/home_screen.dart';
 import 'map/map_screen.dart';
@@ -47,7 +48,11 @@ class _MainNavigationState extends State<MainNavigation> {
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (_currentIndex != 0) {
+          // Jika tidak di home, kembali ke home
           setState(() => _currentIndex = 0);
+        } else {
+          // Jika sudah di home, exit app
+          exit(0);
         }
       },
       child: Scaffold(
