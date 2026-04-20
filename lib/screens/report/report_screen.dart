@@ -51,7 +51,7 @@ class _ReportScreenState extends State<ReportScreen> {
   Future<void> _pickImage() async {
     try {
       final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
+        source: ImageSource.camera,
         maxWidth: 1024,
         maxHeight: 1024,
         imageQuality: 85,
@@ -66,7 +66,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Gagal memilih gambar: $e',
+              'Gagal membuka kamera: $e',
               style: AppFonts.plusJakartaSans(color: Colors.white),
             ),
             backgroundColor: Colors.redAccent,
@@ -203,30 +203,97 @@ class _ReportScreenState extends State<ReportScreen> {
       _descController.clear();
       _selectedCategories.clear();
 
+      if (!mounted) return;
+
       try {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle_rounded, color: Colors.white),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Laporan berhasil dikirim. Terima kasih!',
-                    style: AppFonts.plusJakartaSans(color: Colors.white),
-                  ),
+        print('✅ Showing success notification...');
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext dialogContext) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            backgroundColor: Colors.teal.shade500,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.teal.shade50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        color: Colors.teal.shade500,
+                        size: 48,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Laporan Berhasil!',
+                      textAlign: TextAlign.center,
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1E1E2C),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.',
+                      textAlign: TextAlign.center,
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 14,
+                        color: const Color(0xFF6B6B78),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal.shade500,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          'Tutup',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       } catch (e) {
-        // Ignore if context is invalid
+        print('⚠️ Error showing dialog: $e');
       }
     } catch (e) {
       if (!mounted) return;
@@ -539,7 +606,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'Ketuk untuk memilih foto',
+                                  'Ambil foto dari kamera',
                                   style: AppFonts.plusJakartaSans(
                                     color: const Color(0xFF1E1E2C),
                                     fontWeight: FontWeight.w600,
@@ -548,7 +615,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Format JPG atau PNG, maks 5MB',
+                                  'Foto langsung dari kamera untuk verifikasi',
                                   style: AppFonts.plusJakartaSans(
                                     color: const Color(0xFF9E9EAE),
                                     fontSize: 12,

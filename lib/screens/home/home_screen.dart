@@ -4,7 +4,9 @@ import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
+import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
+import '../../models/news_item.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'widgets/news_carousel.dart';
 
@@ -23,11 +25,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final provider = context.read<VolcanoProvider>();
-      await provider.autoDetectAndSetRegion();
+      final volcanoProvider = context.read<VolcanoProvider>();
+      await volcanoProvider.autoDetectAndSetRegion();
+
+      // Fetch news dari Supabase
+      final newsProvider = context.read<NewsProvider>();
+      await newsProvider.fetchLatestNews(limit: 5);
 
       if (!mounted) return;
-
     });
   }
 
@@ -51,412 +56,489 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     // Header
                     Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFF0F4FF),
-                          Color(0xFFE8EDFA),
-                          Color(0xFFFFF8E8),
-                        ],
-                        stops: [0.0, 0.55, 1.0],
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(28),
-                        bottomRight: Radius.circular(28),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1B2E7B).withAlpha(18),
-                          blurRadius: 20,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Image.asset(
-                                    'assets/images/SIGUMI-logo.png',
-                                    height: 36,
-                                    fit: BoxFit.contain,
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    AiService.getPersonalizedGreeting(
-                                      provider.currentUser,
-                                    ),
-                                    style: const TextStyle(
-                                      color: Color(0xFF5A6380),
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Row(
-                              children: [
-                                if (provider.isOffline)
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.orange.withAlpha(30),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          Icons.cloud_off,
-                                          color: Colors.orange,
-                                          size: 14,
-                                        ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          'Offline',
-                                          style: TextStyle(
-                                            color: Colors.orange,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                const SizedBox(width: 8),
-                                _buildRegionSelector(context, provider),
-                              ],
-                            ),
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFFF0F4FF),
+                            Color(0xFFE8EDFA),
+                            Color(0xFFFFF8E8),
                           ],
+                          stops: [0.0, 0.55, 1.0],
                         ),
-                        const SizedBox(height: 20),
-                        // Status Card (Dynamic Hero Image)
-                        Builder(
-                          builder: (context) {
-                            String formattedName =
-                                volcano.name
-                                    .toLowerCase()
-                                    .replaceAll('gunung ', '')
-                                    .trim();
-                            String imagePath =
-                                'assets/images/$formattedName.jpg';
-
-                            return Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(
-                                      0xFF1B2E7B,
-                                    ).withAlpha(40),
-                                    blurRadius: 24,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: Stack(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(28),
+                          bottomRight: Radius.circular(28),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1B2E7B).withAlpha(18),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Background Image
-                                    Positioned.fill(
-                                      child: Image.asset(
-                                        imagePath,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (
-                                          context,
-                                          error,
-                                          stackTrace,
-                                        ) {
-                                          return Container(
-                                            color: SigumiTheme.primaryBlue,
-                                            child: const Center(
-                                              child: Icon(
-                                                Icons.broken_image,
-                                                color: Colors.white54,
-                                                size: 40,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                    Image.asset(
+                                      'assets/images/SIGUMI-logo.png',
+                                      height: 36,
+                                      fit: BoxFit.contain,
                                     ),
-                                    // Gradient overlay
-                                    Positioned.fill(
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.black.withAlpha(20),
-                                              Colors.black.withAlpha(220),
-                                            ],
-                                            stops: const [0.3, 1.0],
-                                          ),
-                                        ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      AiService.getPersonalizedGreeting(
+                                        provider.currentUser,
                                       ),
-                                    ),
-                                    // Content
-                                    Padding(
-                                      padding: const EdgeInsets.all(20),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          const SizedBox(height: 10),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Icon(
-                                                Icons.landscape,
-                                                color: Colors.white,
-                                                size: 32,
-                                              ),
-                                              const SizedBox(width: 12),
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      volcano.name,
-                                                      style: const TextStyle(
-                                                        fontFamily:
-                                                            'Plus Jakarta Sans',
-                                                        fontSize: 22,
-                                                        fontWeight:
-                                                            FontWeight.w800,
-                                                        color: Colors.white,
-                                                        letterSpacing: -0.5,
-                                                      ),
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      'Elevasi: ${volcano.elevation.toInt()} mdpl',
-                                                      style: const TextStyle(
-                                                        fontFamily:
-                                                            'Plus Jakarta Sans',
-                                                        fontSize: 13,
-                                                        fontWeight:
-                                                            FontWeight.w500,
-                                                        color: Colors.white70,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 14,
-                                                      vertical: 8,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: statusColor,
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withAlpha(40),
-                                                      blurRadius: 4,
-                                                      offset: const Offset(
-                                                        0,
-                                                        2,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Text(
-                                                  volcano.statusLabel,
-                                                  style: const TextStyle(
-                                                    fontFamily:
-                                                        'Plus Jakarta Sans',
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 30),
-                                          // ── Zone Indicator Card (kondisional) ──
-                                          _buildZoneIndicatorCard(
-                                            context,
-                                            provider,
-                                          ),
-                                        ],
+                                      style: const TextStyle(
+                                        color: Color(0xFF5A6380),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
                               ),
-                            ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
-                          },
-                        ),
-                      ],
+                              const SizedBox(width: 12),
+                              Row(
+                                children: [
+                                  if (provider.isOffline)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange.withAlpha(30),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.cloud_off,
+                                            color: Colors.orange,
+                                            size: 14,
+                                          ),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            'Offline',
+                                            style: TextStyle(
+                                              color: Colors.orange,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  const SizedBox(width: 8),
+                                  _buildRegionSelector(context, provider),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          // Status Card (Dynamic Hero Image)
+                          Builder(
+                            builder: (context) {
+                              String formattedName =
+                                  volcano.name
+                                      .toLowerCase()
+                                      .replaceAll('gunung ', '')
+                                      .trim();
+                              String imagePath =
+                                  'assets/images/$formattedName.jpg';
+
+                              return Container(
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF1B2E7B,
+                                      ).withAlpha(40),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Stack(
+                                    children: [
+                                      // Background Image
+                                      Positioned.fill(
+                                        child: Image.asset(
+                                          imagePath,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (
+                                            context,
+                                            error,
+                                            stackTrace,
+                                          ) {
+                                            return Container(
+                                              color: SigumiTheme.primaryBlue,
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.broken_image,
+                                                  color: Colors.white54,
+                                                  size: 40,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      // Gradient overlay
+                                      Positioned.fill(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topCenter,
+                                              end: Alignment.bottomCenter,
+                                              colors: [
+                                                Colors.black.withAlpha(20),
+                                                Colors.black.withAlpha(220),
+                                              ],
+                                              stops: const [0.3, 1.0],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      // Content
+                                      Padding(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const SizedBox(height: 10),
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Icon(
+                                                  Icons.landscape,
+                                                  color: Colors.white,
+                                                  size: 32,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        volcano.name,
+                                                        style: const TextStyle(
+                                                          fontFamily:
+                                                              'Plus Jakarta Sans',
+                                                          fontSize: 22,
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                          color: Colors.white,
+                                                          letterSpacing: -0.5,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 2),
+                                                      Text(
+                                                        'Elevasi: ${volcano.elevation.toInt()} mdpl',
+                                                        style: const TextStyle(
+                                                          fontFamily:
+                                                              'Plus Jakarta Sans',
+                                                          fontSize: 13,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                          color: Colors.white70,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 14,
+                                                        vertical: 8,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: statusColor,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
+                                                        ),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withAlpha(40),
+                                                        blurRadius: 4,
+                                                        offset: const Offset(
+                                                          0,
+                                                          2,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Text(
+                                                    volcano.statusLabel,
+                                                    style: const TextStyle(
+                                                      fontFamily:
+                                                          'Plus Jakarta Sans',
+                                                      color: Colors.white,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 30),
+                                            // ── Zone Indicator Card (kondisional) ──
+                                            _buildZoneIndicatorCard(
+                                              context,
+                                              provider,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  // Tourism Promo Banner
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                    child: _TourismBannerCard(region: provider.selectedRegion),
-                  ),
-
-                  // Menu Grid
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    child: Text(
-                      'Menu Utama',
-                      style: Theme.of(context).textTheme.titleLarge,
+                    // Tourism Promo Banner
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                      child: _TourismBannerCard(
+                        region: provider.selectedRegion,
+                      ),
                     ),
-                  ),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 1.7,
-                    children: [
-                      _ShadMenuCard(
-                        icon: Icons.alt_route_rounded,
-                        label: 'Titik Aman\nEvakuasi',
-                        color: Colors.green,
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.evacuation,
-                            ),
-                      ),
-                      _ShadMenuCard(
-                        icon: Icons.camera_alt_rounded,
-                        label: 'CCTV\nGunung',
-                        color: Colors.teal,
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.visualMerapi,
-                            ),
-                      ),
-                      _ShadMenuCard(
-                        icon: Icons.school_rounded,
-                        label: 'Edukasi',
-                        color: Colors.orange,
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.education,
-                            ),
-                      ),
-                      _ShadMenuCard(
-                        icon: Icons.local_hospital_rounded,
-                        label: 'Posko &\nFaskes',
-                        color: Colors.indigo,
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.postDisaster,
-                            ),
-                      ),
-                      _ShadMenuCard(
-                        icon: Icons.chat_rounded,
-                        label: 'Tanya\nSi Gumi',
-                        color: Colors.purple,
-                        onTap:
-                            () =>
-                                Navigator.pushNamed(context, AppRoutes.chatbot),
-                      ),
-                      _ShadMenuCard(
-                        icon: Icons.phone_in_talk_rounded,
-                        label: 'Nomor\nDarurat',
-                        color: Colors.red,
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.emergency,
-                            ),
-                      ),
-                      _ShadMenuCard(
-                        icon: Icons.accessibility_new_rounded,
-                        label: 'Aksesibilitas',
-                        color: Colors.brown,
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.accessibility,
-                            ),
-                      ),
-                    ],
-                  ),
 
-                  // Berita Terkini Section (Disembunyikan sementara menunggu fitur Admin selesai)
-                 
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-                    child: Row(
+                    // Menu Grid
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                      child: Text(
+                        'Menu Utama',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1.7,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: SigumiTheme.primaryBlue.withAlpha(25),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.newspaper_rounded,
-                            color: SigumiTheme.primaryBlue,
-                            size: 20,
-                          ),
+                        _ShadMenuCard(
+                          icon: Icons.alt_route_rounded,
+                          label: 'Titik Aman\nEvakuasi',
+                          color: Colors.green,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.evacuation,
+                              ),
                         ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Berita Terkini',
-                          style: Theme.of(context).textTheme.titleMedium,
+                        _ShadMenuCard(
+                          icon: Icons.camera_alt_rounded,
+                          label: 'CCTV\nGunung',
+                          color: Colors.teal,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.visualMerapi,
+                              ),
                         ),
-                        const Spacer(),
-                        Text(
-                          '${provider.newsItems.length} berita',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: SigumiTheme.textSecondary,
-                          ),
+                        _ShadMenuCard(
+                          icon: Icons.school_rounded,
+                          label: 'Edukasi',
+                          color: Colors.orange,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.education,
+                              ),
+                        ),
+                        _ShadMenuCard(
+                          icon: Icons.local_hospital_rounded,
+                          label: 'Posko &\nFaskes',
+                          color: Colors.indigo,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.postDisaster,
+                              ),
+                        ),
+                        _ShadMenuCard(
+                          icon: Icons.chat_rounded,
+                          label: 'Tanya\nSi Gumi',
+                          color: Colors.purple,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.chatbot,
+                              ),
+                        ),
+                        _ShadMenuCard(
+                          icon: Icons.phone_in_talk_rounded,
+                          label: 'Nomor\nDarurat',
+                          color: Colors.red,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.emergency,
+                              ),
+                        ),
+                        _ShadMenuCard(
+                          icon: Icons.accessibility_new_rounded,
+                          label: 'Aksesibilitas',
+                          color: Colors.brown,
+                          onTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.accessibility,
+                              ),
                         ),
                       ],
                     ),
-                  ),
 
-                  // News Carousel Slider
-                  NewsCarousel(newsItems: provider.newsItems),
-          
+                    // Berita Terkini Section (Disembunyikan sementara menunggu fitur Admin selesai)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
+                      child: Consumer<NewsProvider>(
+                        builder: (context, newsProvider, _) {
+                          return Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: SigumiTheme.primaryBlue.withAlpha(25),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.newspaper_rounded,
+                                  color: SigumiTheme.primaryBlue,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                'Berita Terkini',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const Spacer(),
+                              if (newsProvider.isLoading)
+                                const SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      SigumiTheme.textSecondary,
+                                    ),
+                                  ),
+                                )
+                              else
+                                Text(
+                                  '${newsProvider.newsList.length} berita',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: SigumiTheme.textSecondary,
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
 
-                  const SizedBox(height: 100),
-                ],
+                    // News Carousel Slider
+                    Consumer<NewsProvider>(
+                      builder: (context, newsProvider, _) {
+                        // Convert NewsModel to NewsItem
+                        final newsItems =
+                            newsProvider.newsList.map((news) {
+                              return NewsItem(
+                                id: news.id,
+                                title: news.title,
+                                summary: news.title,
+                                content: news.content ?? '',
+                                source: 'Sigumi',
+                                publishedAt: news.createdAt ?? DateTime.now(),
+                                category: NewsCategory.info,
+                                imageUrl: news.imageUrl,
+                              );
+                            }).toList();
+
+                        if (newsProvider.isLoading) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 40),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const CircularProgressIndicator(),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Memuat berita...',
+                                    style: AppFonts.plusJakartaSans(
+                                      color: SigumiTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+
+                        if (newsItems.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 40),
+                              child: Text(
+                                'Belum ada berita',
+                                style: AppFonts.plusJakartaSans(
+                                  color: SigumiTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return NewsCarousel(newsItems: newsItems);
+                      },
+                    ),
+
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
           ),
-        ));
+        );
       },
     );
   }
@@ -465,7 +547,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // ZONE INDICATOR CARD — Collapsible saat level ≤ 2
   // ────────────────────────────────────────────────
   Widget _buildZoneIndicatorCard(
-      BuildContext context, VolcanoProvider provider) {
+    BuildContext context,
+    VolcanoProvider provider,
+  ) {
     final volcanoLevel = provider.volcano.statusLevel;
     final zoneLevel = provider.zoneLevel;
     final zoneColor = SigumiTheme.getStatusColor(zoneLevel);
@@ -482,15 +566,15 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white.withAlpha(235),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isHighAlert
-              ? zoneColor.withAlpha(60)
-              : Colors.grey.withAlpha(40),
+          color:
+              isHighAlert ? zoneColor.withAlpha(60) : Colors.grey.withAlpha(40),
         ),
         boxShadow: [
           BoxShadow(
-            color: isHighAlert
-                ? zoneColor.withAlpha(30)
-                : Colors.black.withAlpha(12),
+            color:
+                isHighAlert
+                    ? zoneColor.withAlpha(30)
+                    : Colors.black.withAlpha(12),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -500,23 +584,21 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           // Header baris atas: ikon + label + chevron (toggle)
           GestureDetector(
-            onTap: isHighAlert
-                ? () => Navigator.pushNamed(context, AppRoutes.zoneDetail)
-                : () => setState(() {
+            onTap:
+                isHighAlert
+                    ? () => Navigator.pushNamed(context, AppRoutes.zoneDetail)
+                    : () => setState(() {
                       _isZoneCardExpanded = !_isZoneCardExpanded;
                     }),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Row(
                 children: [
                   Icon(
                     isHighAlert
                         ? Icons.warning_amber_rounded
                         : Icons.my_location,
-                    color: isHighAlert
-                        ? zoneColor
-                        : Colors.grey.shade500,
+                    color: isHighAlert ? zoneColor : Colors.grey.shade500,
                     size: 20,
                   ),
                   const SizedBox(width: 12),
@@ -530,9 +612,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: isHighAlert
-                                ? zoneColor
-                                : Colors.grey.shade700,
+                            color:
+                                isHighAlert ? zoneColor : Colors.grey.shade700,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -541,9 +622,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: 12,
-                            color: isHighAlert
-                                ? zoneColor.withAlpha(180)
-                                : SigumiTheme.textSecondary,
+                            color:
+                                isHighAlert
+                                    ? zoneColor.withAlpha(180)
+                                    : SigumiTheme.textSecondary,
                           ),
                         ),
                       ],
@@ -557,9 +639,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         : (showContent
                             ? Icons.keyboard_arrow_up_rounded
                             : Icons.keyboard_arrow_down_rounded),
-                    color: isHighAlert
-                        ? zoneColor
-                        : Colors.grey.shade400,
+                    color: isHighAlert ? zoneColor : Colors.grey.shade400,
                     size: 24,
                   ),
                 ],
@@ -570,27 +650,31 @@ class _HomeScreenState extends State<HomeScreen> {
           // Konten tambahan — hanya tampil saat expand atau level tinggi
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 280),
-            crossFadeState: showContent
-                ? CrossFadeState.showFirst
-                : CrossFadeState.showSecond,
+            crossFadeState:
+                showContent
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
             firstChild: GestureDetector(
-              onTap: () =>
-                  Navigator.pushNamed(context, AppRoutes.zoneDetail),
+              onTap: () => Navigator.pushNamed(context, AppRoutes.zoneDetail),
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: isHighAlert
-                        ? zoneColor.withAlpha(18)
-                        : Colors.grey.withAlpha(15),
+                    color:
+                        isHighAlert
+                            ? zoneColor.withAlpha(18)
+                            : Colors.grey.withAlpha(15),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isHighAlert
-                          ? zoneColor.withAlpha(40)
-                          : Colors.grey.withAlpha(25),
+                      color:
+                          isHighAlert
+                              ? zoneColor.withAlpha(40)
+                              : Colors.grey.withAlpha(25),
                     ),
                   ),
                   child: Row(
@@ -598,9 +682,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Icon(
                         Icons.info_outline_rounded,
                         size: 14,
-                        color: isHighAlert
-                            ? zoneColor
-                            : Colors.grey.shade500,
+                        color: isHighAlert ? zoneColor : Colors.grey.shade500,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -611,18 +693,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: 11,
-                            color: isHighAlert
-                                ? zoneColor.withAlpha(200)
-                                : Colors.grey.shade500,
+                            color:
+                                isHighAlert
+                                    ? zoneColor.withAlpha(200)
+                                    : Colors.grey.shade500,
                           ),
                         ),
                       ),
                       Icon(
                         Icons.open_in_new_rounded,
                         size: 12,
-                        color: isHighAlert
-                            ? zoneColor
-                            : Colors.grey.shade400,
+                        color: isHighAlert ? zoneColor : Colors.grey.shade400,
                       ),
                     ],
                   ),
@@ -640,7 +721,8 @@ class _HomeScreenState extends State<HomeScreen> {
   // REGION SELECTOR — Header badge dengan deteksi GPS
   // ────────────────────────────────────────────────
   Widget _buildRegionSelector(BuildContext context, VolcanoProvider provider) {
-    final isAutoDetected = provider.isRegionAutoDetected &&
+    final isAutoDetected =
+        provider.isRegionAutoDetected &&
         provider.detectedRegion == provider.selectedRegion;
 
     return Material(
@@ -662,9 +744,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 isAutoDetected
                     ? Icons.gps_fixed_rounded
                     : Icons.location_on_rounded,
-                color: isAutoDetected
-                    ? Colors.green.shade600
-                    : const Color(0xFF1B2E7B),
+                color:
+                    isAutoDetected
+                        ? Colors.green.shade600
+                        : const Color(0xFF1B2E7B),
                 size: 16,
               ),
               const SizedBox(width: 4),
@@ -851,14 +934,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           duration: const Duration(milliseconds: 200),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? color.withAlpha(12)
-                                : Colors.transparent,
+                            color:
+                                isSelected
+                                    ? color.withAlpha(12)
+                                    : Colors.transparent,
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: isSelected
-                                  ? color.withAlpha(60)
-                                  : SigumiTheme.divider.withAlpha(80),
+                              color:
+                                  isSelected
+                                      ? color.withAlpha(60)
+                                      : SigumiTheme.divider.withAlpha(80),
                             ),
                           ),
                           child: Row(
@@ -888,16 +973,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w700,
-                                            color: isSelected
-                                                ? color
-                                                : SigumiTheme.textPrimary,
+                                            color:
+                                                isSelected
+                                                    ? color
+                                                    : SigumiTheme.textPrimary,
                                           ),
                                         ),
                                         if (isDetected) ...[
                                           const SizedBox(width: 8),
                                           Container(
-                                            padding:
-                                                const EdgeInsets.symmetric(
+                                            padding: const EdgeInsets.symmetric(
                                               horizontal: 8,
                                               vertical: 2,
                                             ),
@@ -915,8 +1000,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 Icon(
                                                   Icons.gps_fixed_rounded,
                                                   size: 10,
-                                                  color:
-                                                      Colors.green.shade700,
+                                                  color: Colors.green.shade700,
                                                 ),
                                                 const SizedBox(width: 3),
                                                 Text(
@@ -1010,10 +1094,7 @@ class _ShadMenuCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: color.withAlpha(40),
-                width: 1,
-              ),
+              border: Border.all(color: color.withAlpha(40), width: 1),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
@@ -1081,10 +1162,7 @@ class _TourismBannerCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            bgColor,
-            bgColor.withAlpha(200),
-          ],
+          colors: [bgColor, bgColor.withAlpha(200)],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -1113,7 +1191,10 @@ class _TourismBannerCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
