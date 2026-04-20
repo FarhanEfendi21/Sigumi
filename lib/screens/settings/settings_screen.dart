@@ -161,9 +161,11 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Pengguna SIGUMI',
-            style: TextStyle(
+          Text(
+            provider.currentUser?.name.isNotEmpty == true 
+                ? provider.currentUser!.name 
+                : 'Pengguna SIGUMI',
+            style: const TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -173,8 +175,10 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'pengguna@sigumi.id',
-            style: TextStyle(
+            provider.currentUser?.phone?.isNotEmpty == true 
+                ? provider.currentUser!.phone! 
+                : (provider.currentUser?.email ?? 'pengguna@sigumi.id'), // Fallback to email if phone is empty
+            style: const TextStyle(
               fontFamily: 'Plus Jakarta Sans',
               fontSize: 14,
               fontWeight: FontWeight.w500,

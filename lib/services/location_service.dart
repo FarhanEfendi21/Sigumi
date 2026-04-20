@@ -31,9 +31,7 @@ class LocationService extends ChangeNotifier {
   LocationService._internal();
 
   // ── Definisi daerah cakupan ──
-  // Radius ~40km dari puncak gunung (area sekitar gunung saja)
   static const double _detectionRadiusKm = 40.0;
-
   static const Map<String, Map<String, double>> regionCenters = {
     'Yogyakarta': {'lat': -7.5407, 'lng': 110.4457}, // Merapi
     'Bali':       {'lat': -8.3433, 'lng': 115.5071}, // Agung
@@ -110,7 +108,27 @@ class LocationService extends ChangeNotifier {
   /// ──────────────────────────────────────────────
   /// Mengecek apakah user berada dalam radius ~40km
   /// dari salah satu dari 3 gunung berapi.
-  /// Return nama daerah atau null jika di luar cakupan.
+  /// Mencari daerah paling dekat tanpa batasan radius
+  String getClosestRegion() {
+    String closest = 'Yogyakarta'; // default fallback
+    double closestDistance = double.infinity;
+
+    for (final entry in regionCenters.entries) {
+      final center = entry.value;
+      final distance = _haversineDistance(
+        _userLat, _userLng,
+        center['lat']!, center['lng']!,
+      );
+
+      if (distance < closestDistance) {
+        closest = entry.key;
+        closestDistance = distance;
+      }
+    }
+    return closest;
+  }
+
+  /// Return nama daerah jika dalam jarak 40km, atau null jika di luar.
   String? detectRegion() {
     String? closest;
     double closestDistance = double.infinity;
@@ -122,15 +140,21 @@ class LocationService extends ChangeNotifier {
         center['lat']!, center['lng']!,
       );
 
-      if (distance <= _detectionRadiusKm && distance < closestDistance) {
+      if (distance < closestDistance) {
         closest = entry.key;
         closestDistance = distance;
       }
     }
 
-    _detectedRegion = closest;
-    _isRegionAutoDetected = closest != null;
-    return closest;
+    if (closestDistance <= _detectionRadiusKm) {
+      _detectedRegion = closest;
+      _isRegionAutoDetected = true;
+      return closest;
+    } else {
+      _detectedRegion = null;
+      _isRegionAutoDetected = false;
+      return null;
+    }
   }
 
   /// ──────────────────────────────────────────────

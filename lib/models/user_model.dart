@@ -2,6 +2,7 @@ class UserModel {
   final String id;
   final String name;
   final String email;
+  final String? phone;
   final int? age;
   final double? latitude;
   final double? longitude;
@@ -15,6 +16,7 @@ class UserModel {
     required this.id,
     required this.name,
     required this.email,
+    this.phone,
     this.age,
     this.latitude,
     this.longitude,
@@ -29,6 +31,7 @@ class UserModel {
     String? id,
     String? name,
     String? email,
+    String? phone,
     int? age,
     double? latitude,
     double? longitude,
@@ -42,6 +45,7 @@ class UserModel {
       id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
+      phone: phone ?? this.phone,
       age: age ?? this.age,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,

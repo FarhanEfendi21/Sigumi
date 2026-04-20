@@ -551,43 +551,70 @@ class _MapScreenState extends State<MapScreen>
                     tileProvider: CancellableNetworkTileProvider(),
                   ),
 
-                  // ── Risk Radius Circles ──
-                  CircleLayer(
-                    circles: [
-                      CircleMarker(
-                        point: volcanoPos,
-                        radius: _kmToMeter(20),
-                        useRadiusInMeter: true,
-                        color: SigumiTheme.statusNormal.withAlpha(15),
-                        borderColor: SigumiTheme.statusNormal.withAlpha(50),
-                        borderStrokeWidth: 1,
-                      ),
-                      CircleMarker(
-                        point: volcanoPos,
-                        radius: _kmToMeter(15),
-                        useRadiusInMeter: true,
-                        color: SigumiTheme.statusWaspada.withAlpha(20),
-                        borderColor: SigumiTheme.statusWaspada.withAlpha(60),
-                        borderStrokeWidth: 1.5,
-                      ),
-                      CircleMarker(
-                        point: volcanoPos,
-                        radius: _kmToMeter(10),
-                        useRadiusInMeter: true,
-                        color: SigumiTheme.statusSiaga.withAlpha(25),
-                        borderColor: SigumiTheme.statusSiaga.withAlpha(80),
-                        borderStrokeWidth: 1.5,
-                      ),
-                      CircleMarker(
-                        point: volcanoPos,
-                        radius: _kmToMeter(5),
-                        useRadiusInMeter: true,
-                        color: SigumiTheme.statusAwas.withAlpha(35),
-                        borderColor: SigumiTheme.statusAwas.withAlpha(100),
-                        borderStrokeWidth: 2,
-                      ),
-                    ],
-                  ).animate().fadeIn(duration: 800.ms),
+                  // ── Risk Radius Circles — kondisional berdasarkan level gunung ──
+                  Builder(
+                    builder: (context) {
+                      final volcanoLevel = provider.volcano.statusLevel;
+                      final isHighAlert = volcanoLevel >= 3;
+
+                      if (isHighAlert) {
+                        // Level 3–4: Tampilkan 4 lingkaran zona penuh dengan warna tegas
+                        return CircleLayer(
+                          circles: [
+                            CircleMarker(
+                              point: volcanoPos,
+                              radius: _kmToMeter(20),
+                              useRadiusInMeter: true,
+                              color: SigumiTheme.statusNormal.withAlpha(20),
+                              borderColor: SigumiTheme.statusNormal.withAlpha(70),
+                              borderStrokeWidth: 1.5,
+                            ),
+                            CircleMarker(
+                              point: volcanoPos,
+                              radius: _kmToMeter(15),
+                              useRadiusInMeter: true,
+                              color: SigumiTheme.statusWaspada.withAlpha(30),
+                              borderColor:
+                                  SigumiTheme.statusWaspada.withAlpha(90),
+                              borderStrokeWidth: 2,
+                            ),
+                            CircleMarker(
+                              point: volcanoPos,
+                              radius: _kmToMeter(10),
+                              useRadiusInMeter: true,
+                              color: SigumiTheme.statusSiaga.withAlpha(35),
+                              borderColor:
+                                  SigumiTheme.statusSiaga.withAlpha(110),
+                              borderStrokeWidth: 2,
+                            ),
+                            CircleMarker(
+                              point: volcanoPos,
+                              radius: _kmToMeter(5),
+                              useRadiusInMeter: true,
+                              color: SigumiTheme.statusAwas.withAlpha(50),
+                              borderColor:
+                                  SigumiTheme.statusAwas.withAlpha(140),
+                              borderStrokeWidth: 2.5,
+                            ),
+                          ],
+                        ).animate().fadeIn(duration: 800.ms);
+                      } else {
+                        // Level 1–2: Hanya 1 lingkaran tipis warna netral abu-abu
+                        return CircleLayer(
+                          circles: [
+                            CircleMarker(
+                              point: volcanoPos,
+                              radius: _kmToMeter(20),
+                              useRadiusInMeter: true,
+                              color: Colors.grey.withAlpha(12),
+                              borderColor: Colors.grey.withAlpha(45),
+                              borderStrokeWidth: 1,
+                            ),
+                          ],
+                        ).animate().fadeIn(duration: 800.ms);
+                      }
+                    },
+                  ),
 
                   // ── Map Markers ──
                   MarkerLayer(
