@@ -6,6 +6,7 @@ import 'config/theme.dart';
 import 'config/routes.dart';
 import 'providers/volcano_provider.dart';
 import 'providers/tourism_provider.dart';
+import 'providers/auth_provider.dart';
 import 'services/location_service.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -29,6 +30,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => VolcanoProvider()),
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => TourismProvider()),

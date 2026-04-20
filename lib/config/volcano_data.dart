@@ -1,0 +1,392 @@
+import '../models/volcano_model.dart';
+
+/// Data semua gunung berapi aktif di Indonesia
+/// Didasarkan dari MAGMA Indonesia (magma.esdm.go.id)
+class VolcanoData {
+  static const List<Map<String, dynamic>> allVolcanoes = [
+    // ── Gunung-Gunung Utama (Priority: Merapi, Agung, Rinjani) ──
+    {
+      'id': 'merapi_001',
+      'name': 'Gunung Merapi',
+      'latitude': -7.5407,
+      'longitude': 110.4457,
+      'elevation': 2968,
+      'province': 'Jawa Tengah/DIY',
+      'statusLevel': 2,
+      'description': 'Salah satu gunung paling aktif di Indonesia',
+    },
+    {
+      'id': 'agung_001',
+      'name': 'Gunung Agung',
+      'latitude': -8.3433,
+      'longitude': 115.5071,
+      'elevation': 3031,
+      'province': 'Bali',
+      'statusLevel': 1,
+      'description': 'Gunung tertinggi di Bali',
+    },
+    {
+      'id': 'rinjani_001',
+      'name': 'Gunung Rinjani',
+      'latitude': -8.4111,
+      'longitude': 116.4573,
+      'elevation': 3726,
+      'province': 'Nusa Tenggara Barat',
+      'statusLevel': 2,
+      'description': 'Gunung tertinggi ketiga di Indonesia',
+    },
+
+    // ── Gunung-Gunung Lainnya (Normal Status) ──
+    {
+      'id': 'bromo_001',
+      'name': 'Gunung Bromo',
+      'latitude': -7.9427,
+      'longitude': 112.9519,
+      'elevation': 2329,
+      'province': 'Jawa Timur',
+      'statusLevel': 1,
+      'description': 'Gunung ikonik Jawa Timur',
+    },
+    {
+      'id': 'semeru_001',
+      'name': 'Gunung Semeru',
+      'latitude': -8.1084,
+      'longitude': 112.9224,
+      'elevation': 3676,
+      'province': 'Jawa Timur',
+      'statusLevel': 1,
+      'description': 'Gunung tertinggi di Jawa',
+    },
+    {
+      'id': 'raung_001',
+      'name': 'Gunung Raung',
+      'latitude': -8.6381,
+      'longitude': 114.0387,
+      'elevation': 3332,
+      'province': 'Jawa Timur',
+      'statusLevel': 1,
+      'description': 'Gunung aktif Jawa Timur',
+    },
+    {
+      'id': 'kelud_001',
+      'name': 'Gunung Kelud',
+      'latitude': -7.9253,
+      'longitude': 112.3082,
+      'elevation': 1731,
+      'province': 'Jawa Timur',
+      'statusLevel': 1,
+      'description': 'Gunung dengan danau kawah',
+    },
+    {
+      'id': 'slamet_001',
+      'name': 'Gunung Slamet',
+      'latitude': -7.2425,
+      'longitude': 109.2075,
+      'elevation': 3428,
+      'province': 'Jawa Tengah',
+      'statusLevel': 1,
+      'description': 'Gunung tertinggi di Jawa Tengah',
+    },
+    {
+      'id': 'sundoro_001',
+      'name': 'Gunung Sundoro',
+      'latitude': -7.3050,
+      'longitude': 109.9633,
+      'elevation': 3136,
+      'province': 'Jawa Tengah',
+      'statusLevel': 1,
+      'description': 'Kembar dengan Gunung Sumbing',
+    },
+    {
+      'id': 'sumbing_001',
+      'name': 'Gunung Sumbing',
+      'latitude': -7.3783,
+      'longitude': 110.0633,
+      'elevation': 3371,
+      'province': 'Jawa Tengah',
+      'statusLevel': 1,
+      'description': 'Gunung kembar Sundoro',
+    },
+    {
+      'id': 'merbabu_001',
+      'name': 'Gunung Merbabu',
+      'latitude': -7.4495,
+      'longitude': 110.4359,
+      'elevation': 3142,
+      'province': 'Jawa Tengah',
+      'statusLevel': 1,
+      'description': 'Gunung di dekat Merapi',
+    },
+    {
+      'id': 'lawu_001',
+      'name': 'Gunung Lawu',
+      'latitude': -7.6253,
+      'longitude': 111.1892,
+      'elevation': 3265,
+      'province': 'Jawa Tengah/Jawa Timur',
+      'statusLevel': 1,
+      'description': 'Gunung perbatasan Jateng-Jatim',
+    },
+    {
+      'id': 'dieng_001',
+      'name': 'Gunung Dieng',
+      'latitude': -7.2017,
+      'longitude': 109.8919,
+      'elevation': 2565,
+      'province': 'Jawa Tengah',
+      'statusLevel': 1,
+      'description': 'Kompleks vulkanik dengan kawah',
+    },
+    {
+      'id': 'tangkuban_001',
+      'name': 'Gunung Tangkuban Parahu',
+      'latitude': -6.7677,
+      'longitude': 107.6031,
+      'elevation': 2084,
+      'province': 'Jawa Barat',
+      'statusLevel': 1,
+      'description': 'Gunung aktif Jawa Barat',
+    },
+    {
+      'id': 'papandayan_001',
+      'name': 'Gunung Papandayan',
+      'latitude': -7.3167,
+      'longitude': 107.7167,
+      'elevation': 2665,
+      'province': 'Jawa Barat',
+      'statusLevel': 1,
+      'description': 'Gunung dengan kawah beberapa',
+    },
+    {
+      'id': 'garut_001',
+      'name': 'Gunung Garut',
+      'latitude': -7.1258,
+      'longitude': 107.5608,
+      'elevation': 2778,
+      'province': 'Jawa Barat',
+      'statusLevel': 1,
+      'description': 'Gunung aktif Garut',
+    },
+    {
+      'id': 'ciremai_001',
+      'name': 'Gunung Ciremai',
+      'latitude': -6.8972,
+      'longitude': 108.3717,
+      'elevation': 3078,
+      'province': 'Jawa Barat',
+      'statusLevel': 1,
+      'description': 'Gunung tertinggi Jawa Barat',
+    },
+    {
+      'id': 'galunggung_001',
+      'name': 'Gunung Galunggung',
+      'latitude': -7.2517,
+      'longitude': 108.0583,
+      'elevation': 2168,
+      'province': 'Jawa Barat',
+      'statusLevel': 1,
+      'description': 'Gunung yang sering aktif',
+    },
+    {
+      'id': 'salak_001',
+      'name': 'Gunung Salak',
+      'latitude': -6.7117,
+      'longitude': 106.7667,
+      'elevation': 2211,
+      'province': 'Jawa Barat',
+      'statusLevel': 1,
+      'description': 'Gunung dua puncak',
+    },
+    {
+      'id': 'gede_001',
+      'name': 'Gunung Gede',
+      'latitude': -6.9486,
+      'longitude': 107.0167,
+      'elevation': 2958,
+      'province': 'Jawa Barat',
+      'statusLevel': 1,
+      'description': 'Gunung di kawasan Pangrango',
+    },
+
+    // ── Gunung-Gunung Sumatera ──
+    {
+      'id': 'kerinci_001',
+      'name': 'Gunung Kerinci',
+      'latitude': -1.6958,
+      'longitude': 101.2597,
+      'elevation': 3805,
+      'province': 'Jambi',
+      'statusLevel': 1,
+      'description': 'Gunung tertinggi Sumatera',
+    },
+    {
+      'id': 'talang_001',
+      'name': 'Gunung Talang',
+      'latitude': -0.9333,
+      'longitude': 101.2667,
+      'elevation': 2597,
+      'province': 'Sumatera Barat',
+      'statusLevel': 1,
+      'description': 'Gunung aktif Sumatera Barat',
+    },
+    {
+      'id': 'merapi_suma_001',
+      'name': 'Gunung Merapi (Sumatera)',
+      'latitude': 0.5667,
+      'longitude': 100.5167,
+      'elevation': 2891,
+      'province': 'Riau/Sumatera Barat',
+      'statusLevel': 1,
+      'description': 'Merapi di Sumatera',
+    },
+    {
+      'id': 'sinabung_001',
+      'name': 'Gunung Sinabung',
+      'latitude': 3.1706,
+      'longitude': 98.3922,
+      'elevation': 2460,
+      'province': 'Sumatera Utara',
+      'statusLevel': 2,
+      'description': 'Gunung paling aktif di Indonesia',
+    },
+    {
+      'id': 'krakatau_001',
+      'name': 'Anak Krakatau',
+      'latitude': -6.3024,
+      'longitude': 105.4226,
+      'elevation': 813,
+      'province': 'Lampung',
+      'statusLevel': 2,
+      'description': 'Gunung anak Krakatau',
+    },
+
+    // ── Gunung-Gunung Sulawesi ──
+    {
+      'id': 'lokon_001',
+      'name': 'Gunung Lokon',
+      'latitude': 1.3594,
+      'longitude': 124.7925,
+      'elevation': 1580,
+      'province': 'Sulawesi Utara',
+      'statusLevel': 1,
+      'description': 'Gunung aktif Manado',
+    },
+    {
+      'id': 'soputan_001',
+      'name': 'Gunung Soputan',
+      'latitude': 1.1083,
+      'longitude': 124.7325,
+      'elevation': 1784,
+      'province': 'Sulawesi Utara',
+      'statusLevel': 1,
+      'description': 'Gunung sering aktif',
+    },
+    {
+      'id': 'karangetang_001',
+      'name': 'Gunung Karangetang',
+      'latitude': 2.7783,
+      'longitude': 125.4044,
+      'elevation': 1784,
+      'province': 'Sulawesi Utara',
+      'statusLevel': 1,
+      'description': 'Gunung pulau Siau',
+    },
+    {
+      'id': 'rantemario_001',
+      'name': 'Gunung Rantemario',
+      'latitude': -2.1667,
+      'longitude': 120.7500,
+      'elevation': 3455,
+      'province': 'Sulawesi Selatan',
+      'statusLevel': 1,
+      'description': 'Gunung tertinggi Sulawesi',
+    },
+
+    // ── Gunung-Gunung Nusa Tenggara ──
+    {
+      'id': 'batur_001',
+      'name': 'Gunung Batur',
+      'latitude': -8.2425,
+      'longitude': 115.3708,
+      'elevation': 1717,
+      'province': 'Bali',
+      'statusLevel': 1,
+      'description': 'Gunung aktif dengan kaldera',
+    },
+    {
+      'id': 'kelimutu_001',
+      'name': 'Gunung Kelimutu',
+      'latitude': -8.7644,
+      'longitude': 121.8186,
+      'elevation': 1731,
+      'province': 'Nusa Tenggara Timur',
+      'statusLevel': 1,
+      'description': 'Gunung dengan tiga danau warna',
+    },
+    {
+      'id': 'ijen_001',
+      'name': 'Gunung Ijen',
+      'latitude': -8.0581,
+      'longitude': 114.2422,
+      'elevation': 2799,
+      'province': 'Jawa Timur',
+      'statusLevel': 1,
+      'description': 'Gunung dengan kawah belerang',
+    },
+    {
+      'id': 'lewotobi_001',
+      'name': 'Gunung Lewotobi Laki-laki',
+      'latitude': -8.2583,
+      'longitude': 122.7722,
+      'elevation': 1703,
+      'province': 'Nusa Tenggara Timur',
+      'statusLevel': 2,
+      'description': 'Gunung aktif NTT',
+    },
+  ];
+
+  /// Mendapatkan semua gunung sebagai VolcanoModel
+  static List<VolcanoModel> getAll() {
+    return allVolcanoes.map((data) {
+      return VolcanoModel(
+        id: data['id'] as String,
+        name: data['name'] as String,
+        latitude: (data['latitude'] as num).toDouble(),
+        longitude: (data['longitude'] as num).toDouble(),
+        elevation: (data['elevation'] as num).toDouble(),
+        statusLevel: data['statusLevel'] as int? ?? 1,
+        statusDescription: data['description'] as String? ?? '',
+        lastUpdate: DateTime.now(),
+      );
+    }).toList();
+  }
+
+  /// Mendapatkan 3 gunung utama
+  static List<VolcanoModel> getPrimaryVolcanoes() {
+    return getAll().where((v) {
+      return v.id == 'merapi_001' ||
+          v.id == 'agung_001' ||
+          v.id == 'rinjani_001';
+    }).toList();
+  }
+
+  /// Mendapatkan gunung berdasarkan ID
+  static VolcanoModel? getVolcanoById(String id) {
+    final data = allVolcanoes.firstWhere(
+      (v) => v['id'] == id,
+      orElse: () => const {},
+    );
+    if (data.isEmpty) return null;
+
+    return VolcanoModel(
+      id: data['id'] as String,
+      name: data['name'] as String,
+      latitude: (data['latitude'] as num).toDouble(),
+      longitude: (data['longitude'] as num).toDouble(),
+      elevation: (data['elevation'] as num).toDouble(),
+      statusLevel: data['statusLevel'] as int? ?? 1,
+      statusDescription: data['description'] as String? ?? '',
+      lastUpdate: DateTime.now(),
+    );
+  }
+}
