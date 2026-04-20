@@ -21,52 +21,64 @@ class AiService {
   // ═══════════════════════════════════════════════════════════════
   static const List<Map<String, dynamic>> assemblyPoints = [
     {
+      'name': 'Barak Pengungsian Glagaharjo',
+      'lat': -7.6358,
+      'lng': 110.4721,
+      'desc': 'Desa Glagaharjo, Kec. Cangkringan, Sleman',
+    },
+    {
+      'name': 'Barak Pengungsian Kepuharjo',
+      'lat': -7.6142,
+      'lng': 110.4537,
+      'desc': 'Desa Kepuharjo, Kec. Cangkringan, Sleman',
+    },
+    {
       'name': 'Stadion Maguwoharjo',
-      'lat': -7.7492,
-      'lng': 110.4147,
-      'desc': 'Sleman, Yogyakarta',
+      'lat': -7.7505,
+      'lng': 110.4182,
+      'desc': 'Jl. Stadion Maguwoharjo, Depok, Sleman',
     },
     {
       'name': 'Balai Desa Umbulharjo',
-      'lat': -7.6097,
-      'lng': 110.4421,
-      'desc': 'Cangkringan, Sleman',
+      'lat': -7.6280,
+      'lng': 110.4385,
+      'desc': 'Desa Umbulharjo, Kec. Cangkringan, Sleman',
     },
     {
-      'name': 'Lapangan Desa Kepuharjo',
-      'lat': -7.5858,
-      'lng': 110.4433,
-      'desc': 'Cangkringan, Sleman',
+      'name': 'Balai Desa Hargobinangun',
+      'lat': -7.6185,
+      'lng': 110.4015,
+      'desc': 'Desa Hargobinangun, Kec. Pakem, Sleman',
     },
     {
-      'name': 'SMP N 2 Cangkringan',
-      'lat': -7.6287,
-      'lng': 110.4527,
-      'desc': 'Cangkringan, Sleman',
+      'name': 'Puskesmas Cangkringan',
+      'lat': -7.6749,
+      'lng': 110.4578,
+      'desc': 'Panggung, Argomulyo, Kec. Cangkringan, Sleman',
     },
     {
-      'name': 'GOR Amongrogo',
-      'lat': -7.7853,
-      'lng': 110.3787,
-      'desc': 'Kota Yogyakarta',
+      'name': 'Puskesmas Pakem',
+      'lat': -7.6581,
+      'lng': 110.4152,
+      'desc': 'Jl. Kaliurang KM 17.5, Kec. Pakem, Sleman',
     },
     {
-      'name': 'Balai Desa Muntilan',
-      'lat': -7.5837,
-      'lng': 110.2887,
-      'desc': 'Muntilan, Magelang',
+      'name': 'RS Panti Nugroho',
+      'lat': -7.6545,
+      'lng': 110.4168,
+      'desc': 'Jl. Kaliurang KM 17, Pakembinangun, Pakem, Sleman',
     },
     {
-      'name': 'Lapangan Desa Srumbung',
-      'lat': -7.5612,
-      'lng': 110.3345,
-      'desc': 'Srumbung, Magelang',
+      'name': 'Puskesmas Kemalang',
+      'lat': -7.6314,
+      'lng': 110.4805,
+      'desc': 'Kec. Kemalang, Kabupaten Klaten, Jawa Tengah',
     },
     {
-      'name': 'Stadion Kridanggo',
-      'lat': -7.4773,
-      'lng': 110.2118,
-      'desc': 'Kota Magelang',
+      'name': 'RSUD Sleman',
+      'lat': -7.7165,
+      'lng': 110.3492,
+      'desc': 'Jl. Bhayangkara No.48, Triharjo, Sleman',
     },
   ];
 
@@ -230,98 +242,98 @@ class AiService {
       case 'en':
         switch (ageCategory) {
           case 'anak':
-            return '📍 The nearest safe point is "$name" ($desc), '
+            return '📍 In this drill, the nearest assembly point is "$name" ($desc), '
                 'about $distance km from you.\n\n'
-                'Go there with your parents or a trusted adult! 🏃‍♂️\n'
-                'Follow the evacuation signs and stay calm!';
+                'Let\'s practice going there with your parents or a trusted adult! 🏃‍♂️\n'
+                'Learn the evacuation signs!';
           case 'lansia':
-            return 'NEAREST ASSEMBLY POINT:\n\n'
+            return 'TRAINING ASSEMBLY POINT:\n\n'
                 '📍 $name\n'
                 '📌 $desc\n'
                 '📏 $distance km from your location.\n\n'
-                'Please head there immediately.\n'
-                'Ask family or neighbors for help if needed.';
+                'During a real emergency, please head there.\n'
+                'Don\'t hesitate to ask family or neighbors for help if needed.';
           default:
-            return '📍 Nearest assembly point: **$name** ($desc), '
+            return '📍 Based on this training simulation, the nearest assembly point is **$name** ($desc), '
                 'approximately $distance km from your location.\n\n'
-                'Please head there immediately and follow BPBD officers\' instructions.';
+                'Familiarize yourself with this route and follow BPBD officers\' instructions during drills.';
         }
 
       case 'jv':
         switch (ageCategory) {
           case 'anak':
-            return '📍 Titik kumpul sing paling cedhak yaiku "$name" ($desc), '
+            return '📍 Ing simulasi iki, titik kumpul sing paling cedhak yaiku "$name" ($desc), '
                 'udakara $distance km saka kowe.\n\n'
-                'Ayo budhal bareng bapak ibu utawa wong tuwa! 🏃‍♂️';
+                'Ayo sinau budhal bareng bapak ibu utawa wong tuwa! 🏃‍♂️';
           case 'lansia':
-            return 'TITIK KUMPUL TERCEDHAK:\n\n'
+            return 'TITIK KUMPUL PELATIHAN:\n\n'
                 '📍 $name\n'
                 '📌 $desc\n'
                 '📏 $distance km saka lokasi panjenengan.\n\n'
-                'Monggo enggal tindak mriku.\n'
+                'Ingkang darurat, monggo enggal tindak mriku.\n'
                 'Nyuwun tulung keluwarga yen butuh bantuan.';
           default:
-            return '📍 Titik kumpul aman tercedhak: **$name** ($desc), '
+            return '📍 Adhedhasar simulasi pelatihan, titik kumpul keluwarga tercedhak yaiku: **$name** ($desc), '
                 'udakara $distance km saka lokasi panjenengan.\n\n'
-                'Monggo enggal tindak mriku lan tindakake arahan petugas BPBD.';
+                'Monggo hapalake rute iki lan tindakake arahan petugas nalika simulasi.';
         }
 
-      case 'su':
+      case 'sas':
         switch (ageCategory) {
           case 'anak':
-            return '📍 Titik kumpul pangdeukeutna nyaéta "$name" ($desc), '
-                'kira-kira $distance km ti hidep.\n\n'
-                'Hayu indit bareng bapa ibu atawa kolot! 🏃‍♂️';
+            return '📍 Leq simulasi niki, titik kumpul saq paling dekat ie "$name" ($desc), '
+                'kira-kira $distance km leq side.\n\n'
+                'Silaq belajaraq uat bareng inaq amaq! 🏃‍♂️';
           case 'lansia':
-            return 'TITIK KUMPUL PANGDEUKEUTNA:\n\n'
+            return 'TITIK KUMPUL PELATIHAN:\n\n'
                 '📍 $name\n'
                 '📌 $desc\n'
-                '📏 $distance km ti lokasi anjeun.\n\n'
-                'Mangga enggal angkat ka dinya.\n'
-                'Ménta bantuan kulawarga upami peryogi.';
+                '📏 $distance km leq lokasi side.\n\n'
+                'Pas darurat, silaq langsung jok mriku.\n'
+                'Boleh tulung jok keluarge mun butuh.';
           default:
-            return '📍 Titik kumpul aman pangdeukeutna: **$name** ($desc), '
-                'kira-kira $distance km ti lokasi anjeun.\n\n'
-                'Mangga enggal angkat ka dinya sareng turutan arahan patugas BPBD.';
+            return '📍 Sesuai simulasi pelatihan niki, titik kumpul terdekat ie: **$name** ($desc), '
+                'kira-kira $distance km leq lokasi side.\n\n'
+                'Silaq hapalang rute niki dait turut arahan petugas pas simulasi bpbd.';
         }
 
       case 'ba':
         switch (ageCategory) {
           case 'anak':
-            return '📍 Titik kumpul sané pinih paek inggih punika "$name" ($desc), '
+            return '📍 Ring simulasi puniki, titik kumpul sane paling paek inggih punika "$name" ($desc), '
                 'sawatara $distance km saking ragané.\n\n'
-                'Ngilangang lunga sareng bapa miwah ibu! 🏃‍♂️';
+                'Ngiring malajah lunga sareng bapa miwah ibu! 🏃‍♂️';
           case 'lansia':
-            return 'TITIK KUMPUL TERPAEK:\n\n'
+            return 'TITIK KUMPUL PELATIHAN:\n\n'
                 '📍 $name\n'
                 '📌 $desc\n'
                 '📏 $distance km saking lokasi ragané.\n\n'
-                'Mangda gelis lunga mriku.\n'
+                'Yening darurat saje, mangda gelis lunga mriku.\n'
                 'Nunas wantuan kulawarga yéning merluang.';
           default:
-            return '📍 Titik kumpul aman terpaek: **$name** ($desc), '
+            return '📍 Miturut simulasi pelatihan, titik kumpul terpaek inggih punika: **$name** ($desc), '
                 'sawatara $distance km saking lokasi ragané.\n\n'
-                'Mangda gelis lunga mriku lan tuutin arahan patugas BPBD.';
+                'Mangda apalang rute puniki lan tuutin arahan patugas BPBD yening simulasi.';
         }
 
       default: // Bahasa Indonesia
         switch (ageCategory) {
           case 'anak':
-            return '📍 Titik kumpul aman terdekat adalah "$name" ($desc), '
-                'sekitar $distance km dari kamu.\n\n'
-                'Ayo pergi ke sana bareng orang tua atau orang dewasa! 🏃‍♂️\n'
-                'Ikuti rambu evakuasi dan jangan panik ya!';
+            return '📍 Dalam latihan simulasi ini, titik kumpul kita di "$name" ($desc), '
+                'sekitar $distance km dari lokasimu.\n\n'
+                'Ayo berlatih pergi ke sana bareng orang tua atau orang dewasa! 🏃‍♂️\n'
+                'Hafalkan rambu-rambu evakuasinya ya!';
           case 'lansia':
-            return 'TITIK KUMPUL TERDEKAT:\n\n'
+            return 'TITIK KUMPUL LATIHAN:\n\n'
                 '📍 $name\n'
                 '📌 $desc\n'
                 '📏 $distance km dari lokasi Anda.\n\n'
-                'Segera menuju ke sana.\n'
-                'Minta bantuan keluarga atau tetangga jika diperlukan.';
+                'Pada simulasi/kejadian nyata, arahkan diri Anda ke sana.\n'
+                'Jangan ragu meminta bantuan keluarga atau tetangga untuk evakuasi.';
           default:
-            return '📍 Titik kumpul aman terdekat dari lokasi Anda adalah '
+            return '📍 Berdasarkan simulasi pelatihan, titik kumpul aman terdekat dari lokasi Anda adalah '
                 '**$name** ($desc), berjarak sekitar $distance km.\n\n'
-                'Silakan segera menuju ke sana dan ikuti arahan petugas BPBD di lapangan.';
+                'Hafalkan jalur evakuasi ini untuk berjaga-jaga, dan selalu ikuti petunjuk petugas BPBD pada saat gladi lapang.';
         }
     }
   }
