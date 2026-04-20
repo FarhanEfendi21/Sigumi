@@ -21,7 +21,8 @@ import 'widgets/primary_info_card.dart';
 import 'widgets/risk_bottom_sheet.dart';
 
 /// Peta Risiko — Menampilkan lokasi real-time user, gunung berapi,
-/// dan zona bahaya menggunakan data PostGIS dari Supabase.
+/// dan zona bahaya. Semua gunung bisa diklik untuk informasi dasar.
+/// Gunung utama (Merapi, Agung, Rinjani) dipantau penuh oleh Sigumi.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -42,8 +43,8 @@ class _MapScreenState extends State<MapScreen>
   List<VolcanoModel> _allVolcanoes = [];
   VolcanoModel? _selectedVolcano;
 
-  // 3 gunung utama yang bisa di-klik
-  final Set<String> _interactiveVolcanoes = {
+  // Gunung yang dipantau aktif oleh Sigumi — mendapat fitur penuh
+  final Set<String> _monitoredVolcanoes = {
     'merapi_001',
     'agung_001',
     'rinjani_001',
@@ -58,7 +59,7 @@ class _MapScreenState extends State<MapScreen>
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
-    // Load semua volcanoes
+    // Load semua volcanoes dari data lokal
     _allVolcanoes = VolcanoData.getAll();
 
     // Inisialisasi lokasi real-time dan mulai tracking
@@ -97,7 +98,6 @@ class _MapScreenState extends State<MapScreen>
 
     // Jika ada error baru yang belum pernah ditampilkan
     if (locationService.locationError != null) {
-      // Hanya tampilkan snackbar kalau statusnya baru berubah ke error
       if (locationService.gpsStatus == GpsStatus.error &&
           !_hasShownInitialError) {
         _hasShownInitialError = true;
@@ -113,7 +113,7 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
-  /// Tampilkan snackbar sementara (bukan persistent) untuk status GPS
+  /// Tampilkan snackbar sementara untuk status GPS
   void _showLocationSnackbar(
     String message, {
     bool isError = false,
@@ -173,7 +173,6 @@ class _MapScreenState extends State<MapScreen>
 
   @override
   void dispose() {
-    // Remove listener saat dispose
     try {
       context.read<LocationService>().removeListener(_onLocationChanged);
     } catch (_) {
@@ -188,7 +187,6 @@ class _MapScreenState extends State<MapScreen>
 
   /// Recenter peta ke posisi user saat ini
   void _recenterToUser(LocationService locationService) {
-    // Refresh lokasi dulu, lalu pindah kamera
     locationService.refreshLocation().then((_) {
       if (mounted) {
         final pos = LatLng(locationService.userLat, locationService.userLng);
@@ -197,115 +195,391 @@ class _MapScreenState extends State<MapScreen>
     });
   }
 
-  /// Build marker untuk semua volcanoes
+  // ───────────────────────────────────────────────────────
+  // MARKER BUILDER — semua gunung bisa diklik
+  // ───────────────────────────────────────────────────────
+
+  /// Ambil nama pendek gunung untuk label pada marker
+  /// Contoh: "Gunung Tangkuban Parahu" → "Tangkuban"
+  String _shortName(String fullName) {
+    String name = fullName
+        .replaceAll(RegExp(r'\s*\(.*?\)'), '') // hapus keterangan (...)
+        .replaceAll('Gunung ', '')
+        .replaceAll('Anak ', '')
+        .trim();
+    // Ambil kata pertama saja untuk label ringkas
+    return name.split(' ').first;
+  }
+
+  /// Build daftar marker untuk semua gunung berapi
   List<Marker> _buildVolcanoMarkers() {
     return _allVolcanoes.map((volcano) {
       final pos = LatLng(volcano.latitude, volcano.longitude);
-      final isInteractive = _interactiveVolcanoes.contains(volcano.id);
+      final isMonitored = _monitoredVolcanoes.contains(volcano.id);
       final isSelected = _selectedVolcano?.id == volcano.id;
+
+      // Dimensi marker:
+      // - Primary    : 52×52 (lingkaran penuh, compact)
+      // - Secondary  : lebih lebar & tinggi untuk label nama di bawah ikon
+      double markerW, markerH;
+      if (isMonitored) {
+        // Beri ruang vertikal lebih untuk label nama
+        markerW = 72;
+        markerH = 75;
+      } else if (isSelected) {
+        markerW = 80;
+        markerH = 58;
+      } else {
+        markerW = 72;
+        markerH = 50;
+      }
 
       return Marker(
         point: pos,
-        width: 48,
-        height: 48,
+        width: markerW,
+        height: markerH,
         child: GestureDetector(
-          onTap: isInteractive ? () => _onVolcanoTap(volcano) : null,
-          child: _buildVolcanoMarkerWidget(volcano, isInteractive, isSelected),
+          onTap: () => _onVolcanoTap(volcano),
+          child: _buildVolcanoMarkerWidget(volcano, isMonitored, isSelected),
         ),
       );
     }).toList();
   }
 
-  /// Build widget untuk volcano marker
+  /// Build widget marker berdasarkan 3 tier visual:
+  ///  Tier 1 — Primary SELECTED   : besar, glow kuat, badge dot, animasi scale
+  ///  Tier 2 — Primary UNSELECTED : sedang, status color, badge dot
+  ///  Tier 3 — Secondary (semua)  : label marker — ikon + nama gunung
+  ///           ↳ Selected: lebih besar, warna solid, animasi scale
+  ///           ↳ Aktif   : warna status, ikon volcano
+  ///           ↳ Normal  : warna earthy sepia, ikon landscape
   Widget _buildVolcanoMarkerWidget(
     VolcanoModel volcano,
-    bool isInteractive,
+    bool isMonitored,
     bool isSelected,
   ) {
     final statusColor = _getStatusColor(volcano.statusLevel);
 
-    if (isSelected && isInteractive) {
-      // Selected volcano — lebih besar dan berwarna terang
-      return Container(
-            margin: const EdgeInsets.all(4),
+    if (isSelected && isMonitored) {
+      // ── Tier 1: Primary SELECTED ──
+      final shortName = _shortName(volcano.name);
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer glow ring
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: statusColor.withAlpha(40),
+                  border: Border.all(
+                    color: statusColor.withAlpha(70),
+                    width: 1,
+                  ),
+                ),
+              ),
+              // Main marker body
+              Container(
+                margin: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: statusColor,
+                  border: Border.all(color: Colors.white, width: 2.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: statusColor.withAlpha(180),
+                      blurRadius: 16,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.volcano_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              // Badge dot "Dipantau" — pojok kanan atas
+              Positioned(
+                top: 5,
+                right: 5,
+                child: Container(
+                  width: 13,
+                  height: 13,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: statusColor, width: 2.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(35),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          // Label Nama Berwarna Solid
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
               color: statusColor,
-              border: Border.all(color: Colors.white, width: 3),
+              borderRadius: BorderRadius.circular(6),
               boxShadow: [
                 BoxShadow(
-                  color: statusColor.withAlpha(150),
-                  blurRadius: 12,
-                  spreadRadius: 4,
+                  color: Colors.black.withAlpha(40),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
-            child: Icon(Icons.volcano_rounded, color: Colors.white, size: 20),
-          )
-          .animate()
-          .scale(begin: const Offset(0.8, 0.8), duration: 300.ms)
-          .fadeIn();
-    } else if (isInteractive) {
-      // Interactive volcano (clickable) — normal ukuran, dengan outline
-      return Container(
-        margin: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: statusColor,
-          border: Border.all(color: Colors.white, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: statusColor.withAlpha(80),
-              blurRadius: 8,
-              spreadRadius: 2,
+            child: Text(
+              shortName,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: 0.1,
+              ),
             ),
-          ],
-        ),
-        child: Icon(Icons.volcano_rounded, color: Colors.white, size: 16),
+          ),
+        ],
+      )
+          .animate()
+          .scale(
+            begin: const Offset(0.7, 0.7),
+            end: const Offset(1.0, 1.0),
+            duration: 320.ms,
+            curve: Curves.elasticOut,
+          )
+          .fadeIn(duration: 200.ms);
+    } else if (isMonitored) {
+      // ── Tier 2: Primary UNSELECTED ──
+      final shortName = _shortName(volcano.name);
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: statusColor,
+                  border: Border.all(color: Colors.white, width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: statusColor.withAlpha(110),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.volcano_rounded,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+              // Badge dot "Dipantau"
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: statusColor, width: 2.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(28),
+                        blurRadius: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 1),
+          // Label Nama Berwarna Putih (transparan glassmorphism)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(235),
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: statusColor.withAlpha(80), width: 0.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(20),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+            child: Text(
+              shortName,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+                color: statusColor,
+                letterSpacing: -0.1,
+              ),
+            ),
+          ),
+        ],
       );
     } else {
-      // Non-interactive volcano — lebih kecil, abu-abu
-      return Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.grey.shade400,
-          border: Border.all(color: Colors.white, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.shade300.withAlpha(60),
-              blurRadius: 4,
-              spreadRadius: 1,
+      // ── Tier 3: Secondary — Label Marker Style ──
+      // Semua gunung non-utama pakai gaya unified: ikon bulat + label nama
+      // Warna: status color untuk gunung aktif, sepia hangat untuk normal/dormant
+      final isActive = volcano.statusLevel >= 2;
+      final markerColor = isActive ? statusColor : const Color(0xFFB07245);
+      final shortName = _shortName(volcano.name);
+
+      final circleSize = isSelected ? 30.0 : 25.0;
+      final iconSize = isSelected ? 15.0 : 13.0;
+
+      final Widget labelMarker = Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // ── Lingkaran Ikon ──
+          Container(
+            width: circleSize,
+            height: circleSize,
+            decoration: BoxDecoration(
+              color: isSelected ? markerColor : markerColor.withAlpha(210),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? Colors.white : Colors.white.withAlpha(220),
+                width: isSelected ? 2.0 : 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: markerColor.withAlpha(isSelected ? 130 : 70),
+                  blurRadius: isSelected ? 10 : 5,
+                  spreadRadius: isSelected ? 2 : 0,
+                ),
+                BoxShadow(
+                  color: Colors.black.withAlpha(isSelected ? 50 : 28),
+                  blurRadius: isSelected ? 6 : 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Icon(Icons.volcano_rounded, color: Colors.white, size: 12),
+            child: Icon(
+              isActive ? Icons.volcano_rounded : Icons.landscape_rounded,
+              size: iconSize,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 2),
+
+          // ── Label Nama ──
+          Container(
+            constraints: const BoxConstraints(maxWidth: 68),
+            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? markerColor
+                  : Colors.white.withAlpha(238),
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(
+                color: isSelected
+                    ? Colors.white.withAlpha(80)
+                    : markerColor.withAlpha(60),
+                width: 0.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(25),
+                  blurRadius: 3,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Text(
+              shortName,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 8.5,
+                fontWeight: FontWeight.w700,
+                color: isSelected ? Colors.white : markerColor,
+                letterSpacing: -0.1,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       );
+
+      if (isSelected) {
+        return labelMarker
+            .animate()
+            .scale(
+              begin: const Offset(0.7, 0.7),
+              end: const Offset(1.0, 1.0),
+              duration: 260.ms,
+              curve: Curves.easeOutBack,
+            )
+            .fadeIn(duration: 180.ms);
+      }
+      return labelMarker;
     }
   }
 
-  /// Handle tap pada volcano
+
+
+  // ───────────────────────────────────────────────────────
+  // TAP HANDLER
+  // ───────────────────────────────────────────────────────
+
+  /// Handle tap pada volcano — semua gunung bisa diklik
   void _onVolcanoTap(VolcanoModel volcano) {
+    final isMonitored = _monitoredVolcanoes.contains(volcano.id);
+
+    // Toggle selection
     setState(() {
       _selectedVolcano = _selectedVolcano?.id == volcano.id ? null : volcano;
     });
 
     if (_selectedVolcano != null) {
-      // Pindah peta ke volcano
+      // Pindah kamera ke gunung yang dipilih
       _mapController.move(LatLng(volcano.latitude, volcano.longitude), 12.0);
 
-      // Tampilkan bottom sheet dengan detail
-      _showVolcanoDetail(volcano);
+      // Tampilkan dialog sesuai tipe gunung
+      if (isMonitored) {
+        _showPrimaryVolcanoDetail(volcano);
+      } else {
+        _showSecondaryVolcanoDetail(volcano);
+      }
     }
   }
 
-  /// Tampilkan detail volcano di card popup
-  void _showVolcanoDetail(VolcanoModel volcano) {
+  // ───────────────────────────────────────────────────────
+  // DIALOG: GUNUNG UTAMA (DIPANTAU SIGUMI)
+  // ───────────────────────────────────────────────────────
+
+  /// Tampilkan detail lengkap gunung yang dipantau Sigumi
+  void _showPrimaryVolcanoDetail(VolcanoModel volcano) {
     showDialog(
       context: context,
       barrierColor: Colors.black26,
       barrierDismissible: true,
       builder: (context) {
+        final statusColor = _getStatusColor(volcano.statusLevel);
+
         return Dialog(
               backgroundColor: Colors.transparent,
               insetPadding: const EdgeInsets.all(24),
@@ -313,12 +587,12 @@ class _MapScreenState extends State<MapScreen>
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withAlpha(80),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
+                      color: Colors.black.withAlpha(85),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
@@ -326,9 +600,9 @@ class _MapScreenState extends State<MapScreen>
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header dengan close button
+                    // ── Header ──
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
                           child: Column(
@@ -339,7 +613,7 @@ class _MapScreenState extends State<MapScreen>
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.black87,
+                                  color: const Color(0xFF1A1A2E),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -348,12 +622,48 @@ class _MapScreenState extends State<MapScreen>
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: _getStatusColor(volcano.statusLevel),
+                                  color: statusColor,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Badge "Dipantau Sigumi"
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 9,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: SigumiTheme.primaryBlue.withAlpha(15),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: SigumiTheme.primaryBlue.withAlpha(55),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.verified_rounded,
+                                      size: 12,
+                                      color: SigumiTheme.primaryBlue,
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Dipantau Sigumi',
+                                      style: AppFonts.plusJakartaSans(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        color: SigumiTheme.primaryBlue,
+                                        letterSpacing: 0.2,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                        // Close button
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
                           child: Container(
@@ -364,7 +674,7 @@ class _MapScreenState extends State<MapScreen>
                             ),
                             child: Icon(
                               Icons.close_rounded,
-                              color: Colors.grey.shade600,
+                              color: Colors.grey.shade500,
                               size: 18,
                             ),
                           ),
@@ -373,7 +683,7 @@ class _MapScreenState extends State<MapScreen>
                     ),
                     const SizedBox(height: 16),
 
-                    // Info Cards (Ketinggian & Lokasi)
+                    // ── Info Cards (Ketinggian & Koordinat) ──
                     Row(
                       children: [
                         Expanded(
@@ -388,9 +698,10 @@ class _MapScreenState extends State<MapScreen>
                         Expanded(
                           child: _buildInfoCard(
                             icon: Icons.location_on_rounded,
-                            label: 'Lokasi',
+                            label: 'Koordinat',
                             value:
-                                '${volcano.latitude.toStringAsFixed(2)}°, ${volcano.longitude.toStringAsFixed(2)}°',
+                                '${volcano.latitude.toStringAsFixed(2)}°, '
+                                '${volcano.longitude.toStringAsFixed(2)}°',
                             color: Colors.green,
                           ),
                         ),
@@ -398,7 +709,7 @@ class _MapScreenState extends State<MapScreen>
                     ),
                     const SizedBox(height: 16),
 
-                    // Action Button
+                    // ── Action Button ──
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
@@ -407,24 +718,27 @@ class _MapScreenState extends State<MapScreen>
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder:
-                                  (_) => VisualMerapiScreen(volcano: volcano),
+                              builder: (_) => VisualMerapiScreen(
+                                volcano: volcano,
+                              ),
                             ),
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: _getStatusColor(volcano.statusLevel),
+                          backgroundColor: statusColor,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 11),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
+                          elevation: 0,
                         ),
                         icon: const Icon(Icons.visibility_rounded, size: 16),
                         label: Text(
                           'Lihat Detail Lengkap',
                           style: AppFonts.plusJakartaSans(
                             fontWeight: FontWeight.w600,
-                            fontSize: 12,
+                            fontSize: 13,
                           ),
                         ),
                       ),
@@ -436,15 +750,301 @@ class _MapScreenState extends State<MapScreen>
             .animate()
             .fadeIn(duration: 250.ms)
             .scale(
-              begin: const Offset(0.9, 0.9),
+              begin: const Offset(0.88, 0.88),
               end: const Offset(1.0, 1.0),
-              duration: 250.ms,
+              duration: 280.ms,
+              curve: Curves.easeOutCubic,
             );
       },
+    ).then((_) {
+      // Clear selection saat dialog ditutup
+      if (mounted) setState(() => _selectedVolcano = null);
+    });
+  }
+
+  // ───────────────────────────────────────────────────────
+  // DIALOG: GUNUNG NON-UTAMA (BELUM DIPANTAU)
+  // ───────────────────────────────────────────────────────
+
+  /// Tampilkan info ringkas gunung yang belum dipantau Sigumi
+  void _showSecondaryVolcanoDetail(VolcanoModel volcano) {
+    final statusColor = _getStatusColor(volcano.statusLevel);
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black26,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 28,
+                vertical: 80,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(75),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ── Header dengan background status color ──
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+                      decoration: BoxDecoration(
+                        color: statusColor.withAlpha(14),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(24),
+                        ),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: statusColor.withAlpha(35),
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Avatar ikon gunung
+                          Container(
+                            width: 46,
+                            height: 46,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: statusColor.withAlpha(120),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              volcano.statusLevel >= 2
+                                  ? Icons.volcano_rounded
+                                  : Icons.landscape_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Nama & provinsi
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  volcano.name,
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1A1A2E),
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (volcano.province.isNotEmpty) ...[
+                                  const SizedBox(height: 3),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.place_rounded,
+                                        size: 11,
+                                        color: Colors.grey.shade500,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Flexible(
+                                        child: Text(
+                                          volcano.province,
+                                          style: AppFonts.plusJakartaSans(
+                                            fontSize: 11.5,
+                                            color: Colors.grey.shade500,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+
+                          // Close button
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey.shade100,
+                              ),
+                              child: Icon(
+                                Icons.close_rounded,
+                                color: Colors.grey.shade400,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // ── Body ──
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+                      child: Column(
+                        children: [
+                          // Info cards — ketinggian & status level
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildInfoCard(
+                                  icon: Icons.height_rounded,
+                                  label: 'Ketinggian',
+                                  value: '${volcano.elevation.toInt()} m dpl',
+                                  color: Colors.blue.shade400,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _buildStatusCard(volcano, statusColor),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Notice: belum dipantau Sigumi
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 13,
+                              vertical: 11,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.amber.shade200,
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 1),
+                                  child: Icon(
+                                    Icons.info_outline_rounded,
+                                    size: 15,
+                                    color: Colors.amber.shade700,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Gunung ini belum masuk dalam pemantauan aktif Sigumi.',
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: Colors.amber.shade800,
+                                      fontWeight: FontWeight.w500,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .animate()
+            .fadeIn(duration: 220.ms)
+            .scale(
+              begin: const Offset(0.9, 0.9),
+              end: const Offset(1.0, 1.0),
+              duration: 280.ms,
+              curve: Curves.easeOutCubic,
+            );
+      },
+    ).then((_) {
+      // Clear selection saat dialog ditutup
+      if (mounted) setState(() => _selectedVolcano = null);
+    });
+  }
+
+  // ───────────────────────────────────────────────────────
+  // HELPER WIDGETS
+  // ───────────────────────────────────────────────────────
+
+  /// Card status untuk popup secondary volcano
+  Widget _buildStatusCard(VolcanoModel volcano, Color statusColor) {
+    // Ambil label pendek: "Normal", "Waspada", "Siaga", "Awas"
+    final shortLabel =
+        volcano.statusLabel.contains('•')
+            ? volcano.statusLabel.split('•').last.trim()
+            : volcano.statusLabel;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: statusColor.withAlpha(15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: statusColor.withAlpha(55), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.radio_button_checked_rounded,
+                size: 15,
+                color: statusColor,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'Status',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            shortLabel,
+            style: AppFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: statusColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
-  /// Build info card kecil
+  /// Build info card kecil dua kolom
   Widget _buildInfoCard({
     required IconData icon,
     required String label,
@@ -463,7 +1063,7 @@ class _MapScreenState extends State<MapScreen>
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: color),
+              Icon(icon, size: 15, color: color),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -507,22 +1107,23 @@ class _MapScreenState extends State<MapScreen>
     }
   }
 
+  // ───────────────────────────────────────────────────────
+  // BUILD
+  // ───────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     return Consumer2<VolcanoProvider, LocationService>(
       builder: (context, provider, locationService, _) {
-        // Data dari LocationService (real GPS + PostGIS calculation)
         final distance = locationService.distanceFromVolcano;
         final zoneLevel = locationService.zoneLevel;
         final zoneLabel = locationService.zoneLabel;
 
-        // Koordinat user (real GPS atau fallback)
         final userPos = LatLng(
           locationService.userLat,
           locationService.userLng,
         );
 
-        // Koordinat gunung berapi aktif
         final volcanoPos = LatLng(
           provider.volcano.latitude,
           provider.volcano.longitude,
@@ -551,14 +1152,13 @@ class _MapScreenState extends State<MapScreen>
                     tileProvider: CancellableNetworkTileProvider(),
                   ),
 
-                  // ── Risk Radius Circles — kondisional berdasarkan level gunung ──
+                  // ── Risk Radius Circles ──
                   Builder(
                     builder: (context) {
                       final volcanoLevel = provider.volcano.statusLevel;
                       final isHighAlert = volcanoLevel >= 3;
 
                       if (isHighAlert) {
-                        // Level 3–4: Tampilkan 4 lingkaran zona penuh dengan warna tegas
                         return CircleLayer(
                           circles: [
                             CircleMarker(
@@ -566,7 +1166,8 @@ class _MapScreenState extends State<MapScreen>
                               radius: _kmToMeter(20),
                               useRadiusInMeter: true,
                               color: SigumiTheme.statusNormal.withAlpha(20),
-                              borderColor: SigumiTheme.statusNormal.withAlpha(70),
+                              borderColor:
+                                  SigumiTheme.statusNormal.withAlpha(70),
                               borderStrokeWidth: 1.5,
                             ),
                             CircleMarker(
@@ -599,7 +1200,6 @@ class _MapScreenState extends State<MapScreen>
                           ],
                         ).animate().fadeIn(duration: 800.ms);
                       } else {
-                        // Level 1–2: Hanya 1 lingkaran tipis warna netral abu-abu
                         return CircleLayer(
                           circles: [
                             CircleMarker(
@@ -619,10 +1219,10 @@ class _MapScreenState extends State<MapScreen>
                   // ── Map Markers ──
                   MarkerLayer(
                     markers: [
-                      // All volcano markers dari data
+                      // Semua volcano markers (primary + secondary, semua bisa diklik)
                       ..._buildVolcanoMarkers(),
 
-                      // User Marker — posisi dari GPS real-time (paling atas)
+                      // User Marker — posisi dari GPS real-time
                       Marker(
                         point: userPos,
                         width: 48,
@@ -650,8 +1250,7 @@ class _MapScreenState extends State<MapScreen>
                 ),
               ).animate().fadeIn(),
 
-              // ── GPS Status Badge (Subtle) ──
-              // Badge kecil di pojok kiri bawah top bar — hanya tampil saat ada masalah
+              // ── GPS Status Badge ──
               if (locationService.gpsStatus != GpsStatus.active &&
                   locationService.gpsStatus != GpsStatus.unknown)
                 Positioned(
@@ -660,7 +1259,7 @@ class _MapScreenState extends State<MapScreen>
                   child: _buildGpsBadge(locationService),
                 ),
 
-              // ── Kontrol Overlay UI ──
+              // ── UI Controls Overlay ──
               IgnorePointer(
                 ignoring: _isMapFocused,
                 child: AnimatedOpacity(
@@ -668,7 +1267,7 @@ class _MapScreenState extends State<MapScreen>
                   opacity: _isMapFocused ? 0.0 : 1.0,
                   child: Stack(
                     children: [
-                      // Layer 3: Floating Map Controls (Right)
+                      // Floating Map Controls (kanan)
                       Positioned(
                         top:
                             MediaQuery.of(context).padding.top +
@@ -682,13 +1281,12 @@ class _MapScreenState extends State<MapScreen>
                         ),
                       ).animate().fadeIn().slideX(begin: 0.2),
 
-                      // Layer: Floating Posko & Faskes Button (Left)
+                      // Floating Posko & Faskes Button (kiri)
                       Positioned(
                         top:
                             MediaQuery.of(context).padding.top +
                             kToolbarHeight +
                             16 +
-                            // Beri space kalau ada GPS badge
                             (locationService.gpsStatus != GpsStatus.active &&
                                     locationService.gpsStatus !=
                                         GpsStatus.unknown
@@ -706,7 +1304,7 @@ class _MapScreenState extends State<MapScreen>
                         ),
                       ).animate().fadeIn().slideX(begin: -0.2),
 
-                      // Layer 4: Primary Info Card (Status & Distance)
+                      // Primary Info Card (status & jarak)
                       Positioned(
                         left: 0,
                         right: 0,
@@ -720,7 +1318,7 @@ class _MapScreenState extends State<MapScreen>
                         ),
                       ),
 
-                      // Layer 5: Draggable Bottom Sheet
+                      // Draggable Bottom Sheet
                       RiskBottomSheet(distance: distance, zoneLabel: zoneLabel),
                     ],
                   ),
@@ -733,8 +1331,11 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
+  // ───────────────────────────────────────────────────────
+  // USER MARKER & GPS BADGE
+  // ───────────────────────────────────────────────────────
+
   /// User marker — biru untuk real GPS, abu-abu untuk simulasi
-  /// Dengan pulse ring saat GPS aktif
   Widget _buildUserMarker(LocationService locationService) {
     final isRealGps = locationService.isUsingRealGps;
     final isActive = locationService.gpsStatus == GpsStatus.active;
@@ -743,7 +1344,7 @@ class _MapScreenState extends State<MapScreen>
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Pulse ring — hanya tampil saat GPS aktif & tracking
+        // Pulse ring — hanya saat GPS aktif & tracking
         if (isActive)
           Container(
                 width: 48,
@@ -788,7 +1389,7 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  /// Badge GPS kecil yang subtle — hanya tampil saat ada masalah
+  /// Badge GPS kecil — hanya tampil saat ada masalah GPS
   Widget _buildGpsBadge(LocationService locationService) {
     final status = locationService.gpsStatus;
 
@@ -855,7 +1456,6 @@ class _MapScreenState extends State<MapScreen>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Loading spinner saat retrying
             if (locationService.isRetrying) ...[
               SizedBox(
                 width: 14,

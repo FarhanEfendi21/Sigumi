@@ -10,6 +10,7 @@ class VolcanoModel {
   final double latitude;
   final double longitude;
   final double elevation;
+  final String province;
   final int statusLevel; // 1=Normal, 2=Waspada, 3=Siaga, 4=Awas
   final String statusDescription;
   final DateTime lastUpdate;
@@ -28,6 +29,7 @@ class VolcanoModel {
     required this.statusLevel,
     required this.statusDescription,
     required this.lastUpdate,
+    this.province = '',
     this.lastEruption,
     this.recentActivities = const [],
     this.temperature,
@@ -41,6 +43,7 @@ class VolcanoModel {
     double? latitude,
     double? longitude,
     double? elevation,
+    String? province,
     int? statusLevel,
     String? statusDescription,
     DateTime? lastUpdate,
@@ -56,6 +59,7 @@ class VolcanoModel {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       elevation: elevation ?? this.elevation,
+      province: province ?? this.province,
       statusLevel: statusLevel ?? this.statusLevel,
       statusDescription: statusDescription ?? this.statusDescription,
       lastUpdate: lastUpdate ?? this.lastUpdate,

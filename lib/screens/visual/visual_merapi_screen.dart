@@ -119,16 +119,27 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
-        // Tentukan volcano: dari parameter atau dari provider
+        // Tentukan volcano: dari parameter, dari route arguments, atau dari provider
         late VolcanoModel volcano;
+        
+        // 1. Cek dari parameter widget
         if (widget.volcano != null) {
           volcano = widget.volcano!;
         } else {
-          volcano = provider.volcano;
+          // 2. Cek dari route arguments (Navigator.pushNamed)
+          final args = ModalRoute.of(context)?.settings.arguments;
+          if (args is VolcanoModel) {
+            volcano = args;
+          } else {
+            // 3. Fallback ke provider (Active Region)
+            volcano = provider.volcano;
+          }
         }
 
-        // Cek apakah ini Merapi (punya CCTV)
-        final hasCctv = volcano.id == 'merapi_001';
+        // Cek apakah ini Merapi (punya CCTV) — Robust detection
+        final hasCctv = volcano.id == 'merapi_001' || 
+                        volcano.id == VolcanoModel.kMerapiUuid || 
+                        volcano.name.toLowerCase().contains('merapi');
 
         return Scaffold(
           backgroundColor: Colors.white,

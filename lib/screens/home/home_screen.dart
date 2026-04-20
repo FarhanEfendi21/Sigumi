@@ -8,6 +8,7 @@ import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
 import '../../models/news_item.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:shimmer/shimmer.dart';
 import 'widgets/news_carousel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -157,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           // Status Card (Dynamic Hero Image)
                           Builder(
                             builder: (context) {
+                              
                               String formattedName =
                                   volcano.name
                                       .toLowerCase()
@@ -165,162 +167,183 @@ class _HomeScreenState extends State<HomeScreen> {
                               String imagePath =
                                   'assets/images/$formattedName.jpg';
 
-                              return Container(
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(24),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(
-                                        0xFF1B2E7B,
-                                      ).withAlpha(40),
-                                      blurRadius: 24,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Stack(
-                                    children: [
-                                      // Background Image
-                                      Positioned.fill(
-                                        child: Image.asset(
-                                          imagePath,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (
-                                            context,
-                                            error,
-                                            stackTrace,
-                                          ) {
-                                            return Container(
-                                              color: SigumiTheme.primaryBlue,
-                                              child: const Center(
-                                                child: Icon(
-                                                  Icons.broken_image,
-                                                  color: Colors.white54,
-                                                  size: 40,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
+                              return GestureDetector(
+                                  onTap: () => Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.visualMerapi,
+                                    arguments: volcano,
+                                  ),
+                                child: Container(
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(24),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(
+                                          0xFF1B2E7B,
+                                        ).withAlpha(40),
+                                        blurRadius: 24,
+                                        offset: const Offset(0, 10),
                                       ),
-                                      // Gradient overlay
-                                      Positioned.fill(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topCenter,
-                                              end: Alignment.bottomCenter,
-                                              colors: [
-                                                Colors.black.withAlpha(20),
-                                                Colors.black.withAlpha(220),
-                                              ],
-                                              stops: const [0.3, 1.0],
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(24),
+                                    child: Stack(
+                                      children: [
+                                        // Background Image
+                                        Positioned.fill(
+                                          child: Image.asset(
+                                            imagePath,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) {
+                                              return Container(
+                                                color: SigumiTheme.primaryBlue,
+                                                child: const Center(
+                                                  child: Icon(
+                                                    Icons.broken_image,
+                                                    color: Colors.white54,
+                                                    size: 40,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        // Gradient overlay
+                                        Positioned.fill(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  Colors.black.withAlpha(20),
+                                                  Colors.black.withAlpha(220),
+                                                ],
+                                                stops: const [0.3, 1.0],
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      // Content
-                                      Padding(
-                                        padding: const EdgeInsets.all(20),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 10),
-                                            Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Icon(
-                                                  Icons.landscape,
-                                                  color: Colors.white,
-                                                  size: 32,
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        volcano.name,
-                                                        style: const TextStyle(
-                                                          fontFamily:
-                                                              'Plus Jakarta Sans',
-                                                          fontSize: 22,
-                                                          fontWeight:
-                                                              FontWeight.w800,
-                                                          color: Colors.white,
-                                                          letterSpacing: -0.5,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(height: 2),
-                                                      Text(
-                                                        'Elevasi: ${volcano.elevation.toInt()} mdpl',
-                                                        style: const TextStyle(
-                                                          fontFamily:
-                                                              'Plus Jakarta Sans',
-                                                          fontSize: 13,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          color: Colors.white70,
-                                                        ),
-                                                      ),
-                                                    ],
+                                        // Content
+                                        Padding(
+                                          padding: const EdgeInsets.all(20),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              const SizedBox(height: 10),
+                                              Row(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Icon(
+                                                    Icons.landscape,
+                                                    color: Colors.white,
+                                                    size: 32,
                                                   ),
-                                                ),
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.symmetric(
-                                                        horizontal: 14,
-                                                        vertical: 8,
-                                                      ),
-                                                  decoration: BoxDecoration(
-                                                    color: statusColor,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          20,
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          volcano.name,
+                                                          style: const TextStyle(
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
+                                                            fontSize: 22,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color: Colors.white,
+                                                            letterSpacing: -0.5,
+                                                          ),
                                                         ),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: Colors.black
-                                                            .withAlpha(40),
-                                                        blurRadius: 4,
-                                                        offset: const Offset(
-                                                          0,
-                                                          2,
+                                                        const SizedBox(height: 2),
+                                                        Text(
+                                                          'Elevasi: ${volcano.elevation.toInt()} mdpl',
+                                                          style: const TextStyle(
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
+                                                            fontSize: 13,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: Colors.white70,
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: Text(
-                                                    volcano.statusLabel,
-                                                    style: const TextStyle(
-                                                      fontFamily:
-                                                          'Plus Jakarta Sans',
-                                                      color: Colors.white,
-                                                      fontSize: 12,
-                                                      fontWeight:
-                                                          FontWeight.w700,
+                                                      ],
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 30),
-                                            // ── Zone Indicator Card (kondisional) ──
-                                            _buildZoneIndicatorCard(
-                                              context,
-                                              provider,
-                                            ),
-                                          ],
+                                                  if (provider.isLoadingVolcanoes)
+                                                    Shimmer.fromColors(
+                                                      baseColor: Colors.white24,
+                                                      highlightColor: Colors.white54,
+                                                      child: Container(
+                                                        width: 80,
+                                                        height: 32,
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white.withAlpha(50),
+                                                          borderRadius: BorderRadius.circular(20),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  else
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 14,
+                                                            vertical: 8,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: statusColor,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              20,
+                                                            ),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: Colors.black
+                                                                .withAlpha(40),
+                                                            blurRadius: 4,
+                                                            offset: const Offset(
+                                                              0,
+                                                              2,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Text(
+                                                        volcano.statusLabel,
+                                                        style: const TextStyle(
+                                                          fontFamily:
+                                                              'Plus Jakarta Sans',
+                                                          color: Colors.white,
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 30),
+                                              // ── Zone Indicator Card (kondisional) ──
+                                              _buildZoneIndicatorCard(
+                                                context,
+                                                provider,
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
@@ -366,13 +389,14 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                         ),
                         _ShadMenuCard(
-                          icon: Icons.camera_alt_rounded,
-                          label: 'CCTV\nGunung',
+                          icon: Icons.videocam_rounded,
+                          label: 'Pantauan\nCCTV',
                           color: Colors.teal,
                           onTap:
                               () => Navigator.pushNamed(
                                 context,
                                 AppRoutes.visualMerapi,
+                                arguments: volcano,
                               ),
                         ),
                         _ShadMenuCard(

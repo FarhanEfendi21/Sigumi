@@ -32,6 +32,7 @@ class VolcanoProvider extends ChangeNotifier {
   List<EruptionHistory> _eruptionHistory = [];
   bool _isLoadingActivities = false;
   bool _isLoadingEruptions = false;
+  bool _isLoadingVolcanoes = true;
 
   // ── Nomor Telepon Darurat ──
   List<EmergencyContact> _emergencyContacts = [];
@@ -96,6 +97,7 @@ class VolcanoProvider extends ChangeNotifier {
   List<EruptionHistory> get eruptionHistory => _eruptionHistory;
   bool get isLoadingActivities => _isLoadingActivities;
   bool get isLoadingEruptions => _isLoadingEruptions;
+  bool get isLoadingVolcanoes => _isLoadingVolcanoes;
   bool get hasActivities => _recentActivities.isNotEmpty;
   bool get hasEruptionHistory => _eruptionHistory.isNotEmpty;
 
@@ -496,7 +498,14 @@ class VolcanoProvider extends ChangeNotifier {
   /// LOAD VOLCANOES dari Supabase
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> loadVolcanoes() async {
-    if (!SupabaseConfig.isConfigured) return;
+    if (!SupabaseConfig.isConfigured) {
+      _isLoadingVolcanoes = false;
+      notifyListeners();
+      return;
+    }
+
+    _isLoadingVolcanoes = true;
+    notifyListeners();
 
     try {
       final client = Supabase.instance.client;
@@ -532,10 +541,19 @@ class VolcanoProvider extends ChangeNotifier {
 
       // Set volcano pertama atau sesuai region
       _updateSelectedVolcano();
+
+      // Sinkronisasikan status dari MAGMA sebelum me-render badge & memberhentikan loading
+      if (_magmaClient != null) {
+        await _syncMagmaStatusForCurrentVolcano();
+      }
+
+      _isLoadingVolcanoes = false;
       notifyListeners();
     } catch (e) {
       debugPrint('[VolcanoProvider] Load volcanoes error: $e');
       // Fallback ke mock data tetap tersedia
+      _isLoadingVolcanoes = false;
+      notifyListeners();
     }
   }
 
