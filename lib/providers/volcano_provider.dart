@@ -37,6 +37,9 @@ class VolcanoProvider extends ChangeNotifier {
   List<EmergencyContact> _emergencyContacts = [];
   bool _isLoadingContacts = false;
 
+  // ── Refresh state ──
+  bool _isRefreshing = false;
+
   // ── Auth & user state ──
   UserModel? _currentUser;
   bool _isAuthenticated = false;
@@ -54,7 +57,6 @@ class VolcanoProvider extends ChangeNotifier {
 
   // ── Deteksi lokasi otomatis ──
   bool _isRegionAutoDetected = false;
-  bool _needsManualRegionSelection = false;
   bool _locationInitialized = false;
 
   // ── Auth subscription ──
@@ -85,7 +87,6 @@ class VolcanoProvider extends ChangeNotifier {
   bool get isOffline => _isOffline;
   String get selectedRegion => _selectedRegion;
   bool get isRegionAutoDetected => _isRegionAutoDetected;
-  bool get needsManualRegionSelection => _needsManualRegionSelection;
   bool get locationInitialized => _locationInitialized;
   bool get isFirstTime => _isFirstTime;
   String? get detectedRegion => _locationService.detectedRegion;
@@ -101,6 +102,9 @@ class VolcanoProvider extends ChangeNotifier {
   // ── Getters Nomor Darurat ──
   List<EmergencyContact> get emergencyContacts => _emergencyContacts;
   bool get isLoadingContacts => _isLoadingContacts;
+
+  // ── Getter Refresh ──
+  bool get isRefreshing => _isRefreshing;
 
   // ── Lokasi (delegasi ke LocationService) ──
   double get distanceFromMerapi => _locationService.distanceFromVolcano;
@@ -283,12 +287,11 @@ class VolcanoProvider extends ChangeNotifier {
     }
   }
 
-  /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  /// AUTO-DETECT REGION â€” Berdasarkan GPS
-  /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /// ──────────────────────────────────────────────────────────────
+  /// AUTO-DETECT REGION — Berdasarkan GPS
+  /// ──────────────────────────────────────────────────────────────
   /// Inisialisasi GPS dan deteksi daerah otomatis.
-  /// Jika terdeteksi â†’ auto-set region.
-  /// Jika tidak â†’ set flag untuk pemilihan manual.
+  /// Akan auto-set region berdasarkan gunung terdekat terlepas dari seberapa jauh.
   Future<void> autoDetectAndSetRegion() async {
     if (_locationInitialized) return;  // Jangan double-init
 
@@ -296,30 +299,22 @@ class VolcanoProvider extends ChangeNotifier {
     _locationInitialized = true;
 
     if (_locationService.isUsingRealGps) {
+      final closest = _locationService.getClosestRegion();
       final detected = _locationService.detectRegion();
+      
       if (detected != null) {
-        // Daerah terdeteksi â†’ auto-set
+        // Didalam radius 40km
         _isRegionAutoDetected = true;
-        _needsManualRegionSelection = false;
         setRegion(detected);
       } else {
-        // Di luar cakupan â†’ perlu pilih manual
+        // Diluar radius 40km, default ke yang terdekat tapi seolah manual
         _isRegionAutoDetected = false;
-        _needsManualRegionSelection = true;
-        notifyListeners();
+        setRegion(closest);
       }
     } else {
-      // GPS tidak tersedia â†’ perlu pilih manual
       _isRegionAutoDetected = false;
-      _needsManualRegionSelection = true;
       notifyListeners();
     }
-  }
-
-  /// Setelah user memilih daerah manual, dismiss flag
-  void dismissManualSelection() {
-    _needsManualRegionSelection = false;
-    notifyListeners();
   }
 
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -455,6 +450,7 @@ class VolcanoProvider extends ChangeNotifier {
           id: user!.id,
           name: profile['full_name'] ?? '',
           email: user.email ?? '',
+          phone: profile['phone'] ?? user.userMetadata?['phone'] ?? '',
           age: _calculateAge(profile['date_of_birth']),
           language: profile['language'] ?? 'id',
           region: profile['region'],
@@ -855,6 +851,37 @@ class VolcanoProvider extends ChangeNotifier {
 
     _isLoadingContacts = false;
     notifyListeners();
+  }
+
+  /// ──────────────────────────────────────────────────
+  /// FORCE REFRESH — Paksa ambil ulang semua data dari MAGMA
+  /// ──────────────────────────────────────────────────
+  /// Dipanggil dari tombol refresh di UI (Home & Status Zona).
+  /// Men-trigger fetch ulang status gunung, aktivitas, dan kontak darurat.
+  Future<void> forceRefresh() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    notifyListeners();
+
+    try {
+      // Paksa reload semua volcano dari Supabase (termasuk status MAGMA)
+      await loadVolcanoes();
+
+      // Sync langsung status level dari MAGMA untuk gunung aktif
+      await _syncMagmaStatusForCurrentVolcano();
+
+      // Reload aktivitas & riwayat terkini
+      await fetchRecentActivities();
+      await fetchEruptionHistory();
+
+      // Reload kontak darurat
+      await fetchEmergencyContacts();
+    } catch (e) {
+      debugPrint('[VolcanoProvider] forceRefresh error: \$e');
+    } finally {
+      _isRefreshing = false;
+      notifyListeners();
+    }
   }
 
   @override

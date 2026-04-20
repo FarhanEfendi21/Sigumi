@@ -16,7 +16,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  bool _hasCheckedRegion = false;
+  // Status zona di-collapse secara default saat level <= 2
+  bool _isZoneCardExpanded = false;
 
   @override
   void initState() {
@@ -27,11 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
-      // Jika di luar cakupan, tampilkan pemilihan daerah manual
-      if (provider.needsManualRegionSelection && !_hasCheckedRegion) {
-        _hasCheckedRegion = true;
-        _showMandatoryRegionPicker(context, provider);
-      }
     });
   }
 
@@ -81,27 +77,32 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Image.asset(
-                                  'assets/images/SIGUMI-logo.png',
-                                  height: 36,
-                                  fit: BoxFit.contain,
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  AiService.getPersonalizedGreeting(
-                                    provider.currentUser,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Image.asset(
+                                    'assets/images/SIGUMI-logo.png',
+                                    height: 36,
+                                    fit: BoxFit.contain,
                                   ),
-                                  style: const TextStyle(
-                                    color: Color(0xFF5A6380),
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    AiService.getPersonalizedGreeting(
+                                      provider.currentUser,
+                                    ),
+                                    style: const TextStyle(
+                                      color: Color(0xFF5A6380),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                            const SizedBox(width: 12),
                             Row(
                               children: [
                                 if (provider.isOffline)
@@ -133,6 +134,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ],
                                     ),
                                   ),
+                                const SizedBox(width: 8),
+                                // Tombol refresh data MAGMA
+                                _buildRefreshButton(provider),
                                 const SizedBox(width: 8),
                                 _buildRegionSelector(context, provider),
                               ],
@@ -294,95 +298,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ],
                                           ),
                                           const SizedBox(height: 30),
-                                          // Distance indicator
-                                          GestureDetector(
-                                            onTap:
-                                                () => Navigator.pushNamed(
-                                                  context,
-                                                  AppRoutes.zoneDetail,
-                                                ),
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 14,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white.withAlpha(
-                                                  240,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(16),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color: Colors.black
-                                                        .withAlpha(20),
-                                                    blurRadius: 8,
-                                                    offset: const Offset(0, 4),
-                                                  ),
-                                                ],
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.my_location,
-                                                    color:
-                                                        SigumiTheme.getStatusColor(
-                                                          provider.zoneLevel,
-                                                        ),
-                                                    size: 20,
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          provider
-                                                              .distanceLabel,
-                                                          style: TextStyle(
-                                                            fontFamily:
-                                                                'Plus Jakarta Sans',
-                                                            fontSize: 14,
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            color:
-                                                                SigumiTheme.getStatusColor(
-                                                                  provider
-                                                                      .zoneLevel,
-                                                                ),
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 2,
-                                                        ),
-                                                        Text(
-                                                          provider.zoneLabel,
-                                                          style: const TextStyle(
-                                                            fontFamily:
-                                                                'Plus Jakarta Sans',
-                                                            fontSize: 12,
-                                                            color:
-                                                                SigumiTheme
-                                                                    .textSecondary,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Icon(
-                                                    Icons.chevron_right_rounded,
-                                                    color:
-                                                        SigumiTheme.getStatusColor(
-                                                          provider.zoneLevel,
-                                                        ),
-                                                    size: 24,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
+                                          // ── Zone Indicator Card (kondisional) ──
+                                          _buildZoneIndicatorCard(
+                                            context,
+                                            provider,
                                           ),
                                         ],
                                       ),
@@ -418,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
-                    childAspectRatio: 2.2,
+                    childAspectRatio: 1.7,
                     children: [
                       _ShadMenuCard(
                         icon: Icons.alt_route_rounded,
@@ -541,6 +460,222 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ────────────────────────────────────────────────
+  // REFRESH BUTTON — Tombol paksa refresh dari MAGMA
+  // ────────────────────────────────────────────────
+  Widget _buildRefreshButton(VolcanoProvider provider) {
+    return Tooltip(
+      message: 'Perbarui status terkini',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: provider.isRefreshing
+              ? null
+              : () => provider.forceRefresh(),
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1B2E7B).withAlpha(15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                  color: const Color(0xFF1B2E7B).withAlpha(20)),
+            ),
+            child: provider.isRefreshing
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFF1B2E7B),
+                    ),
+                  )
+                : const Icon(
+                    Icons.refresh_rounded,
+                    color: Color(0xFF1B2E7B),
+                    size: 18,
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ────────────────────────────────────────────────
+  // ZONE INDICATOR CARD — Collapsible saat level ≤ 2
+  // ────────────────────────────────────────────────
+  Widget _buildZoneIndicatorCard(
+      BuildContext context, VolcanoProvider provider) {
+    final volcanoLevel = provider.volcano.statusLevel;
+    final zoneLevel = provider.zoneLevel;
+    final zoneColor = SigumiTheme.getStatusColor(zoneLevel);
+    final isHighAlert = volcanoLevel >= 3;
+
+    // Level 3–4: selalu terbuka, tidak bisa dicollapse
+    // Level 1–2: ada tombol toggle expand/collapse
+    final showContent = isHighAlert || _isZoneCardExpanded;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(235),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isHighAlert
+              ? zoneColor.withAlpha(60)
+              : Colors.grey.withAlpha(40),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isHighAlert
+                ? zoneColor.withAlpha(30)
+                : Colors.black.withAlpha(12),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header baris atas: ikon + label + chevron (toggle)
+          GestureDetector(
+            onTap: isHighAlert
+                ? () => Navigator.pushNamed(context, AppRoutes.zoneDetail)
+                : () => setState(() {
+                      _isZoneCardExpanded = !_isZoneCardExpanded;
+                    }),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 14),
+              child: Row(
+                children: [
+                  Icon(
+                    isHighAlert
+                        ? Icons.warning_amber_rounded
+                        : Icons.my_location,
+                    color: isHighAlert
+                        ? zoneColor
+                        : Colors.grey.shade500,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          provider.distanceLabel,
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: isHighAlert
+                                ? zoneColor
+                                : Colors.grey.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          provider.zoneLabel,
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 12,
+                            color: isHighAlert
+                                ? zoneColor.withAlpha(180)
+                                : SigumiTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Chevron: panah kanan (ke detail) jika level tinggi,
+                  // atau panah atas/bawah (toggle) jika level rendah
+                  Icon(
+                    isHighAlert
+                        ? Icons.chevron_right_rounded
+                        : (showContent
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded),
+                    color: isHighAlert
+                        ? zoneColor
+                        : Colors.grey.shade400,
+                    size: 24,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Konten tambahan — hanya tampil saat expand atau level tinggi
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 280),
+            crossFadeState: showContent
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            firstChild: GestureDetector(
+              onTap: () =>
+                  Navigator.pushNamed(context, AppRoutes.zoneDetail),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isHighAlert
+                        ? zoneColor.withAlpha(18)
+                        : Colors.grey.withAlpha(15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isHighAlert
+                          ? zoneColor.withAlpha(40)
+                          : Colors.grey.withAlpha(25),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        size: 14,
+                        color: isHighAlert
+                            ? zoneColor
+                            : Colors.grey.shade500,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          isHighAlert
+                              ? 'Status berpotensi bahaya — ketuk untuk detail lengkap'
+                              : 'Ketuk untuk melihat detail status zona',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 11,
+                            color: isHighAlert
+                                ? zoneColor.withAlpha(200)
+                                : Colors.grey.shade500,
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.open_in_new_rounded,
+                        size: 12,
+                        color: isHighAlert
+                            ? zoneColor
+                            : Colors.grey.shade400,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            secondChild: const SizedBox.shrink(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ────────────────────────────────────────────────
   // REGION SELECTOR — Header badge dengan deteksi GPS
   // ────────────────────────────────────────────────
   Widget _buildRegionSelector(BuildContext context, VolcanoProvider provider) {
@@ -619,18 +754,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Tampilkan region picker wajib (tidak bisa di-dismiss tanpa memilih)
-  void _showMandatoryRegionPicker(
-      BuildContext context, VolcanoProvider provider) {
-    _showRegionPickerSheet(
-      context: context,
-      provider: provider,
-      isDismissible: false,
-      title: 'Pilih Daerah Anda',
-      subtitle:
-          'Anda berada di luar area cakupan. Silakan pilih daerah untuk memantau gunung berapi.',
-    );
-  }
+  // (Mandatory picker has been removed in favor of auto-detect)
 
   void _showRegionPickerSheet({
     required BuildContext context,
@@ -759,7 +883,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: InkWell(
                         onTap: () {
                           provider.setRegion(regionName);
-                          provider.dismissManualSelection();
                           Navigator.pop(ctx);
                         },
                         borderRadius: BorderRadius.circular(16),
@@ -992,7 +1115,7 @@ class _TourismBannerCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      height: 120, // Clean, balanced height
+      constraints: const BoxConstraints(minHeight: 110),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
