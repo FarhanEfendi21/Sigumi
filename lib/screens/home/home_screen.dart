@@ -39,13 +39,18 @@ class _HomeScreenState extends State<HomeScreen> {
         final statusColor = SigumiTheme.getStatusColor(volcano.statusLevel);
 
         return Scaffold(
-          body: SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  Container(
+          body: RefreshIndicator(
+            onRefresh: () async {
+              await provider.forceRefresh();
+            },
+            child: SafeArea(
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    Container(
                     width: double.infinity,
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                     decoration: BoxDecoration(
@@ -134,9 +139,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ],
                                     ),
                                   ),
-                                const SizedBox(width: 8),
-                                // Tombol refresh data MAGMA
-                                _buildRefreshButton(provider),
                                 const SizedBox(width: 8),
                                 _buildRegionSelector(context, provider),
                               ],
@@ -454,49 +456,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-        );
+        ));
       },
-    );
-  }
-
-  // ────────────────────────────────────────────────
-  // REFRESH BUTTON — Tombol paksa refresh dari MAGMA
-  // ────────────────────────────────────────────────
-  Widget _buildRefreshButton(VolcanoProvider provider) {
-    return Tooltip(
-      message: 'Perbarui status terkini',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: provider.isRefreshing
-              ? null
-              : () => provider.forceRefresh(),
-          borderRadius: BorderRadius.circular(10),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1B2E7B).withAlpha(15),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                  color: const Color(0xFF1B2E7B).withAlpha(20)),
-            ),
-            child: provider.isRefreshing
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xFF1B2E7B),
-                    ),
-                  )
-                : const Icon(
-                    Icons.refresh_rounded,
-                    color: Color(0xFF1B2E7B),
-                    size: 18,
-                  ),
-          ),
-        ),
-      ),
     );
   }
 
