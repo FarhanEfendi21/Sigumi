@@ -25,8 +25,6 @@ class _ReportScreenState extends State<ReportScreen> {
   final _descController = TextEditingController();
   final Set<String> _selectedCategories = {};
   bool _isSubmitting = false;
-  bool _isWithinRadius = true;
-  double _userDistance = 0;
 
   // Image handling
   XFile? _selectedImage;
@@ -35,17 +33,6 @@ class _ReportScreenState extends State<ReportScreen> {
   @override
   void initState() {
     super.initState();
-    _checkLocation();
-  }
-
-  void _checkLocation() {
-    final loc = context.read<LocationService>();
-    _userDistance = loc.distanceFromVolcano;
-    _isWithinRadius = AiService.isWithinReportRadius(
-      loc.userLat,
-      loc.userLng,
-      AppConstants.reportMaxRadius,
-    );
   }
 
   Future<void> _pickImage() async {
@@ -110,7 +97,14 @@ class _ReportScreenState extends State<ReportScreen> {
       return;
     }
 
-    if (!_isWithinRadius) {
+    final locationService = context.read<LocationService>();
+    final isWithinReqRadius = AiService.isWithinReportRadius(
+      locationService.userLat,
+      locationService.userLng,
+      AppConstants.reportMaxRadius,
+    );
+
+    if (!isWithinReqRadius) {
       if (!mounted) return;
       try {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -136,7 +130,6 @@ class _ReportScreenState extends State<ReportScreen> {
 
     try {
       final reportRepository = ReportRepository();
-      final locationService = context.read<LocationService>();
 
       // Upload gambar ke Supabase jika ada (optional, continue jika gagal)
       String? imageUrl;
@@ -359,6 +352,14 @@ class _ReportScreenState extends State<ReportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.watch<LocationService>();
+    final userDistance = loc.distanceFromVolcano;
+    final isWithinRadius = AiService.isWithinReportRadius(
+      loc.userLat,
+      loc.userLng,
+      AppConstants.reportMaxRadius,
+    );
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -385,13 +386,13 @@ class _ReportScreenState extends State<ReportScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color:
-                    _isWithinRadius
+                    isWithinRadius
                         ? Colors.teal.withValues(alpha: 0.05)
                         : Colors.red.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color:
-                      _isWithinRadius
+                      isWithinRadius
                           ? Colors.teal.withValues(alpha: 0.2)
                           : Colors.red.withValues(alpha: 0.2),
                 ),
@@ -402,16 +403,16 @@ class _ReportScreenState extends State<ReportScreen> {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color:
-                          _isWithinRadius
+                          isWithinRadius
                               ? Colors.teal.withValues(alpha: 0.1)
                               : Colors.red.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      _isWithinRadius
+                      isWithinRadius
                           ? Icons.my_location_rounded
                           : Icons.location_off_rounded,
-                      color: _isWithinRadius ? Colors.teal : Colors.red,
+                      color: isWithinRadius ? Colors.teal : Colors.red,
                       size: 20,
                     ),
                   ),
@@ -421,7 +422,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _isWithinRadius
+                          isWithinRadius
                               ? 'Lokasi Laporan Valid'
                               : 'Di Luar Radius Pelaporan',
                           style: AppFonts.plusJakartaSans(
@@ -432,7 +433,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Jarak Anda: ${_userDistance.toStringAsFixed(1)} km dari ${context.read<LocationService>().nearestVolcanoName}',
+                          'Jarak Anda: ${userDistance.toStringAsFixed(1)} km dari ${loc.nearestVolcanoName}',
                           style: AppFonts.plusJakartaSans(
                             fontSize: 12,
                             color: const Color(0xFF6B6B78),
@@ -672,7 +673,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed:
-                        _isWithinRadius && !_isSubmitting
+                        isWithinRadius && !_isSubmitting
                             ? _submitReport
                             : null,
                     style: ElevatedButton.styleFrom(

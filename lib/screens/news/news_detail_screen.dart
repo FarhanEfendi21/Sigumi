@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../../config/theme.dart';
+import '../../config/fonts.dart';
 import '../../models/news_item.dart';
+import 'package:share_plus/share_plus.dart';
 
 class NewsDetailScreen extends StatelessWidget {
   const NewsDetailScreen({super.key});
@@ -11,348 +13,207 @@ class NewsDetailScreen extends StatelessWidget {
     final newsItem = ModalRoute.of(context)!.settings.arguments as NewsItem;
 
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Detail Berita'),
-        backgroundColor: SigumiTheme.primaryBlue,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Detail Berita',
+          style: AppFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: const Color(0xFF1E1E2C),
+          ),
+        ),
+        backgroundColor: Colors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E1E2C), size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header Layer (Image or Gradient Fallback)
+            // Hero Image
             if (newsItem.imageUrl != null)
-              Stack(
-                children: [
-                  Image.network(
-                    newsItem.imageUrl!,
-                    width: double.infinity,
-                    height: 280,
-                    fit: BoxFit.cover,
-                    errorBuilder:
-                        (context, error, stackTrace) => Container(
-                          height: 280,
-                          color: SigumiTheme.primaryBlue,
-                          child: const Center(
-                            child: Icon(
-                              Icons.broken_image,
-                              color: Colors.white,
-                              size: 40,
-                            ),
-                          ),
-                        ),
-                  ),
-                  Container(
-                    height: 280,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withAlpha(220),
-                        ],
-                        stops: const [0.3, 1.0],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 24,
-                    left: 20,
-                    right: 20,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Category badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: newsItem.categoryColor,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withAlpha(50),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                newsItem.categoryIcon,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                newsItem.categoryLabel,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        // Title
-                        Text(
-                          newsItem.title,
-                          style: const TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            height: 1.3,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Source & time
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.source_outlined,
-                              color: Colors.white70,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              newsItem.source,
-                              style: const TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            const Icon(
-                              Icons.access_time,
-                              color: Colors.white70,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              newsItem.timeAgo,
-                              style: const TextStyle(
-                                fontFamily: 'Plus Jakarta Sans',
-                                color: Colors.white70,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ).animate().fadeIn(duration: 400.ms)
-            else
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [SigumiTheme.primaryBlue, SigumiTheme.primaryDark],
+                height: 250,
+                color: const Color(0xFFF8FAFC),
+                child: Image.network(
+                  newsItem.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: const Color(0xFFF1F5F9),
+                    child: const Center(
+                      child: Icon(Icons.broken_image_rounded, color: Color(0xFF94A3B8), size: 40),
+                    ),
                   ),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Category badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: newsItem.categoryColor.withAlpha(50),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: newsItem.categoryColor.withAlpha(100),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            newsItem.categoryIcon,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            newsItem.categoryLabel,
-                            style: const TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    // Title
-                    Text(
-                      newsItem.title,
-                      style: const TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        height: 1.3,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Source & time
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.source_outlined,
-                          color: Colors.white70,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          newsItem.source,
-                          style: const TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(width: 14),
-                        const Icon(
-                          Icons.access_time,
-                          color: Colors.white70,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          newsItem.timeAgo,
-                          style: const TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            color: Colors.white70,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
               ).animate().fadeIn(duration: 400.ms),
-
-            // Content body
+              
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Summary box
+                  // Category & Time
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: newsItem.categoryColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          newsItem.categoryLabel.toUpperCase(),
+                          style: AppFonts.plusJakartaSans(
+                            color: newsItem.categoryColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
+                      const SizedBox(width: 4),
+                      Text(
+                        newsItem.timeAgo,
+                        style: AppFonts.plusJakartaSans(
+                          color: const Color(0xFF64748B),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.1, end: 0),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Title
+                  Text(
+                    newsItem.title,
+                    style: AppFonts.plusJakartaSans(
+                      color: const Color(0xFF0F172A),
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      height: 1.3,
+                      letterSpacing: -0.5,
+                    ),
+                  ).animate().fadeIn(duration: 400.ms, delay: 150.ms).slideY(begin: 0.1, end: 0),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Source
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.source_rounded, size: 14, color: Color(0xFF64748B)),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Sumber: ${newsItem.source}',
+                        style: AppFonts.plusJakartaSans(
+                          color: const Color(0xFF475569),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms).slideY(begin: 0.1, end: 0),
+                  
+                  const SizedBox(height: 24),
+                  const Divider(color: Color(0xFFF1F5F9), thickness: 1.5, height: 1),
+                  const SizedBox(height: 24),
+                  
+                  // Summary Callout
                   Container(
-                    width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: newsItem.categoryColor.withAlpha(20),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: newsItem.categoryColor.withAlpha(40),
-                      ),
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: Column(
+                    child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.short_text,
-                              color: newsItem.categoryColor,
-                              size: 18,
+                        const Icon(Icons.format_quote_rounded, color: Color(0xFF94A3B8), size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            newsItem.summary,
+                            style: AppFonts.plusJakartaSans(
+                              color: const Color(0xFF334155),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              height: 1.5,
+                              fontStyle: FontStyle.italic,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Ringkasan',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: newsItem.categoryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          newsItem.summary,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            height: 1.5,
-                            color: SigumiTheme.textBody,
                           ),
                         ),
                       ],
                     ),
-                  ).animate().fadeIn(delay: 200.ms, duration: 400.ms),
-
+                  ).animate().fadeIn(duration: 400.ms, delay: 250.ms).slideY(begin: 0.1, end: 0),
+                  
                   const SizedBox(height: 24),
-
-                  // Full content
+                  
+                  // Content
                   Text(
                     newsItem.content,
-                    style: const TextStyle(
-                      fontSize: 15,
+                    style: AppFonts.plusJakartaSans(
+                      color: const Color(0xFF1E293B), // Slate 800
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
                       height: 1.7,
-                      color: SigumiTheme.textBody,
                     ),
-                  ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
-
-                  const SizedBox(height: 32),
-
-                  // Share button
+                  ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1, end: 0),
+                  
+                  const SizedBox(height: 48),
+                  
+                  // Share Action (Cupertino style)
                   SizedBox(
                     width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Fitur bagikan segera hadir!'),
-                            behavior: SnackBarBehavior.floating,
+                    child: CupertinoButton(
+                      color: const Color(0xFFF1F5F9),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(CupertinoIcons.share, color: Color(0xFF0F172A), size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Bagikan Berita',
+                            style: AppFonts.plusJakartaSans(
+                              color: const Color(0xFF0F172A),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
+                        ],
+                      ),
+                      onPressed: () {
+                        Share.share(
+                          '${newsItem.title}\n\nBaca selengkapnya di aplikasi SIGUMI:\nhttps://sigumi.app/news/${newsItem.id}',
+                          subject: newsItem.title,
                         );
                       },
-                      icon: const Icon(Icons.share_outlined),
-                      label: const Text('Bagikan Berita'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: SigumiTheme.primaryBlue,
-                        side: const BorderSide(color: SigumiTheme.primaryBlue),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                      ),
                     ),
-                  ).animate().fadeIn(delay: 400.ms, duration: 400.ms),
-
-                  const SizedBox(height: 20),
+                  ).animate().fadeIn(duration: 400.ms, delay: 350.ms).slideY(begin: 0.1, end: 0),
+                  
+                  const SizedBox(height: 32),
                 ],
               ),
             ),

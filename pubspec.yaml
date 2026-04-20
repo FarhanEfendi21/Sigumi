@@ -38,6 +38,7 @@ dependencies:
   webview_flutter: ^4.10.0
   flip_card: ^0.7.0
   carousel_slider: ^5.1.2
+  share_plus: ^13.0.0
 
 
 dev_dependencies:
