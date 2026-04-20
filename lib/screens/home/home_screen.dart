@@ -47,6 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
           body: RefreshIndicator(
             onRefresh: () async {
               await provider.forceRefresh();
+              // Refresh berita juga
+              final newsProvider = context.read<NewsProvider>();
+              await newsProvider.refreshLatestNews(limit: 5);
             },
             child: SafeArea(
               child: SingleChildScrollView(
