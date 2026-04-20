@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'nlp_knowledge_base.dart';
 import 'intent_classifier.dart';
 import '../models/chat_message.dart';
@@ -11,12 +10,9 @@ class NlpEngine {
   static Future<void> init() async {
     if (_classifier != null) return;
     
-    // Pilih engine berdasarkan platform
-    if (kIsWeb) {
-      _classifier = DictionaryIntentClassifier();
-    } else {
-      _classifier = TFLiteIntentClassifier();
-    }
+    // Semua platform sekarang dilayani oleh TFLiteIntentClassifier
+    // yang sudah memiliki built-in dictionary fallback!
+    _classifier = TFLiteIntentClassifier();
     await _classifier!.init();
   }
 
@@ -28,7 +24,7 @@ class NlpEngine {
     List<String> words = normalized.split(' ');
     
     Map<String, int> scores = {
-      'id': 0, 'en': 0, 'jv': 0, 'su': 0, 'ba': 0, 'sas': 0
+      'id': 0, 'en': 0, 'jv': 0, 'ba': 0, 'sas': 0
     };
     
     for (String word in words) {
