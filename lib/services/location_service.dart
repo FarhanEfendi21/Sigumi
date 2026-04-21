@@ -7,12 +7,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Status kesehatan GPS tracking
 enum GpsStatus {
-  unknown,     // Belum dicek
-  active,      // GPS aktif dan tracking berjalan lancar
-  unstable,    // Ada error tapi masih retry
-  error,       // Error persisten setelah beberapa kali retry
-  disabled,    // GPS dimatikan oleh user
-  denied,      // Permission ditolak
+  unknown, // Belum dicek
+  active, // GPS aktif dan tracking berjalan lancar
+  unstable, // Ada error tapi masih retry
+  error, // Error persisten setelah beberapa kali retry
+  disabled, // GPS dimatikan oleh user
+  denied, // Permission ditolak
 }
 
 /// Service untuk lokasi GPS real-time dan integrasi PostGIS Supabase.
@@ -34,8 +34,8 @@ class LocationService extends ChangeNotifier {
   static const double _detectionRadiusKm = 40.0;
   static const Map<String, Map<String, double>> regionCenters = {
     'Yogyakarta': {'lat': -7.5407, 'lng': 110.4457}, // Merapi
-    'Bali':       {'lat': -8.3433, 'lng': 115.5071}, // Agung
-    'Lombok':     {'lat': -8.4111, 'lng': 116.4573}, // Rinjani
+    'Bali': {'lat': -8.3433, 'lng': 115.5071}, // Agung
+    'Lombok': {'lat': -8.4111, 'lng': 116.4573}, // Rinjani
   };
 
   // ── Konfigurasi retry ──
@@ -44,7 +44,7 @@ class LocationService extends ChangeNotifier {
   static const Duration _errorCooldown = Duration(seconds: 30);
 
   // ── State lokasi ──
-  double _userLat = -7.7956;  // Default: Yogyakarta
+  double _userLat = -7.7956; // Default: Yogyakarta
   double _userLng = 110.3695;
   bool _isUsingRealGps = false;
   bool _isTracking = false;
@@ -59,11 +59,11 @@ class LocationService extends ChangeNotifier {
   bool _isRetrying = false;
 
   // ── Deteksi daerah otomatis ──
-  String? _detectedRegion;        // Daerah yang terdeteksi GPS (null = di luar)
+  String? _detectedRegion; // Daerah yang terdeteksi GPS (null = di luar)
   bool _isRegionAutoDetected = false;
 
   // ── Gunung berapi aktif (target jarak) ──
-  double _activeVolcanoLat = -7.5407;  // Default: Merapi
+  double _activeVolcanoLat = -7.5407; // Default: Merapi
   double _activeVolcanoLng = 110.4457;
   String _activeVolcanoName = 'Gunung Merapi';
 
@@ -90,6 +90,7 @@ class LocationService extends ChangeNotifier {
 
   String? get nearestVolcanoId => _nearestVolcanoId;
   String get nearestVolcanoName => _nearestVolcanoName;
+  String get activeVolcanoName => _activeVolcanoName;
   double get distanceFromVolcano => _distanceFromVolcano;
   int get zoneLevel => _zoneLevel;
   String get zoneLabel => _zoneLabel;
@@ -116,8 +117,10 @@ class LocationService extends ChangeNotifier {
     for (final entry in regionCenters.entries) {
       final center = entry.value;
       final distance = _haversineDistance(
-        _userLat, _userLng,
-        center['lat']!, center['lng']!,
+        _userLat,
+        _userLng,
+        center['lat']!,
+        center['lng']!,
       );
 
       if (distance < closestDistance) {
@@ -136,8 +139,10 @@ class LocationService extends ChangeNotifier {
     for (final entry in regionCenters.entries) {
       final center = entry.value;
       final distance = _haversineDistance(
-        _userLat, _userLng,
-        center['lat']!, center['lng']!,
+        _userLat,
+        _userLng,
+        center['lat']!,
+        center['lng']!,
       );
 
       if (distance < closestDistance) {
@@ -202,17 +207,17 @@ class LocationService extends ChangeNotifier {
           distanceFilter: 0,
         ),
       );
-      
+
       _userLat = position.latitude;
       _userLng = position.longitude;
       _isUsingRealGps = true;
       _lastUpdated = DateTime.now();
       _gpsStatus = GpsStatus.active;
       _consecutiveErrors = 0;
-      
+
       // Update ke Supabase & hitung zona risiko
       await _updateLocationToSupabase();
-      
+
       notifyListeners();
     } catch (e) {
       debugPrint('[LocationService] Init error: $e');
@@ -249,7 +254,7 @@ class LocationService extends ChangeNotifier {
         _userLng = position.longitude;
         _isUsingRealGps = true;
         _lastUpdated = DateTime.now();
-        
+
         // Reset error state saat berhasil dapat posisi baru
         _locationError = null;
         _consecutiveErrors = 0;
@@ -276,22 +281,24 @@ class LocationService extends ChangeNotifier {
       // ── Retry: coba reconnect otomatis ──
       _gpsStatus = GpsStatus.unstable;
       _isRetrying = true;
-      
+
       // Jangan spam error message — hanya tampilkan sekali
       final now = DateTime.now();
-      if (_lastErrorShown == null || 
+      if (_lastErrorShown == null ||
           now.difference(_lastErrorShown!) > _errorCooldown) {
         _locationError = 'Lokasi tidak stabil, mencoba memperbarui…';
         _lastErrorShown = now;
       }
-      
+
       notifyListeners();
 
       // Auto retry setelah delay
       _retryTimer?.cancel();
       _retryTimer = Timer(_retryDelay, () {
         if (_isTracking) {
-          debugPrint('[LocationService] Retry attempt $_consecutiveErrors/$_maxRetryAttempts');
+          debugPrint(
+            '[LocationService] Retry attempt $_consecutiveErrors/$_maxRetryAttempts',
+          );
           _startPositionStream(distanceFilterMeters);
         }
       });
@@ -300,10 +307,10 @@ class LocationService extends ChangeNotifier {
       _gpsStatus = GpsStatus.error;
       _isRetrying = false;
       _locationError = 'GPS tidak tersedia. Menggunakan lokasi terakhir.';
-      
+
       // Tetap pakai lokasi terakhir yang valid (fallback UX)
       // Jangan kosongkan data atau hapus peta
-      
+
       notifyListeners();
     }
   }
@@ -320,7 +327,7 @@ class LocationService extends ChangeNotifier {
 
     // Coba init ulang dulu
     await initialize();
-    
+
     // Jika berhasil, restart tracking
     if (_gpsStatus == GpsStatus.active) {
       stopTracking();
@@ -397,21 +404,20 @@ class LocationService extends ChangeNotifier {
   Future<void> _updateLocationToSupabase() async {
     try {
       final client = Supabase.instance.client;
-      
+
       // Update data lokasi ke Supabase jika login
       if (client.auth.currentUser != null) {
-        await client.rpc('update_user_location', params: {
-          'p_lat': _userLat,
-          'p_lng': _userLng,
-        });
+        await client.rpc(
+          'update_user_location',
+          params: {'p_lat': _userLat, 'p_lng': _userLng},
+        );
       }
-      
-      // KEMBALIKAN LOGIKA LOKASI: 
+
+      // KEMBALIKAN LOGIKA LOKASI:
       // Selalu gunakan kalkulasi lokal agar jarak yang ditampilkan
       // secara real-time selalu mengacu pada gunung yang dipilih user
       // (active volcano) dan tidak di-override oleh hasil RPC Supabase.
       _calculateLocalDistance();
-      
     } catch (e) {
       debugPrint('[LocationService] Supabase update error: $e');
       _calculateLocalDistance();
@@ -425,7 +431,10 @@ class LocationService extends ChangeNotifier {
   /// Menghitung jarak ke gunung AKTIF menggunakan formula Haversine.
   void _calculateLocalDistance() {
     _distanceFromVolcano = _haversineDistance(
-      _userLat, _userLng, _activeVolcanoLat, _activeVolcanoLng,
+      _userLat,
+      _userLng,
+      _activeVolcanoLat,
+      _activeVolcanoLng,
     );
     _nearestVolcanoName = _activeVolcanoName;
 
@@ -446,13 +455,16 @@ class LocationService extends ChangeNotifier {
 
   /// Formula Haversine untuk jarak antara 2 titik GPS (km)
   double _haversineDistance(
-    double lat1, double lng1,
-    double lat2, double lng2,
+    double lat1,
+    double lng1,
+    double lat2,
+    double lng2,
   ) {
     const earthRadius = 6371.0;
     final dLat = _toRadians(lat2 - lat1);
     final dLng = _toRadians(lng2 - lng1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
         cos(_toRadians(lat1)) *
             cos(_toRadians(lat2)) *
             sin(dLng / 2) *

@@ -30,6 +30,18 @@ class _ReportScreenState extends State<ReportScreen> {
   XFile? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
+  // Mapping nama gunung ke lokasi
+  static const Map<String, String> volcanoToLokasi = {
+    'Gunung Merapi': 'Yogyakarta',
+    'Gunung Agung': 'Bali',
+    'Gunung Rinjani': 'Lombok',
+  };
+
+  /// Convert nama gunung ke lokasi (Yogyakarta/Bali/Lombok)
+  String? _getLokasiFromVolcano(String volcaneName) {
+    return volcanoToLokasi[volcaneName];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -176,6 +188,11 @@ class _ReportScreenState extends State<ReportScreen> {
       print('   category: ${reportData['category']}');
       print('   imageUrl: $imageUrl');
 
+      // Ambil lokasi dari nama gunung aktif
+      final lokasiFromVolcano = _getLokasiFromVolcano(
+        locationService.activeVolcanoName,
+      );
+
       // Simpan laporan ke Supabase
       final response = await reportRepository.createReport(
         reporterName: reportData['reporterName'] as String,
@@ -185,6 +202,7 @@ class _ReportScreenState extends State<ReportScreen> {
         description: reportData['description'] as String,
         location: reportData['location'] as String?,
         imageUrl: reportData['imageUrl'] as String?,
+        lokasi: lokasiFromVolcano,
       );
 
       if (!mounted) return;
@@ -454,59 +472,67 @@ class _ReportScreenState extends State<ReportScreen> {
               subtitle: 'Pilih satu atau lebih kejadian yang terjadi',
             ),
             const SizedBox(height: 14),
-            Wrap(
-                  spacing: 8,
-                  runSpacing: 10,
-                  children:
-                      ReportModel.categories.map((cat) {
-                        final isSelected = _selectedCategories.contains(cat);
-                        return InkWell(
-                          onTap: () {
-                            setState(() {
-                              if (isSelected) {
-                                _selectedCategories.remove(cat);
-                              } else {
-                                _selectedCategories.add(cat);
-                              }
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? SigumiTheme.primaryBlue
-                                      : const Color(0xFFF3F4F6),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color:
-                                    isSelected
-                                        ? SigumiTheme.primaryBlue
-                                        : const Color(0xFFE5E7EB),
-                              ),
-                            ),
-                            child: Text(
+            Opacity(
+                  opacity: isWithinRadius ? 1.0 : 0.5,
+                  child: IgnorePointer(
+                    ignoring: !isWithinRadius,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 10,
+                      children:
+                          ReportModel.categories.map((cat) {
+                            final isSelected = _selectedCategories.contains(
                               cat,
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight:
-                                    isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.w500,
-                                color:
-                                    isSelected
-                                        ? Colors.white
-                                        : const Color(0xFF4B4B5C),
+                            );
+                            return InkWell(
+                              onTap: () {
+                                setState(() {
+                                  if (isSelected) {
+                                    _selectedCategories.remove(cat);
+                                  } else {
+                                    _selectedCategories.add(cat);
+                                  }
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      isSelected
+                                          ? SigumiTheme.primaryBlue
+                                          : const Color(0xFFF3F4F6),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color:
+                                        isSelected
+                                            ? SigumiTheme.primaryBlue
+                                            : const Color(0xFFE5E7EB),
+                                  ),
+                                ),
+                                child: Text(
+                                  cat,
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight:
+                                        isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w500,
+                                    color:
+                                        isSelected
+                                            ? Colors.white
+                                            : const Color(0xFF4B4B5C),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
+                            );
+                          }).toList(),
+                    ),
+                  ),
                 )
                 .animate()
                 .fadeIn(delay: 100.ms, duration: 400.ms)
@@ -520,110 +546,116 @@ class _ReportScreenState extends State<ReportScreen> {
               subtitle: 'Bantu tim verifikasi dengan bukti visual',
             ),
             const SizedBox(height: 14),
-            GestureDetector(
-                  onTap: _pickImage,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: double.infinity,
-                    height: 180,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F9FA),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color:
+            Opacity(
+                  opacity: isWithinRadius ? 1.0 : 0.5,
+                  child: IgnorePointer(
+                    ignoring: !isWithinRadius,
+                    child: GestureDetector(
+                      onTap: isWithinRadius ? _pickImage : null,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color:
+                                _selectedImage != null
+                                    ? Colors.transparent
+                                    : const Color(0xFFE5E7EB),
+                            width: 1.5,
+                          ),
+                        ),
+                        child:
                             _selectedImage != null
-                                ? Colors.transparent
-                                : const Color(0xFFE5E7EB),
-                        width: 1.5,
-                      ),
-                    ),
-                    child:
-                        _selectedImage != null
-                            ? Stack(
-                              fit: StackFit.expand,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
-                                  child:
-                                      kIsWeb
-                                          ? Image.network(
-                                            _selectedImage!.path,
-                                            fit: BoxFit.cover,
-                                          )
-                                          : Image.file(
-                                            File(_selectedImage!.path),
-                                            fit: BoxFit.cover,
+                                ? Stack(
+                                  fit: StackFit.expand,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(14),
+                                      child:
+                                          kIsWeb
+                                              ? Image.network(
+                                                _selectedImage!.path,
+                                                fit: BoxFit.cover,
+                                              )
+                                              : Image.file(
+                                                File(_selectedImage!.path),
+                                                fit: BoxFit.cover,
+                                              ),
+                                    ),
+                                    Positioned(
+                                      top: 12,
+                                      right: 12,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _selectedImage = null;
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.5,
+                                            ),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white.withValues(
+                                                alpha: 0.5,
+                                              ),
+                                            ),
                                           ),
-                                ),
-                                Positioned(
-                                  top: 12,
-                                  right: 12,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedImage = null;
-                                      });
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.5,
+                                          child: const Icon(
+                                            Icons.close_rounded,
+                                            color: Colors.white,
+                                            size: 18,
+                                          ),
                                         ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                                : Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: Colors.white.withValues(
-                                            alpha: 0.5,
-                                          ),
+                                          color: const Color(0xFFE5E7EB),
                                         ),
                                       ),
                                       child: const Icon(
-                                        Icons.close_rounded,
-                                        color: Colors.white,
-                                        size: 18,
+                                        Icons.add_a_photo_rounded,
+                                        color: Color(0xFF9E9EAE),
+                                        size: 32,
                                       ),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            )
-                            : Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: const Color(0xFFE5E7EB),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'Ambil foto dari kamera',
+                                      style: AppFonts.plusJakartaSans(
+                                        color: const Color(0xFF1E1E2C),
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
                                     ),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add_a_photo_rounded,
-                                    color: Color(0xFF9E9EAE),
-                                    size: 32,
-                                  ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Foto langsung dari kamera untuk verifikasi',
+                                      style: AppFonts.plusJakartaSans(
+                                        color: const Color(0xFF9E9EAE),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Ambil foto dari kamera',
-                                  style: AppFonts.plusJakartaSans(
-                                    color: const Color(0xFF1E1E2C),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Foto langsung dari kamera untuk verifikasi',
-                                  style: AppFonts.plusJakartaSans(
-                                    color: const Color(0xFF9E9EAE),
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
+                      ),
+                    ),
                   ),
                 )
                 .animate()
@@ -638,26 +670,34 @@ class _ReportScreenState extends State<ReportScreen> {
               subtitle: 'Ceritakan detail kejadian dengan singkat dan jelas',
             ),
             const SizedBox(height: 14),
-            Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE5E7EB)),
-                  ),
-                  child: TextField(
-                    controller: _descController,
-                    maxLines: 5,
-                    style: AppFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: const Color(0xFF1E1E2C),
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Misal: Terdapat hujan abu tipis di desa...',
-                      hintStyle: AppFonts.plusJakartaSans(
-                        color: const Color(0xFF9E9EAE),
+            Opacity(
+                  opacity: isWithinRadius ? 1.0 : 0.5,
+                  child: IgnorePointer(
+                    ignoring: !isWithinRadius,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF9FAFB),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
                       ),
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.all(16),
+                      child: TextField(
+                        enabled: isWithinRadius,
+                        controller: _descController,
+                        maxLines: 5,
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 14,
+                          color: const Color(0xFF1E1E2C),
+                        ),
+                        decoration: InputDecoration(
+                          hintText:
+                              'Misal: Terdapat hujan abu tipis di desa...',
+                          hintStyle: AppFonts.plusJakartaSans(
+                            color: const Color(0xFF9E9EAE),
+                          ),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.all(16),
+                        ),
+                      ),
                     ),
                   ),
                 )
@@ -673,9 +713,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   height: 56,
                   child: ElevatedButton(
                     onPressed:
-                        isWithinRadius && !_isSubmitting
-                            ? _submitReport
-                            : null,
+                        isWithinRadius && !_isSubmitting ? _submitReport : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: SigumiTheme.primaryBlue,
                       foregroundColor: Colors.white,

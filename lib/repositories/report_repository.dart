@@ -14,6 +14,7 @@ class ReportRepository {
     String? phone,
     String? location,
     String? imageUrl,
+    String? lokasi,
   }) async {
     try {
       print('📝 Creating report...');
@@ -24,6 +25,7 @@ class ReportRepository {
       print('  description: $description');
       print('  location: $location');
       print('  image_url: $imageUrl');
+      print('  lokasi: $lokasi');
       print('}');
 
       final response =
@@ -38,12 +40,14 @@ class ReportRepository {
                 'location': location,
                 'image_url': imageUrl,
                 'status': 'pending',
+                'lokasi': lokasi,
               })
               .select()
               .single();
 
       print('✅ Report created successfully: ${response['id']}');
       print('   By: ${response['reporter_name']}');
+      print('   Lokasi: ${response['lokasi']}');
       return response;
     } on PostgrestException catch (e) {
       print('❌ Database error: ${e.message}');
