@@ -83,11 +83,11 @@ class _GeneralEducationGrid extends StatelessWidget {
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 220,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 0.75, // Adjusting for height
+              mainAxisExtent: 220, // Fixed height untuk jaminan responsivitas teks
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -276,11 +276,11 @@ class _DisabilityEducationGrid extends StatelessWidget {
         SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: 220,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 0.7,
+              mainAxisExtent: 240, // Height sedikit ditingkatkan untuk Disability (biasanya judul lebih panjang)
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) => _DisabilityGridCard(item: items[index], index: index),

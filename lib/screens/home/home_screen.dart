@@ -167,11 +167,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   'assets/images/$formattedName.jpg';
 
                               return GestureDetector(
-                                onTap: () => Navigator.pushNamed(
-                                  context,
-                                  AppRoutes.visualMerapi,
-                                  arguments: volcano,
-                                ),
+                                // onTap: () => Navigator.pushNamed(
+                                //   context,
+                                //   AppRoutes.visualMerapi,
+                                //   arguments: volcano,
+                                // ),
                                 child: Container(
                                   width: cardWidth,
                                   // Tinggi dinamis: 42% lebar layar, min 180, max 240

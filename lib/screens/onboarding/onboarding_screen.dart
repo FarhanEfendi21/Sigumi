@@ -25,6 +25,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           'Sistem Informasi Gunung Berapi & Mitigasi Bencana yang membantu Anda tetap aman dan terinformasi.',
       icon: Icons.volcano_rounded,
       color: SigumiTheme.primaryBlue,
+      imagePath: 'assets/onboarding/onboarding 1.png',
     ),
     OnboardingData(
       title: 'Status Real-time',
@@ -32,6 +33,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           'Dapatkan pemantauan aktivitas gunung berapi secara langsung dan instan berkat integrasi data MAGMA.',
       icon: Icons.sensors_rounded,
       color: SigumiTheme.accentYellow,
+      imagePath: 'assets/onboarding/onboarding 2.png',
     ),
     OnboardingData(
       title: 'Pilih Bahasa Anda',
@@ -196,12 +198,14 @@ class OnboardingData {
   final String description;
   final IconData icon;
   final Color color;
+  final String? imagePath;
 
   OnboardingData({
     required this.title,
     required this.description,
     required this.icon,
     required this.color,
+    this.imagePath,
   });
 }
 
@@ -243,26 +247,49 @@ class _OnboardingPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Visual Element
-                Container(
-                      width: 160,
-                      height: 160,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: data.color.withAlpha(30),
-                            blurRadius: 40,
-                            spreadRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Icon(data.icon, size: 80, color: data.color),
-                    )
-                    .animate()
-                    .scale(duration: 800.ms, curve: Curves.elasticOut)
-                    .fadeIn()
-                    .shake(delay: 1.seconds, hz: 2, offset: const Offset(2, 2)),
+                data.imagePath != null
+                    ? Container(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
+                          maxHeight: MediaQuery.of(context).size.height * 0.35,
+                        ),
+                        decoration: BoxDecoration(
+                          boxShadow: [
+                            BoxShadow(
+                              color: data.color.withAlpha(20),
+                              blurRadius: 40,
+                              spreadRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          data.imagePath!,
+                          fit: BoxFit.contain,
+                        ),
+                      )
+                        .animate()
+                        .scale(duration: 800.ms, curve: Curves.elasticOut)
+                        .fadeIn()
+                    : Container(
+                        width: 160,
+                        height: 160,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: data.color.withAlpha(30),
+                              blurRadius: 40,
+                              spreadRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: Icon(data.icon, size: 80, color: data.color),
+                      )
+                        .animate()
+                        .scale(duration: 800.ms, curve: Curves.elasticOut)
+                        .fadeIn()
+                        .shake(delay: 1.seconds, hz: 2, offset: const Offset(2, 2)),
 
                 const SizedBox(height: 48),
 
@@ -307,101 +334,97 @@ class _LanguageSelectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<VolcanoProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Colors.white.withAlpha(50), Colors.white.withAlpha(10)],
-          ),
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withOpacity(0.2),
-              blurRadius: 40,
-              spreadRadius: -10,
+    return Center(
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Colors.white.withAlpha(50), Colors.white.withAlpha(10)],
+              ),
+              borderRadius: BorderRadius.circular(40),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white.withOpacity(0.2),
+                  blurRadius: 40,
+                  spreadRadius: -10,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              data.title,
-              style: AppFonts.plusJakartaSans(
-                fontSize: 26,
-                fontWeight: FontWeight.w800,
-                color: SigumiTheme.primaryBlue,
-              ),
-            ).animate().fadeIn().moveY(begin: -20, end: 0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  data.title,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 26,
+                    fontWeight: FontWeight.w800,
+                    color: SigumiTheme.primaryBlue,
+                  ),
+                  textAlign: TextAlign.center,
+                ).animate().fadeIn().moveY(begin: -20, end: 0),
 
-            const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-            Text(
-              data.description,
-              textAlign: TextAlign.center,
-              style: AppFonts.plusJakartaSans(
-                fontSize: 14,
-                color: SigumiTheme.textSecondary,
-              ),
-            ).animate().fadeIn(delay: 100.ms),
+                Text(
+                  data.description,
+                  textAlign: TextAlign.center,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 14,
+                    color: SigumiTheme.textSecondary,
+                  ),
+                ).animate().fadeIn(delay: 100.ms),
 
-            const SizedBox(height: 32),
+                const SizedBox(height: 32),
 
-            // Language Grid
-            GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.1,
+                // Language List Responsif
+                Column(
                   children: [
                     _LangCard(
-                      title: 'Indonesia',
-                      subtitle: 'Bahasa Indonesia',
+                      title: 'Bahasa Indonesia',
+                      subtitle: 'ID',
                       code: 'id',
-                      flag: '🇮🇩',
                       isSelected: provider.language == 'id',
                     ),
+                    const SizedBox(height: 12),
                     _LangCard(
-                      title: 'English',
-                      subtitle: 'English (US)',
+                      title: 'English (US)',
+                      subtitle: 'EN',
                       code: 'en',
-                      flag: '�🇧',
                       isSelected: provider.language == 'en',
                     ),
+                    const SizedBox(height: 12),
                     _LangCard(
-                      title: 'Jawa',
-                      subtitle: 'Basa Jawa',
+                      title: 'Basa Jawa',
+                      subtitle: 'JV',
                       code: 'jv',
-                      flag: '☕',
                       isSelected: provider.language == 'jv',
                     ),
+                    const SizedBox(height: 12),
                     _LangCard(
-                      title: 'Bali',
-                      subtitle: 'Basa Bali',
+                      title: 'Basa Bali',
+                      subtitle: 'BA',
                       code: 'ba',
-                      flag: '🌴',
                       isSelected: provider.language == 'ba',
                     ),
+                    const SizedBox(height: 12),
                     _LangCard(
-                      title: 'Sasak',
-                      subtitle: 'Basa Sasak',
+                      title: 'Basa Sasak',
+                      subtitle: 'SA',
                       code: 'sa',
-                      flag: '🏔️',
                       isSelected: provider.language == 'sa',
                     ),
                   ],
-                )
-                .animate()
-                .fadeIn(delay: 300.ms)
-                .scale(begin: const Offset(0.9, 0.9)),
-          ],
+                ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -412,14 +435,12 @@ class _LangCard extends StatefulWidget {
   final String title;
   final String subtitle;
   final String code;
-  final String flag;
   final bool isSelected;
 
   const _LangCard({
     required this.title,
     required this.subtitle,
     required this.code,
-    required this.flag,
     required this.isSelected,
   });
 
@@ -442,56 +463,62 @@ class _LangCardState extends State<_LangCard> {
         duration: const Duration(milliseconds: 100),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
           decoration: BoxDecoration(
             color: widget.isSelected ? SigumiTheme.primaryBlue : Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color:
-                  widget.isSelected
-                      ? SigumiTheme.primaryBlue
-                      : SigumiTheme.divider.withAlpha(100),
-              width: 2,
+              color: widget.isSelected
+                  ? SigumiTheme.primaryBlue
+                  : SigumiTheme.divider.withAlpha(50),
+              width: 1.5,
             ),
             boxShadow: [
-              BoxShadow(
-                color:
-                    widget.isSelected
-                        ? SigumiTheme.primaryBlue.withAlpha(80)
-                        : Colors.black.withAlpha(20),
-                blurRadius: widget.isSelected ? 20 : 10,
-                spreadRadius: widget.isSelected ? 2 : 0,
-                offset:
-                    widget.isSelected
-                        ? const Offset(0, 10)
-                        : const Offset(0, 4),
-              ),
+              if (widget.isSelected)
+                BoxShadow(
+                  color: SigumiTheme.primaryBlue.withAlpha(80),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 8),
+                )
+              else
+                BoxShadow(
+                  color: Colors.black.withAlpha(5),
+                  blurRadius: 10,
+                  spreadRadius: 0,
+                  offset: const Offset(0, 4),
+                ),
             ],
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(widget.flag, style: const TextStyle(fontSize: 32)),
-              const SizedBox(height: 8),
               Text(
                 widget.title,
                 style: AppFonts.plusJakartaSans(
                   fontWeight: FontWeight.w700,
-                  color:
-                      widget.isSelected
-                          ? Colors.white
-                          : SigumiTheme.textPrimary,
+                  color: widget.isSelected ? Colors.white : SigumiTheme.textPrimary,
                   fontSize: 16,
                 ),
               ),
-              Text(
-                widget.subtitle,
-                style: AppFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w400,
-                  color:
-                      widget.isSelected
-                          ? Colors.white.withAlpha(200)
-                          : SigumiTheme.textSecondary,
-                  fontSize: 11,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: widget.isSelected
+                      ? Colors.white.withAlpha(30)
+                      : Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  widget.subtitle,
+                  style: AppFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                    color: widget.isSelected
+                        ? Colors.white
+                        : SigumiTheme.textSecondary,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -501,3 +528,4 @@ class _LangCardState extends State<_LangCard> {
     );
   }
 }
+
