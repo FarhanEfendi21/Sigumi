@@ -111,6 +111,7 @@ class VolcanoProvider extends ChangeNotifier {
   // ── Lokasi (delegasi ke LocationService) ──
   double get distanceFromMerapi => _locationService.distanceFromVolcano;
   String get distanceLabel => _locationService.distanceLabel;
+
   /// Jarak ringkas: hanya angka + satuan, tanpa nama gunung (untuk chip UI)
   String get distanceShort =>
       '${_locationService.distanceFromVolcano.toStringAsFixed(1)} km';
@@ -141,34 +142,40 @@ class VolcanoProvider extends ChangeNotifier {
     Future.delayed(const Duration(seconds: 2), () async {
       try {
         debugPrint('[MAGMA] ðŸš€ Inisialisasi Klien Kedua (MAGMA)...');
-        _magmaClient = SupabaseClient(SupabaseConfig.magmaUrl, SupabaseConfig.magmaAnonKey);
-        
+        _magmaClient = SupabaseClient(
+          SupabaseConfig.magmaUrl,
+          SupabaseConfig.magmaAnonKey,
+        );
+
         // 1. Test Fetch Manual (Pastikan RLS & Key OK)
         await _testMagmaConnection();
 
         // 2. Setup Realtime Channel dengan nama unik agar tidak bentrok di Web
         _magmaChannel = _magmaClient!.channel('sigumi_magma_sync');
-        
-        _magmaChannel!.onPostgresChanges(
-          event: PostgresChangeEvent.all,
-          schema: 'public',
-          table: 'volcanoes',
-          callback: (payload) {
-            debugPrint('[MAGMA] ðŸ”¥ DATA REALTIME MASUK! Event: ${payload.eventType}');
-            _processMagmaPayload(payload.newRecord);
-          }
-        ).subscribe((status, [error]) {
-          debugPrint('[MAGMA] ðŸ“¡ Status Channel: $status');
-          if (status == RealtimeSubscribeStatus.subscribed) {
-            debugPrint('[MAGMA] âœ… Realtime MAGMA Aktif!');
-          }
-          if (error != null) {
-            debugPrint('[MAGMA] âŒ Error Realtime: $error');
-            // Jika Realtime gagal di Web, kita gunakan sistem Polling sebagai cadangan
-            if (!_isPollingActive) _startMagmaPolling();
-          }
-        });
 
+        _magmaChannel!
+            .onPostgresChanges(
+              event: PostgresChangeEvent.all,
+              schema: 'public',
+              table: 'volcanoes',
+              callback: (payload) {
+                debugPrint(
+                  '[MAGMA] ðŸ”¥ DATA REALTIME MASUK! Event: ${payload.eventType}',
+                );
+                _processMagmaPayload(payload.newRecord);
+              },
+            )
+            .subscribe((status, [error]) {
+              debugPrint('[MAGMA] ðŸ“¡ Status Channel: $status');
+              if (status == RealtimeSubscribeStatus.subscribed) {
+                debugPrint('[MAGMA] âœ… Realtime MAGMA Aktif!');
+              }
+              if (error != null) {
+                debugPrint('[MAGMA] âŒ Error Realtime: $error');
+                // Jika Realtime gagal di Web, kita gunakan sistem Polling sebagai cadangan
+                if (!_isPollingActive) _startMagmaPolling();
+              }
+            });
       } catch (e) {
         debugPrint('[MAGMA] âŒ Fatal Error Inisialisasi: $e');
         _startMagmaPolling();
@@ -184,22 +191,23 @@ class VolcanoProvider extends ChangeNotifier {
     if (_isPollingActive) return;
     _isPollingActive = true;
     debugPrint('[MAGMA] ðŸ”„ Memulai mode Polling (Fallback Web)...');
-    
+
     _pollingTimer = Timer.periodic(const Duration(seconds: 15), (timer) async {
-       debugPrint('[MAGMA] ðŸ” Polling data terbaru...');
-       try {
-         final data = await _magmaClient!
-            .from('volcanoes')
-            .select('name, alert_level')
-            .eq('name', _volcano.name.replaceAll('Gunung', '').trim())
-            .maybeSingle();
-         
-         if (data != null) {
-           _processMagmaPayload(data);
-         }
-       } catch (e) {
-         debugPrint('[MAGMA] âŒ Polling Error: $e');
-       }
+      debugPrint('[MAGMA] ðŸ” Polling data terbaru...');
+      try {
+        final data =
+            await _magmaClient!
+                .from('volcanoes')
+                .select('name, alert_level')
+                .eq('name', _volcano.name.replaceAll('Gunung', '').trim())
+                .maybeSingle();
+
+        if (data != null) {
+          _processMagmaPayload(data);
+        }
+      } catch (e) {
+        debugPrint('[MAGMA] âŒ Polling Error: $e');
+      }
     });
   }
 
@@ -208,14 +216,18 @@ class VolcanoProvider extends ChangeNotifier {
 
     final String? volcanoName = record['name']?.toString();
     final String? alertLevel = record['alert_level']?.toString();
-    
+
     if (volcanoName == null) return;
 
     final newStatusLevel = _mapAlertLevelToInt(alertLevel);
-    final newDescription = _generateStatusDescriptionFor(volcanoName, newStatusLevel);
+    final newDescription = _generateStatusDescriptionFor(
+      volcanoName,
+      newStatusLevel,
+    );
 
     // Matching logika
-    String normalize(String s) => s.toLowerCase().replaceAll('gunung', '').trim();
+    String normalize(String s) =>
+        s.toLowerCase().replaceAll('gunung', '').trim();
     final normalizedInput = normalize(volcanoName);
 
     // 1. Update di list allVolcanoes agar tidak tertimpa saat ganti region/fetch ulang
@@ -233,40 +245,51 @@ class VolcanoProvider extends ChangeNotifier {
 
     // 2. Update objek volcano yang sedang aktif jika cocok
     if (normalize(_volcano.name).contains(normalizedInput)) {
-       if (_volcano.statusLevel != newStatusLevel) {
-          debugPrint('[MAGMA] âœ… Perubahan Terdeteksi! $volcanoName: Level $newStatusLevel');
-          
-          // Gunakan microtask agar tidak bentrok dengan siklus render UI Web
-          Future.microtask(() {
-            updateVolcanoStatus(newStatusLevel, newDescription);
-          });
-       }
+      if (_volcano.statusLevel != newStatusLevel) {
+        debugPrint(
+          '[MAGMA] âœ… Perubahan Terdeteksi! $volcanoName: Level $newStatusLevel',
+        );
+
+        // Gunakan microtask agar tidak bentrok dengan siklus render UI Web
+        Future.microtask(() {
+          updateVolcanoStatus(newStatusLevel, newDescription);
+        });
+      }
     } else if (!foundInList && _volcano.name.isEmpty) {
-       // Jika list kosong (init state), langsung set via microtask
-       Future.microtask(() {
-         updateVolcanoStatus(newStatusLevel, newDescription);
-       });
+      // Jika list kosong (init state), langsung set via microtask
+      Future.microtask(() {
+        updateVolcanoStatus(newStatusLevel, newDescription);
+      });
     }
-    
+
     // Hanya notifyListeners jika ada data masuk, bungkus agar aman di Web
     if (foundInList) {
-       Future.microtask(() => notifyListeners());
+      Future.microtask(() => notifyListeners());
     }
   }
 
   /// Fungsi Diagnosa: Mencoba membaca 1 baris data secara manual
   Future<void> _testMagmaConnection() async {
     try {
-      final data = await _magmaClient!.from('volcanoes').select('name, alert_level').limit(1);
+      final data = await _magmaClient!
+          .from('volcanoes')
+          .select('name, alert_level')
+          .limit(1);
       if (data.isNotEmpty) {
-        debugPrint('[MAGMA] âœ… TEST READ SUKSES! Ditemukan ${data.length} baris. Database MAGMA dapat diakses.');
+        debugPrint(
+          '[MAGMA] âœ… TEST READ SUKSES! Ditemukan ${data.length} baris. Database MAGMA dapat diakses.',
+        );
         debugPrint('[MAGMA] Contoh data: ${data.first}');
       } else {
-        debugPrint('[MAGMA] âš ï¸ TEST READ KOSONG. Tabel mungkin tidak ada isinya atau RLS memblokir.');
+        debugPrint(
+          '[MAGMA] âš ï¸ TEST READ KOSONG. Tabel mungkin tidak ada isinya atau RLS memblokir.',
+        );
       }
     } catch (e) {
       debugPrint('[MAGMA] âŒ TEST READ GAGAL: $e');
-      debugPrint('[MAGMA] Saran: Periksa kembali RLS Policy di Dashboard Supabase.');
+      debugPrint(
+        '[MAGMA] Saran: Periksa kembali RLS Policy di Dashboard Supabase.',
+      );
     }
   }
 
@@ -298,7 +321,7 @@ class VolcanoProvider extends ChangeNotifier {
   /// Inisialisasi GPS dan deteksi daerah otomatis.
   /// Akan auto-set region berdasarkan gunung terdekat terlepas dari seberapa jauh.
   Future<void> autoDetectAndSetRegion() async {
-    if (_locationInitialized) return;  // Jangan double-init
+    if (_locationInitialized) return; // Jangan double-init
 
     await _locationService.initialize();
     _locationInitialized = true;
@@ -306,7 +329,7 @@ class VolcanoProvider extends ChangeNotifier {
     if (_locationService.isUsingRealGps) {
       final closest = _locationService.getClosestRegion();
       final detected = _locationService.detectRegion();
-      
+
       if (detected != null) {
         // Didalam radius 40km
         _isRegionAutoDetected = true;
@@ -328,21 +351,19 @@ class VolcanoProvider extends ChangeNotifier {
   void _initAuthListener() {
     if (!SupabaseConfig.isConfigured) return;
 
-    _authSubscription = _authRepo.onAuthStateChange.listen(
-      (AuthState state) {
-        final event = state.event;
-        final session = state.session;
+    _authSubscription = _authRepo.onAuthStateChange.listen((AuthState state) {
+      final event = state.event;
+      final session = state.session;
 
-        if (event == AuthChangeEvent.signedIn && session != null) {
-          _isAuthenticated = true;
-          _loadUserProfile();
-        } else if (event == AuthChangeEvent.signedOut) {
-          _isAuthenticated = false;
-          _currentUser = null;
-        }
-        notifyListeners();
-      },
-    );
+      if (event == AuthChangeEvent.signedIn && session != null) {
+        _isAuthenticated = true;
+        _loadUserProfile();
+      } else if (event == AuthChangeEvent.signedOut) {
+        _isAuthenticated = false;
+        _currentUser = null;
+      }
+      notifyListeners();
+    });
 
     // Cek session yang sudah ada saat app launch
     if (_authRepo.isLoggedIn) {
@@ -391,20 +412,14 @@ class VolcanoProvider extends ChangeNotifier {
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// LOGIN
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Future<bool> login({
-    required String phone,
-    required String password,
-  }) async {
+  Future<bool> login({required String phone, required String password}) async {
     _isAuthLoading = true;
     _authError = null;
     notifyListeners();
 
     try {
       final normalizedPhone = AuthRepository.normalizePhone(phone);
-      await _authRepo.login(
-        phone: normalizedPhone,
-        password: password,
-      );
+      await _authRepo.login(phone: normalizedPhone, password: password);
       _isAuthLoading = false;
       notifyListeners();
       return true;
@@ -512,35 +527,35 @@ class VolcanoProvider extends ChangeNotifier {
 
     try {
       final client = Supabase.instance.client;
-      final response = await client
-          .from('volcanoes')
-          .select()
-          .order('name');
+      final response = await client.from('volcanoes').select().order('name');
 
-      _allVolcanoes = (response as List).map((json) {
-        // Parsing koordinat — robust (WKT, GeoJSON, kolom terpisah, fallback hardcoded)
-        final lat = _parseCoordinateLat(json);
-        final lng = _parseCoordinateLng(json);
-        debugPrint('[VolcanoProvider] ${json['name']}: lat=$lat, lng=$lng');
+      _allVolcanoes =
+          (response as List).map((json) {
+            // Parsing koordinat — robust (WKT, GeoJSON, kolom terpisah, fallback hardcoded)
+            final lat = _parseCoordinateLat(json);
+            final lng = _parseCoordinateLng(json);
+            debugPrint('[VolcanoProvider] ${json['name']}: lat=$lat, lng=$lng');
 
-        return VolcanoModel(
-          id: json['id'],
-          name: json['name'],
-          latitude: lat,
-          longitude: lng,
-          elevation: (json['elevation'] as num).toDouble(),
-          statusLevel: json['status_level'] ?? 1,
-          statusDescription: json['status_description'] ?? '',
-          lastUpdate: json['last_update'] != null
-              ? DateTime.parse(json['last_update'])
-              : DateTime.now(),
-          lastEruption: json['last_eruption'],
-          recentActivities: [], // Paksa kosong sementara menunggu data real dari admin panel
-          temperature: (json['temperature'] as num?)?.toDouble(),
-          windDirection: json['wind_direction'],
-          windSpeed: (json['wind_speed'] as num?)?.toDouble(),
-        );
-      }).toList();
+            return VolcanoModel(
+              id: json['id'],
+              name: json['name'],
+              latitude: lat,
+              longitude: lng,
+              elevation: (json['elevation'] as num).toDouble(),
+              statusLevel: json['status_level'] ?? 1,
+              statusDescription: json['status_description'] ?? '',
+              lastUpdate:
+                  json['last_update'] != null
+                      ? DateTime.parse(json['last_update'])
+                      : DateTime.now(),
+              lastEruption: json['last_eruption'],
+              recentActivities:
+                  [], // Paksa kosong sementara menunggu data real dari admin panel
+              temperature: (json['temperature'] as num?)?.toDouble(),
+              windDirection: json['wind_direction'],
+              windSpeed: (json['wind_speed'] as num?)?.toDouble(),
+            );
+          }).toList();
 
       // Set volcano pertama atau sesuai region
       _updateSelectedVolcano();
@@ -563,9 +578,9 @@ class VolcanoProvider extends ChangeNotifier {
   // â”€â”€ Koordinat fallback hardcoded berdasarkan nama gunung â”€â”€
   // Dipakai jika parsing PostGIS dari Supabase gagal (format tidak dikenal)
   static const Map<String, List<double>> _volcanoFallbackCoords = {
-    'merapi':  [-7.5407,  110.4457],
-    'agung':   [-8.3433,  115.5071],
-    'rinjani': [-8.4111,  116.4573],
+    'merapi': [-7.5407, 110.4457],
+    'agung': [-8.3433, 115.5071],
+    'rinjani': [-8.4111, 116.4573],
   };
 
   /// Parsing latitude dari berbagai format PostGIS yang mungkin dikembalikan Supabase.
@@ -587,8 +602,9 @@ class VolcanoProvider extends ChangeNotifier {
 
     // Cara 3: WKT String â€” POINT(lng lat) atau SRID=4326;POINT(lng lat)
     if (location is String) {
-      final match = RegExp(r'POINT\s*\(\s*([\d.-]+)\s+([\d.-]+)\s*\)')
-          .firstMatch(location);
+      final match = RegExp(
+        r'POINT\s*\(\s*([\d.-]+)\s+([\d.-]+)\s*\)',
+      ).firstMatch(location);
       if (match != null) return double.parse(match.group(2)!); // group 2 = lat
     }
 
@@ -610,8 +626,9 @@ class VolcanoProvider extends ChangeNotifier {
     }
 
     if (location is String) {
-      final match = RegExp(r'POINT\s*\(\s*([\d.-]+)\s+([\d.-]+)\s*\)')
-          .firstMatch(location);
+      final match = RegExp(
+        r'POINT\s*\(\s*([\d.-]+)\s+([\d.-]+)\s*\)',
+      ).firstMatch(location);
       if (match != null) return double.parse(match.group(1)!); // group 1 = lng
     }
 
@@ -624,7 +641,9 @@ class VolcanoProvider extends ChangeNotifier {
     for (final entry in _volcanoFallbackCoords.entries) {
       if (key.contains(entry.key)) return entry.value[index];
     }
-    debugPrint('[VolcanoProvider] âš ï¸ Koordinat tidak dikenal untuk "$name"');
+    debugPrint(
+      '[VolcanoProvider] âš ï¸ Koordinat tidak dikenal untuk "$name"',
+    );
     return 0;
   }
 
@@ -632,8 +651,9 @@ class VolcanoProvider extends ChangeNotifier {
     if (_allVolcanoes.isEmpty) return;
 
     final match = _allVolcanoes.where(
-      (v) => v.name.toLowerCase().contains(_selectedRegion.toLowerCase()) ||
-             _getRegionForVolcano(v.name) == _selectedRegion,
+      (v) =>
+          v.name.toLowerCase().contains(_selectedRegion.toLowerCase()) ||
+          _getRegionForVolcano(v.name) == _selectedRegion,
     );
 
     if (match.isNotEmpty) {
@@ -666,7 +686,12 @@ class VolcanoProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', lang);
     if (_isAuthenticated) {
-      _authRepo.updateProfileTable(language: lang);
+      try {
+        await _authRepo.updateProfileTable(language: lang);
+      } catch (e) {
+        debugPrint('[VolcanoProvider] Error updating language in database: $e');
+        // Language sudah tersimpan di SharedPreferences, jadi tidak perlu crash
+      }
     }
     notifyListeners();
   }
@@ -682,7 +707,13 @@ class VolcanoProvider extends ChangeNotifier {
   void setFontSize(double size) {
     _fontSize = size;
     if (_isAuthenticated) {
-      _authRepo.updateProfileTable(fontSize: size);
+      try {
+        _authRepo.updateProfileTable(fontSize: size);
+      } catch (e) {
+        debugPrint(
+          '[VolcanoProvider] Error updating font size in database: $e',
+        );
+      }
     }
     notifyListeners();
   }
@@ -690,7 +721,13 @@ class VolcanoProvider extends ChangeNotifier {
   void setHighContrast(bool value) {
     _highContrast = value;
     if (_isAuthenticated) {
-      _authRepo.updateProfileTable(highContrast: value);
+      try {
+        _authRepo.updateProfileTable(highContrast: value);
+      } catch (e) {
+        debugPrint(
+          '[VolcanoProvider] Error updating high contrast in database: $e',
+        );
+      }
     }
     notifyListeners();
   }
@@ -698,7 +735,13 @@ class VolcanoProvider extends ChangeNotifier {
   void setAudioGuidance(bool value) {
     _audioGuidance = value;
     if (_isAuthenticated) {
-      _authRepo.updateProfileTable(audioGuidance: value);
+      try {
+        _authRepo.updateProfileTable(audioGuidance: value);
+      } catch (e) {
+        debugPrint(
+          '[VolcanoProvider] Error updating audio guidance in database: $e',
+        );
+      }
     }
     notifyListeners();
   }
@@ -761,19 +804,23 @@ class VolcanoProvider extends ChangeNotifier {
 
     try {
       // Ambil nama gunung tanpa prefix "Gunung " untuk query MAGMA
-      final searchName = _volcano.name
-          .replaceAll('Gunung', '')
-          .replaceAll('gunung', '')
-          .trim();
+      final searchName =
+          _volcano.name
+              .replaceAll('Gunung', '')
+              .replaceAll('gunung', '')
+              .trim();
 
-      final data = await _magmaClient!
-          .from('volcanoes')
-          .select('name, alert_level')
-          .ilike('name', '%$searchName%')
-          .maybeSingle();
+      final data =
+          await _magmaClient!
+              .from('volcanoes')
+              .select('name, alert_level')
+              .ilike('name', '%$searchName%')
+              .maybeSingle();
 
       if (data != null) {
-        debugPrint('[MAGMA] ðŸ”„ Sync status untuk ${_volcano.name}: ${data['alert_level']}');
+        debugPrint(
+          '[MAGMA] ðŸ”„ Sync status untuk ${_volcano.name}: ${data['alert_level']}',
+        );
         _processMagmaPayload(data);
       }
     } catch (e) {
@@ -811,9 +858,7 @@ class VolcanoProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _recentActivities = await _volcanoRepo.getRecentActivities(
-        _volcano.dbId,
-      );
+      _recentActivities = await _volcanoRepo.getRecentActivities(_volcano.dbId);
     } catch (e) {
       // Sembunyikan error tabel hilang karena admin panel belum selesai
       if (!e.toString().contains('PGRST205')) {
@@ -837,13 +882,11 @@ class VolcanoProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      _eruptionHistory = await _volcanoRepo.getEruptionHistory(
-        _volcano.dbId,
-      );
+      _eruptionHistory = await _volcanoRepo.getEruptionHistory(_volcano.dbId);
     } catch (e) {
       // Sembunyikan error tabel hilang karena admin panel belum selesai
       if (!e.toString().contains('PGRST205')) {
-         debugPrint('[SIGUMI] Info: Tabel eruptions belum tersedia.');
+        debugPrint('[SIGUMI] Info: Tabel eruptions belum tersedia.');
       }
       _eruptionHistory = [];
     }

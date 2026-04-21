@@ -7,6 +7,7 @@ import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
+import '../../services/localization_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -93,7 +94,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
-        final isEn = provider.language == 'en';
         final isLoading = provider.isAuthLoading;
 
         return Scaffold(
@@ -135,7 +135,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Title
                         Text(
-                          isEn ? 'Welcome Back' : 'Selamat Datang',
+                          context.tr('welcome_back'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 28,
                             fontWeight: FontWeight.w700,
@@ -146,9 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 6),
 
                         Text(
-                          isEn
-                              ? 'Sign in to your SIGUMI account'
-                              : 'Masuk ke akun SIGUMI Anda',
+                          context.tr('sign_in'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
                             color: SigumiTheme.textSecondary,
@@ -178,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 children: [
                                   // Phone field
                                   Text(
-                                    isEn ? 'Phone Number' : 'Nomor Telepon',
+                                    context.tr('phone_number'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -188,10 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(height: 8),
                                   _buildTextField(
                                     controller: _phoneController,
-                                    hint:
-                                        isEn
-                                            ? 'e.g. 081234567890'
-                                            : 'Contoh: 081234567890',
+                                    hint: context.tr('phone_hint'),
                                     icon: Icons.phone_outlined,
                                     keyboardType: TextInputType.phone,
                                     errorText: _phoneError,
@@ -201,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                                   // Password field
                                   Text(
-                                    isEn ? 'Password' : 'Kata Sandi',
+                                    context.tr('password'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -211,10 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(height: 8),
                                   _buildTextField(
                                     controller: _passwordController,
-                                    hint:
-                                        isEn
-                                            ? 'Enter password'
-                                            : 'Masukkan kata sandi',
+                                    hint: context.tr('password_hint'),
                                     icon: Icons.lock_outline,
                                     obscure: _obscurePassword,
                                     errorText: _passwordError,
@@ -247,9 +239,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         minimumSize: const Size(0, 32),
                                       ),
                                       child: Text(
-                                        isEn
-                                            ? 'Forgot Password?'
-                                            : 'Lupa Kata Sandi?',
+                                        context.tr('forgot_password'),
                                         style: AppFonts.plusJakartaSans(
                                           color: SigumiTheme.primaryBlue,
                                           fontWeight: FontWeight.w600,
@@ -313,9 +303,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                       MainAxisAlignment.center,
                                                   children: [
                                                     Text(
-                                                      isEn
-                                                          ? 'Sign In'
-                                                          : 'Masuk',
+                                                      context.tr('login'),
                                                       style:
                                                           AppFonts.plusJakartaSans(
                                                             fontSize: 16,
@@ -358,9 +346,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    isEn
-                                        ? 'Demo mode: Supabase not configured yet'
-                                        : 'Mode demo: Supabase belum dikonfigurasi',
+                                    context.tr('loading'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 11,
                                       color: Colors.amber.shade800,
@@ -378,9 +364,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              isEn
-                                  ? 'Don\'t have an account? '
-                                  : 'Belum punya akun? ',
+                              context.tr('dont_have_account'),
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 13,
                                 color: SigumiTheme.textSecondary,
@@ -393,7 +377,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     AppRoutes.register,
                                   ),
                               child: Text(
-                                isEn ? 'Register Now' : 'Daftar Sekarang',
+                                context.tr('sign_up'),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w700,

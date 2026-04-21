@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:provider/provider.dart';
 import '../config/theme.dart';
+import '../providers/volcano_provider.dart';
+import '../services/localization_service.dart';
 import 'home/home_screen.dart';
 import 'map/map_screen.dart';
 import 'report/report_screen.dart';
@@ -81,16 +84,16 @@ class _ModernBottomNav extends StatelessWidget {
 
   const _ModernBottomNav({required this.currentIndex, required this.onTap});
 
-  static const _items = [
-    _NavItem(Icons.home_outlined, Icons.home_rounded, 'Beranda'),
-    _NavItem(Icons.map_outlined, Icons.map_rounded, 'Peta'),
-    _NavItem(Icons.edit_note_rounded, Icons.edit_note_rounded, 'Lapor'),
+  static const List<_NavItem> _items = [
+    _NavItem(Icons.home_outlined, Icons.home_rounded, 'nav_home'),
+    _NavItem(Icons.map_outlined, Icons.map_rounded, 'nav_map'),
+    _NavItem(Icons.edit_note_rounded, Icons.edit_note_rounded, 'nav_report'),
     _NavItem(
       Icons.chat_bubble_outline_rounded,
       Icons.chat_bubble_rounded,
-      'Chatbot',
+      'nav_chatbot',
     ),
-    _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'Profil'),
+    _NavItem(Icons.person_outline_rounded, Icons.person_rounded, 'nav_profile'),
   ];
 
   @override
@@ -168,7 +171,11 @@ class _ModernBottomNav extends StatelessWidget {
                                   ? SigumiTheme.primaryBlue
                                   : SigumiTheme.textSecondary,
                         ),
-                        child: Text(item.label),
+                        child: Consumer<VolcanoProvider>(
+                          builder: (ctx, prov, _) => Text(
+                            LocalizationService.translate(item.label, prov.language),
+                          ),
+                        ),
                       ),
                     ],
                   ),

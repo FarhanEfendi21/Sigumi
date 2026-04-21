@@ -93,7 +93,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               Expanded(
                 child: PageView.builder(
                   controller: _pageController,
-                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  onPageChanged:
+                      (index) => setState(() => _currentPage = index),
                   itemCount: _pages.length,
                   itemBuilder: (context, index) {
                     if (index == 2) {
@@ -121,40 +122,47 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
                     // Next/Mulai Button
                     GestureDetector(
-                      onTapDown: (_) => setState(() => _isButtonPressed = true),
-                      onTapUp: (_) => setState(() => _isButtonPressed = false),
-                      onTapCancel: () => setState(() => _isButtonPressed = false),
-                      child: AnimatedScale(
-                        scale: _isButtonPressed ? 0.97 : 1,
-                        duration: const Duration(milliseconds: 100),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _onNext,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: SigumiTheme.primaryBlue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 8,
-                              shadowColor: SigumiTheme.primaryBlue.withAlpha(100),
-                            ),
-                            child: Text(
-                              _currentPage == _pages.length - 1
-                                  ? 'Mulai Sekarang'
-                                  : 'Lanjutkan',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
+                          onTapDown:
+                              (_) => setState(() => _isButtonPressed = true),
+                          onTapUp:
+                              (_) => setState(() => _isButtonPressed = false),
+                          onTapCancel:
+                              () => setState(() => _isButtonPressed = false),
+                          child: AnimatedScale(
+                            scale: _isButtonPressed ? 0.97 : 1,
+                            duration: const Duration(milliseconds: 100),
+                            child: SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: _onNext,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: SigumiTheme.primaryBlue,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 8,
+                                  shadowColor: SigumiTheme.primaryBlue
+                                      .withAlpha(100),
+                                ),
+                                child: Text(
+                                  _currentPage == _pages.length - 1
+                                      ? 'Mulai Sekarang'
+                                      : 'Lanjutkan',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                    ).animate(target: _currentPage == _pages.length - 1 ? 1 : 0)
-                     .shimmer(delay: 2.seconds, duration: 1.5.seconds),
+                        )
+                        .animate(
+                          target: _currentPage == _pages.length - 1 ? 1 : 0,
+                        )
+                        .shimmer(delay: 2.seconds, duration: 1.5.seconds),
                   ],
                 ),
               ),
@@ -173,7 +181,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: 6,
       width: isActive ? 20 : 6,
       decoration: BoxDecoration(
-        color: isActive ? SigumiTheme.primaryBlue : SigumiTheme.primaryBlue.withAlpha(50),
+        color:
+            isActive
+                ? SigumiTheme.primaryBlue
+                : SigumiTheme.primaryBlue.withAlpha(50),
         borderRadius: BorderRadius.circular(3),
       ),
     );
@@ -233,28 +244,25 @@ class _OnboardingPage extends StatelessWidget {
               children: [
                 // Visual Element
                 Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: data.color.withAlpha(30),
-                        blurRadius: 40,
-                        spreadRadius: 10,
+                      width: 160,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: data.color.withAlpha(30),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    data.icon,
-                    size: 80,
-                    color: data.color,
-                  ),
-                ).animate()
-                 .scale(duration: 800.ms, curve: Curves.elasticOut)
-                 .fadeIn()
-                 .shake(delay: 1.seconds, hz: 2, offset: const Offset(2, 2)),
+                      child: Icon(data.icon, size: 80, color: data.color),
+                    )
+                    .animate()
+                    .scale(duration: 800.ms, curve: Curves.elasticOut)
+                    .fadeIn()
+                    .shake(delay: 1.seconds, hz: 2, offset: const Offset(2, 2)),
 
                 const SizedBox(height: 48),
 
@@ -298,7 +306,7 @@ class _LanguageSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<VolcanoProvider>();
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Container(
@@ -307,10 +315,7 @@ class _LanguageSelectionPage extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.white.withAlpha(50),
-              Colors.white.withAlpha(10),
-            ],
+            colors: [Colors.white.withAlpha(50), Colors.white.withAlpha(10)],
           ),
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
@@ -333,9 +338,9 @@ class _LanguageSelectionPage extends StatelessWidget {
                 color: SigumiTheme.primaryBlue,
               ),
             ).animate().fadeIn().moveY(begin: -20, end: 0),
-            
+
             const SizedBox(height: 12),
-            
+
             Text(
               data.description,
               textAlign: TextAlign.center,
@@ -344,48 +349,58 @@ class _LanguageSelectionPage extends StatelessWidget {
                 color: SigumiTheme.textSecondary,
               ),
             ).animate().fadeIn(delay: 100.ms),
-            
+
             const SizedBox(height: 32),
-            
+
             // Language Grid
             GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.1,
-              children: [
-                _LangCard(
-                  title: 'Indonesia',
-                  subtitle: 'Bahasa Indonesia',
-                  code: 'id',
-                  flag: '🇮🇩',
-                  isSelected: provider.language == 'id',
-                ),
-                _LangCard(
-                  title: 'English',
-                  subtitle: 'English (US)',
-                  code: 'en',
-                  flag: '🇺🇸',
-                  isSelected: provider.language == 'en',
-                ),
-                _LangCard(
-                  title: 'Jawa',
-                  subtitle: 'Basa Jawa',
-                  code: 'jv',
-                  flag: '🏯', 
-                  isSelected: provider.language == 'jv',
-                ),
-                _LangCard(
-                  title: 'Bali',
-                  subtitle: 'Basa Bali',
-                  code: 'bal',
-                  flag: '🏝️', 
-                  isSelected: provider.language == 'bal',
-                ),
-              ],
-            ).animate().fadeIn(delay: 300.ms).scale(begin: const Offset(0.9, 0.9)),
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.1,
+                  children: [
+                    _LangCard(
+                      title: 'Indonesia',
+                      subtitle: 'Bahasa Indonesia',
+                      code: 'id',
+                      flag: '🇮🇩',
+                      isSelected: provider.language == 'id',
+                    ),
+                    _LangCard(
+                      title: 'English',
+                      subtitle: 'English (US)',
+                      code: 'en',
+                      flag: '�🇧',
+                      isSelected: provider.language == 'en',
+                    ),
+                    _LangCard(
+                      title: 'Jawa',
+                      subtitle: 'Basa Jawa',
+                      code: 'jv',
+                      flag: '☕',
+                      isSelected: provider.language == 'jv',
+                    ),
+                    _LangCard(
+                      title: 'Bali',
+                      subtitle: 'Basa Bali',
+                      code: 'ba',
+                      flag: '🌴',
+                      isSelected: provider.language == 'ba',
+                    ),
+                    _LangCard(
+                      title: 'Sasak',
+                      subtitle: 'Basa Sasak',
+                      code: 'sa',
+                      flag: '🏔️',
+                      isSelected: provider.language == 'sa',
+                    ),
+                  ],
+                )
+                .animate()
+                .fadeIn(delay: 300.ms)
+                .scale(begin: const Offset(0.9, 0.9)),
           ],
         ),
       ),
@@ -431,19 +446,24 @@ class _LangCardState extends State<_LangCard> {
             color: widget.isSelected ? SigumiTheme.primaryBlue : Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
-              color: widget.isSelected
-                  ? SigumiTheme.primaryBlue
-                  : SigumiTheme.divider.withAlpha(100),
+              color:
+                  widget.isSelected
+                      ? SigumiTheme.primaryBlue
+                      : SigumiTheme.divider.withAlpha(100),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: widget.isSelected
-                    ? SigumiTheme.primaryBlue.withAlpha(80)
-                    : Colors.black.withAlpha(20),
+                color:
+                    widget.isSelected
+                        ? SigumiTheme.primaryBlue.withAlpha(80)
+                        : Colors.black.withAlpha(20),
                 blurRadius: widget.isSelected ? 20 : 10,
                 spreadRadius: widget.isSelected ? 2 : 0,
-                offset: widget.isSelected ? const Offset(0, 10) : const Offset(0, 4),
+                offset:
+                    widget.isSelected
+                        ? const Offset(0, 10)
+                        : const Offset(0, 4),
               ),
             ],
           ),
@@ -456,7 +476,10 @@ class _LangCardState extends State<_LangCard> {
                 widget.title,
                 style: AppFonts.plusJakartaSans(
                   fontWeight: FontWeight.w700,
-                  color: widget.isSelected ? Colors.white : SigumiTheme.textPrimary,
+                  color:
+                      widget.isSelected
+                          ? Colors.white
+                          : SigumiTheme.textPrimary,
                   fontSize: 16,
                 ),
               ),
@@ -464,9 +487,10 @@ class _LangCardState extends State<_LangCard> {
                 widget.subtitle,
                 style: AppFonts.plusJakartaSans(
                   fontWeight: FontWeight.w400,
-                  color: widget.isSelected
-                      ? Colors.white.withAlpha(200)
-                      : SigumiTheme.textSecondary,
+                  color:
+                      widget.isSelected
+                          ? Colors.white.withAlpha(200)
+                          : SigumiTheme.textSecondary,
                   fontSize: 11,
                 ),
               ),

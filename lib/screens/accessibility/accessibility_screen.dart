@@ -30,10 +30,7 @@ class AccessibilityScreen extends StatelessWidget {
             ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
-              child: Container(
-                color: const Color(0xFFE5E7EB),
-                height: 1,
-              ),
+              child: Container(color: const Color(0xFFE5E7EB), height: 1),
             ),
           ),
           body: SingleChildScrollView(
@@ -47,7 +44,9 @@ class AccessibilityScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: SigumiTheme.primaryBlue.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: SigumiTheme.primaryBlue.withValues(alpha: 0.1)),
+                    border: Border.all(
+                      color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -82,9 +81,12 @@ class AccessibilityScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // ── Visual Section ──
-                _buildSectionHeader('Tampilan Visual', Icons.visibility_outlined),
+                _buildSectionHeader(
+                  'Tampilan Visual',
+                  Icons.visibility_outlined,
+                ),
                 const SizedBox(height: 16),
-                
+
                 _SettingsCard(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,12 +115,13 @@ class AccessibilityScreen extends StatelessWidget {
                       const SizedBox(height: 20),
                       Row(
                         children: [
-                          Text('A', 
+                          Text(
+                            'A',
                             style: AppFonts.plusJakartaSans(
-                              fontSize: 14, 
+                              fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF6B6B78)
-                            )
+                              color: const Color(0xFF6B6B78),
+                            ),
                           ),
                           Expanded(
                             child: ShadSlider(
@@ -128,12 +131,13 @@ class AccessibilityScreen extends StatelessWidget {
                               onChanged: (v) => provider.setFontSize(v),
                             ),
                           ),
-                          Text('A', 
+                          Text(
+                            'A',
                             style: AppFonts.plusJakartaSans(
-                              fontSize: 22, 
+                              fontSize: 22,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E1E2C)
-                            )
+                              color: const Color(0xFF1E1E2C),
+                            ),
                           ),
                         ],
                       ),
@@ -156,7 +160,11 @@ class AccessibilityScreen extends StatelessWidget {
                 _SettingsCard(
                   child: Row(
                     children: [
-                      const Icon(Icons.contrast_rounded, color: SigumiTheme.primaryBlue, size: 22),
+                      const Icon(
+                        Icons.contrast_rounded,
+                        color: SigumiTheme.primaryBlue,
+                        size: 22,
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -197,7 +205,11 @@ class AccessibilityScreen extends StatelessWidget {
                 _SettingsCard(
                   child: Row(
                     children: [
-                      const Icon(Icons.record_voice_over_rounded, color: SigumiTheme.primaryBlue, size: 22),
+                      const Icon(
+                        Icons.record_voice_over_rounded,
+                        color: SigumiTheme.primaryBlue,
+                        size: 22,
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
@@ -238,7 +250,11 @@ class AccessibilityScreen extends StatelessWidget {
                 _SettingsCard(
                   child: Row(
                     children: [
-                      const Icon(Icons.language_rounded, color: SigumiTheme.primaryBlue, size: 22),
+                      const Icon(
+                        Icons.language_rounded,
+                        color: SigumiTheme.primaryBlue,
+                        size: 22,
+                      ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Text(
@@ -255,8 +271,26 @@ class AccessibilityScreen extends StatelessWidget {
                         initialValue: provider.language,
                         onChanged: (v) => provider.setLanguage(v!),
                         selectedOptionBuilder: (context, value) {
+                          String displayText = 'Indonesia';
+                          switch (value.toLowerCase()) {
+                            case 'id':
+                              displayText = 'Indonesia';
+                              break;
+                            case 'en':
+                              displayText = 'English';
+                              break;
+                            case 'jv':
+                              displayText = 'Basa Jawa';
+                              break;
+                            case 'ba':
+                              displayText = 'Basa Bali';
+                              break;
+                            case 'sa':
+                              displayText = 'Basa Sasak';
+                              break;
+                          }
                           return Text(
-                            value == 'id' ? 'Indonesia' : 'English',
+                            displayText,
                             style: AppFonts.plusJakartaSans(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -277,11 +311,38 @@ class AccessibilityScreen extends StatelessWidget {
                           ),
                           ShadOption(
                             value: 'id',
-                            child: Text('Indonesia', style: AppFonts.plusJakartaSans()),
+                            child: Text(
+                              'Bahasa Indonesia',
+                              style: AppFonts.plusJakartaSans(),
+                            ),
                           ),
                           ShadOption(
                             value: 'en',
-                            child: Text('English', style: AppFonts.plusJakartaSans()),
+                            child: Text(
+                              'English',
+                              style: AppFonts.plusJakartaSans(),
+                            ),
+                          ),
+                          ShadOption(
+                            value: 'jv',
+                            child: Text(
+                              'Basa Jawa',
+                              style: AppFonts.plusJakartaSans(),
+                            ),
+                          ),
+                          ShadOption(
+                            value: 'ba',
+                            child: Text(
+                              'Basa Bali',
+                              style: AppFonts.plusJakartaSans(),
+                            ),
+                          ),
+                          ShadOption(
+                            value: 'sa',
+                            child: Text(
+                              'Basa Sasak',
+                              style: AppFonts.plusJakartaSans(),
+                            ),
                           ),
                         ],
                       ),
@@ -290,7 +351,7 @@ class AccessibilityScreen extends StatelessWidget {
                 ).animate().fadeIn(delay: 400.ms),
 
                 const SizedBox(height: 40),
-                
+
                 // ── Footer ──
                 Center(
                   child: Text(
@@ -356,4 +417,3 @@ class _SettingsCard extends StatelessWidget {
     );
   }
 }
-

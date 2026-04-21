@@ -7,6 +7,7 @@ import '../../config/fonts.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../services/localization_service.dart';
 
 /// Halaman Profil — mengikuti pedoman Apple Human Interface Guidelines (HIG).
 ///
@@ -41,7 +42,7 @@ class SettingsScreen extends StatelessWidget {
             scrolledUnderElevation: 0,
             centerTitle: true,
             title: Text(
-              'Profil',
+              context.tr('nav_profile'),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 color: _labelPrimary,
@@ -72,31 +73,31 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // ── 2. Section: Preferensi Akun ────────────────────
-                _SectionHeader(label: 'Preferensi Akun'),
+                _SectionHeader(label: context.tr('account_pref')),
                 _GroupedList(
                   children: [
                     _ListRow(
                       icon: CupertinoIcons.person_alt,
                       iconBg: const Color(0xFF007AFF),
-                      title: 'Aksesibilitas',
-                      subtitle: 'Ukuran teks, kontras, audio',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.accessibility,
-                      ),
+                      title: context.tr('accessibility'),
+                      subtitle: context.tr('text_size'),
+                      onTap:
+                          () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.accessibility,
+                          ),
                     ),
                     _ListDivider(),
                     _ListRow(
                       icon: CupertinoIcons.globe,
                       iconBg: const Color(0xFF34C759),
-                      title: 'Bahasa',
-                      subtitle: provider.language == 'en'
-                          ? 'English'
-                          : 'Bahasa Indonesia',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.languageSettings,
-                      ),
+                      title: context.tr('language'),
+                      subtitle: _getLanguageName(provider.language),
+                      onTap:
+                          () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.languageSettings,
+                          ),
                     ),
                   ],
                 ),
@@ -104,14 +105,14 @@ class SettingsScreen extends StatelessWidget {
                 const SizedBox(height: 28),
 
                 // ── 3. Section: Sistem & Aplikasi ──────────────────
-                _SectionHeader(label: 'Sistem & Aplikasi'),
+                _SectionHeader(label: context.tr('system_app')),
                 _GroupedList(
                   children: [
                     _ListRow(
                       icon: CupertinoIcons.bell,
                       iconBg: const Color(0xFFFF9500),
-                      title: 'Notifikasi',
-                      subtitle: 'Atur peringatan dini & notifikasi',
+                      title: context.tr('notification'),
+                      subtitle: context.tr('notif_subtitle'),
                       onTap: () {},
                     ),
                     _ListDivider(),
@@ -120,8 +121,8 @@ class SettingsScreen extends StatelessWidget {
                     _ListRow(
                       icon: CupertinoIcons.info_circle,
                       iconBg: const Color(0xFF8E8E93),
-                      title: 'Tentang SIGUMI',
-                      subtitle: 'Versi 1.0.0',
+                      title: context.tr('about_sigumi'),
+                      subtitle: context.tr('version'),
                       onTap: () => _showAbout(context),
                     ),
                   ],
@@ -131,19 +132,13 @@ class SettingsScreen extends StatelessWidget {
 
                 // ── 4. Tombol Keluar ────────────────────────────────
                 _GroupedList(
-                  children: [
-                    _LogoutRow(
-                      onTap: () => _confirmLogout(context),
-                    ),
-                  ],
+                  children: [_LogoutRow(onTap: () => _confirmLogout(context))],
                 ),
 
                 // Spacer untuk bottom nav
                 const SizedBox(height: 96),
               ],
-            )
-                .animate()
-                .fadeIn(duration: 300.ms, curve: Curves.easeOut),
+            ).animate().fadeIn(duration: 300.ms, curve: Curves.easeOut),
           ),
         );
       },
@@ -154,61 +149,62 @@ class SettingsScreen extends StatelessWidget {
   void _confirmLogout(BuildContext context) {
     showCupertinoDialog(
       context: context,
-      builder: (_) => CupertinoAlertDialog(
-        title: const Text(
-          'Keluar Akun',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        content: const Padding(
-          padding: EdgeInsets.only(top: 6),
-          child: Text(
-            'Apakah kamu yakin ingin keluar dari akun SIGUMI?',
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontSize: 13,
-              height: 1.5,
-            ),
-          ),
-        ),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text(
-              'Batal',
-              style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
-            ),
-            onPressed: () => Navigator.pop(context),
-          ),
-          CupertinoDialogAction(
-            isDestructiveAction: true,
-            child: const Text(
-              'Keluar',
-              style: TextStyle(
+      builder:
+          (_) => CupertinoAlertDialog(
+            title: Text(
+              context.tr('logout_confirm_title'),
+              style: const TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.w700,
               ),
             ),
-            onPressed: () async {
-              try {
-                await context.read<AuthProvider>().logout();
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, AppRoutes.login);
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Gagal keluar: $e')),
-                  );
-                }
-              }
-            },
+            content: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                context.tr('logout_confirm_msg'),
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: Text(
+                  context.tr('cancel'),
+                  style: const TextStyle(fontFamily: 'Plus Jakarta Sans'),
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+              CupertinoDialogAction(
+                isDestructiveAction: true,
+                child: Text(
+                  context.tr('logout'),
+                  style: const TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                onPressed: () async {
+                  try {
+                    await context.read<AuthProvider>().logout();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Navigator.pushReplacementNamed(context, AppRoutes.login);
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Gagal keluar: $e')),
+                      );
+                    }
+                  }
+                },
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -216,38 +212,54 @@ class SettingsScreen extends StatelessWidget {
   void _showAbout(BuildContext context) {
     showCupertinoModalPopup(
       context: context,
-      builder: (_) => CupertinoActionSheet(
-        title: const Text(
-          'Tentang SIGUMI',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontWeight: FontWeight.w700,
-            fontSize: 16,
-          ),
-        ),
-        message: const Text(
-          'SIGUMI — Sistem Informasi Gunung Berapi Mitigasi\n\n'
-          'Memberikan informasi terpercaya tentang aktivitas gunung berapi '
-          'untuk mendukung keselamatan masyarakat.\n\n'
-          'Versi 1.0.0',
-          style: TextStyle(
-            fontFamily: 'Plus Jakarta Sans',
-            fontSize: 13,
-            height: 1.6,
-          ),
-        ),
-        cancelButton: CupertinoActionSheetAction(
-          child: const Text(
-            'Tutup',
-            style: TextStyle(
-              fontFamily: 'Plus Jakarta Sans',
-              fontWeight: FontWeight.w600,
+      builder:
+          (_) => CupertinoActionSheet(
+            title: Text(
+              context.tr('about_sigumi'),
+              style: const TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+              ),
+            ),
+            message: Text(
+              context.tr('about_desc'),
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontSize: 13,
+                height: 1.6,
+              ),
+            ),
+            cancelButton: CupertinoActionSheetAction(
+              child: Text(
+                context.tr('close'),
+                style: const TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              onPressed: () => Navigator.pop(context),
             ),
           ),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
     );
+  }
+
+  // ── Helper untuk mendapatkan nama bahasa ─────────────────────────
+  String _getLanguageName(String languageCode) {
+    switch (languageCode.toLowerCase()) {
+      case 'id':
+        return 'Bahasa Indonesia';
+      case 'en':
+        return 'English';
+      case 'jv':
+        return 'Basa Jawa';
+      case 'ba':
+        return 'Basa Bali';
+      case 'sa':
+        return 'Basa Sasak';
+      default:
+        return 'Bahasa Indonesia';
+    }
   }
 }
 
@@ -262,22 +274,25 @@ class _ProfileHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = provider.currentUser?.name.isNotEmpty == true
-        ? provider.currentUser!.name
-        : 'Pengguna SIGUMI';
+    final name =
+        provider.currentUser?.name.isNotEmpty == true
+            ? provider.currentUser!.name
+            : 'Pengguna SIGUMI';
 
-    final contact = provider.currentUser?.phone?.isNotEmpty == true
-        ? provider.currentUser!.phone!
-        : (provider.currentUser?.email ?? '—');
+    final contact =
+        provider.currentUser?.phone?.isNotEmpty == true
+            ? provider.currentUser!.phone!
+            : (provider.currentUser?.email ?? '—');
 
     // Ambil inisial untuk avatar
-    final initials = name
-        .trim()
-        .split(' ')
-        .where((e) => e.isNotEmpty)
-        .take(2)
-        .map((e) => e[0].toUpperCase())
-        .join();
+    final initials =
+        name
+            .trim()
+            .split(' ')
+            .where((e) => e.isNotEmpty)
+            .take(2)
+            .map((e) => e[0].toUpperCase())
+            .join();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -388,7 +403,13 @@ class _LanguageBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = language == 'en' ? '🇬🇧  English' : '🇮🇩  Indonesia';
+    final label = switch (language.toLowerCase()) {
+      'en' => '🇬🇧  English',
+      'jv' => '☕  Basa Jawa',
+      'ba' => '🌴  Basa Bali',
+      'sa' => '🏔️  Basa Sasak',
+      _ => '🇮🇩  Indonesia',
+    };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
@@ -452,10 +473,7 @@ class _GroupedList extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
       ),
       clipBehavior: Clip.hardEdge,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: children,
-      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
     );
   }
 }
@@ -612,7 +630,9 @@ class _OfflineRow extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  provider.isOffline ? 'Mode offline aktif' : 'Menggunakan data online',
+                  provider.isOffline
+                      ? 'Mode offline aktif'
+                      : 'Menggunakan data online',
                   style: const TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 13,

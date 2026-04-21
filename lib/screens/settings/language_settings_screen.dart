@@ -4,6 +4,7 @@ import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/volcano_provider.dart';
+import '../../services/localization_service.dart';
 
 class LanguageSettingsScreen extends StatelessWidget {
   const LanguageSettingsScreen({super.key});
@@ -21,11 +22,15 @@ class LanguageSettingsScreen extends StatelessWidget {
             elevation: 0,
             centerTitle: true,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E1E2C), size: 20),
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF1E1E2C),
+                size: 20,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
             title: Text(
-              'Pilih Bahasa',
+              context.tr('choose_language'),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -38,25 +43,64 @@ class LanguageSettingsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('BAHASA TERSEDIA'),
+                _buildSectionHeader(context.tr('available_languages')),
                 const SizedBox(height: 16),
                 _LanguageOptionCard(
-                  title: 'Bahasa Indonesia',
-                  subtitle: 'Gunakan aplikasi dalam Bahasa Indonesia',
-                  flag: '🇮🇩',
-                  isSelected: currentLanguage == 'id',
-                  onTap: () => provider.setLanguage('id'),
-                ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05, end: 0),
-                const SizedBox(height: 16),
+                      title: 'Bahasa Indonesia',
+                      subtitle: 'Gunakan aplikasi dalam Bahasa Indonesia',
+                      flag: '🇮🇩',
+                      isSelected: currentLanguage == 'id',
+                      onTap: () => provider.setLanguage('id'),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms)
+                    .slideX(begin: -0.05, end: 0),
+                const SizedBox(height: 12),
                 _LanguageOptionCard(
-                  title: 'English',
-                  subtitle: 'Use the application in English',
-                  flag: '🇬🇧',
-                  isSelected: currentLanguage == 'en',
-                  onTap: () => provider.setLanguage('en'),
-                ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideX(begin: -0.05, end: 0),
+                      title: 'English',
+                      subtitle: 'Use the application in English',
+                      flag: '🇬🇧',
+                      isSelected: currentLanguage == 'en',
+                      onTap: () => provider.setLanguage('en'),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 50.ms)
+                    .slideX(begin: -0.05, end: 0),
+                const SizedBox(height: 12),
+                _LanguageOptionCard(
+                      title: 'Basa Jawa',
+                      subtitle: 'Gunakan aplikasi dalam Bahasa Jawa',
+                      flag: '☕',
+                      isSelected: currentLanguage == 'jv',
+                      onTap: () => provider.setLanguage('jv'),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 100.ms)
+                    .slideX(begin: -0.05, end: 0),
+                const SizedBox(height: 12),
+                _LanguageOptionCard(
+                      title: 'Basa Bali',
+                      subtitle: 'Gunakan aplikasi dalam Bahasa Bali',
+                      flag: '🌴',
+                      isSelected: currentLanguage == 'ba',
+                      onTap: () => provider.setLanguage('ba'),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 150.ms)
+                    .slideX(begin: -0.05, end: 0),
+                const SizedBox(height: 12),
+                _LanguageOptionCard(
+                      title: 'Basa Sasak',
+                      subtitle: 'Gunakan aplikasi dalam Bahasa Sasak',
+                      flag: '🏔️',
+                      isSelected: currentLanguage == 'sa',
+                      onTap: () => provider.setLanguage('sa'),
+                    )
+                    .animate()
+                    .fadeIn(duration: 400.ms, delay: 200.ms)
+                    .slideX(begin: -0.05, end: 0),
                 const SizedBox(height: 32),
-                _buildInfoNote(),
+                _buildInfoNote(context),
               ],
             ),
           ),
@@ -77,22 +121,28 @@ class LanguageSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoNote() {
+  Widget _buildInfoNote(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SigumiTheme.primaryBlue.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: SigumiTheme.primaryBlue.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline_rounded, size: 20, color: SigumiTheme.primaryBlue),
+          const Icon(
+            Icons.info_outline_rounded,
+            size: 20,
+            color: SigumiTheme.primaryBlue,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Pengaturan bahasa akan diterapkan ke seluruh halaman aplikasi secara otomatis.',
+              context.tr('language_note'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 height: 1.5,
@@ -141,9 +191,10 @@ class _LanguageOptionCard extends StatelessWidget {
             ),
             boxShadow: [
               BoxShadow(
-                color: isSelected 
-                    ? SigumiTheme.primaryBlue.withValues(alpha: 0.1) 
-                    : Colors.black.withValues(alpha: 0.03),
+                color:
+                    isSelected
+                        ? SigumiTheme.primaryBlue.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.03),
                 blurRadius: 15,
                 offset: const Offset(0, 4),
               ),
@@ -155,16 +206,14 @@ class _LanguageOptionCard extends StatelessWidget {
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? SigumiTheme.primaryBlue.withValues(alpha: 0.1) 
-                      : const Color(0xFFF1F5F9),
+                  color:
+                      isSelected
+                          ? SigumiTheme.primaryBlue.withValues(alpha: 0.1)
+                          : const Color(0xFFF1F5F9),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
-                  child: Text(
-                    flag,
-                    style: const TextStyle(fontSize: 28),
-                  ),
+                  child: Text(flag, style: const TextStyle(fontSize: 28)),
                 ),
               ),
               const SizedBox(width: 16),
@@ -177,7 +226,10 @@ class _LanguageOptionCard extends StatelessWidget {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isSelected ? SigumiTheme.primaryBlue : const Color(0xFF1E1E2C),
+                        color:
+                            isSelected
+                                ? SigumiTheme.primaryBlue
+                                : const Color(0xFF1E1E2C),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -198,15 +250,20 @@ class _LanguageOptionCard extends StatelessWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? SigumiTheme.primaryBlue : Colors.transparent,
+                  color:
+                      isSelected ? SigumiTheme.primaryBlue : Colors.transparent,
                   border: Border.all(
-                    color: isSelected ? SigumiTheme.primaryBlue : const Color(0xFFCBD5E1),
+                    color:
+                        isSelected
+                            ? SigumiTheme.primaryBlue
+                            : const Color(0xFFCBD5E1),
                     width: 2,
                   ),
                 ),
-                child: isSelected
-                    ? const Icon(Icons.check, color: Colors.white, size: 16)
-                    : null,
+                child:
+                    isSelected
+                        ? const Icon(Icons.check, color: Colors.white, size: 16)
+                        : null,
               ),
             ],
           ),
@@ -215,4 +272,3 @@ class _LanguageOptionCard extends StatelessWidget {
     );
   }
 }
-

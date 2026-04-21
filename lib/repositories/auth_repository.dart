@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Repository untuk semua operasi autentikasi Supabase.
@@ -125,10 +126,7 @@ class AuthRepository {
   /// UPDATE PROFIL
   /// ──────────────────────────────────────────────
   /// Update metadata user (nama, dll) di auth.users
-  Future<void> updateProfile({
-    String? fullName,
-    DateTime? dateOfBirth,
-  }) async {
+  Future<void> updateProfile({String? fullName, DateTime? dateOfBirth}) async {
     try {
       final data = <String, dynamic>{};
       if (fullName != null) data['full_name'] = fullName;
@@ -154,11 +152,12 @@ class AuthRepository {
     if (currentUser == null) return null;
 
     try {
-      final response = await _client
-          .from('profiles')
-          .select()
-          .eq('id', currentUser!.id)
-          .maybeSingle();
+      final response =
+          await _client
+              .from('profiles')
+              .select()
+              .eq('id', currentUser!.id)
+              .maybeSingle();
       return response;
     } catch (e) {
       return null;
@@ -168,6 +167,7 @@ class AuthRepository {
   /// ──────────────────────────────────────────────
   /// UPDATE PROFILE TABLE
   /// ──────────────────────────────────────────────
+  /// Menggunakan upsert untuk handle case ketika row profiles belum ada
   Future<void> updateProfileTable({
     String? language,
     String? region,
@@ -178,7 +178,20 @@ class AuthRepository {
     if (currentUser == null) return;
 
     try {
-      final data = <String, dynamic>{};
+      final data = <String, dynamic>{'id': currentUser!.id};
+
+      // Sertakan full_name dan phone dari metadata user untuk upsert
+      // (fields ini NOT NULL di tabel profiles)
+      if (currentUser?.userMetadata != null) {
+        final metadata = currentUser!.userMetadata!;
+        if (metadata.containsKey('full_name')) {
+          data['full_name'] = metadata['full_name'] ?? '';
+        }
+        if (metadata.containsKey('phone')) {
+          data['phone'] = metadata['phone'];
+        }
+      }
+
       if (language != null) data['language'] = language;
       if (region != null) data['region'] = region;
       if (audioGuidance != null) data['audio_guidance'] = audioGuidance;
@@ -186,16 +199,13 @@ class AuthRepository {
       if (highContrast != null) data['high_contrast'] = highContrast;
 
       if (data.isNotEmpty) {
-        await _client
-            .from('profiles')
-            .update(data)
-            .eq('id', currentUser!.id);
+        // Gunakan upsert: jika row sudah ada update, jika belum insert
+        await _client.from('profiles').upsert(data, onConflict: 'id');
       }
     } catch (e) {
-      throw AuthRepositoryException(
-        message: 'Gagal memperbarui pengaturan profil.',
-        originalError: e,
-      );
+      // Log error tapi jangan throw - preferensi lokal sudah tersimpan di SharedPreferences
+      debugPrint('[AuthRepository] Error updating profile table: $e');
+      // Tidak throw exception agar preferensi lokal tetap berlaku
     }
   }
 
@@ -226,25 +236,25 @@ class AuthRepository {
   /// Terjemahkan error auth ke Bahasa Indonesia yang lebih ramah
   String _translateAuthError(String message) {
     final lower = message.toLowerCase();
-    
+
     // Invalid credentials
     if (lower.contains('invalid login credentials') ||
         lower.contains('invalid_credentials')) {
       return 'Nomor telepon atau kata sandi yang Anda masukkan salah. Silakan periksa kembali.';
     }
-    
+
     // User already exists
     if (lower.contains('user already registered') ||
         lower.contains('already been registered') ||
         lower.contains('already exists')) {
       return 'Nomor telepon ini sudah terdaftar. Silakan gunakan nomor lain atau masuk ke akun Anda.';
     }
-    
+
     // Password validation
     if (lower.contains('password') && lower.contains('short')) {
       return 'Kata sandi terlalu pendek. Minimal harus 6 karakter.';
     }
-    
+
     // Format validation
     if (lower.contains('phone') && lower.contains('invalid')) {
       return 'Format nomor telepon tidak valid. Pastikan nomor sudah benar.';
@@ -252,17 +262,19 @@ class AuthRepository {
     if (lower.contains('email') && lower.contains('invalid')) {
       return 'Format data tidak valid (email sintetis).';
     }
-    
+
     // Connection issues
-    if (lower.contains('network') || lower.contains('connection') || lower.contains('timeout')) {
+    if (lower.contains('network') ||
+        lower.contains('connection') ||
+        lower.contains('timeout')) {
       return 'Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi.';
     }
-    
+
     // Rate limits
     if (lower.contains('rate limit') || lower.contains('too many')) {
       return 'Terlalu banyak percobaan. Harap tunggu beberapa menit sebelum mencoba lagi.';
     }
-    
+
     // Database or internal errors
     if (lower.contains('database') || lower.contains('internal')) {
       return 'Maaf, terjadi masalah pada server kami. Silakan coba lagi nanti.';
@@ -282,10 +294,7 @@ class AuthRepositoryException implements Exception {
   final String message;
   final dynamic originalError;
 
-  AuthRepositoryException({
-    required this.message,
-    this.originalError,
-  });
+  AuthRepositoryException({required this.message, this.originalError});
 
   @override
   String toString() => 'AuthRepositoryException: $message';

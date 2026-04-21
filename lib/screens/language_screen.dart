@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../config/routes.dart';
 import '../providers/volcano_provider.dart';
+import '../services/localization_service.dart';
 
 class LanguageScreen extends StatefulWidget {
   const LanguageScreen({super.key});
@@ -62,7 +63,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
                 // Title
                 Text(
-                  'Choose Language',
+                  context.tr('choose_language'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
@@ -73,7 +74,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 const SizedBox(height: 6),
 
                 Text(
-                  'Pilih Bahasa',
+                  context.tr('choose_language'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 15,
                     color: SigumiTheme.textSecondary,
@@ -94,7 +95,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     .fadeIn(delay: 350.ms, duration: 500.ms)
                     .slideX(begin: -0.1, end: 0),
 
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
 
                 _LanguageCard(
                       flag: '🇮🇩',
@@ -104,8 +105,47 @@ class _LanguageScreenState extends State<LanguageScreen> {
                       onTap: () => setState(() => _selected = 'id'),
                     )
                     .animate()
-                    .fadeIn(delay: 450.ms, duration: 500.ms)
+                    .fadeIn(delay: 420.ms, duration: 500.ms)
                     .slideX(begin: 0.1, end: 0),
+
+                const SizedBox(height: 12),
+
+                _LanguageCard(
+                      flag: '☕',
+                      title: 'Basa Jawa',
+                      subtitle: 'Gunakan aplikasi dalam Bahasa Jawa',
+                      isSelected: _selected == 'jv',
+                      onTap: () => setState(() => _selected = 'jv'),
+                    )
+                    .animate()
+                    .fadeIn(delay: 490.ms, duration: 500.ms)
+                    .slideX(begin: -0.1, end: 0),
+
+                const SizedBox(height: 12),
+
+                _LanguageCard(
+                      flag: '🌴',
+                      title: 'Basa Bali',
+                      subtitle: 'Gunakan aplikasi dalam Bahasa Bali',
+                      isSelected: _selected == 'ba',
+                      onTap: () => setState(() => _selected = 'ba'),
+                    )
+                    .animate()
+                    .fadeIn(delay: 560.ms, duration: 500.ms)
+                    .slideX(begin: 0.1, end: 0),
+
+                const SizedBox(height: 12),
+
+                _LanguageCard(
+                      flag: '🏔️',
+                      title: 'Basa Sasak',
+                      subtitle: 'Gunakan aplikasi dalam Bahasa Sasak',
+                      isSelected: _selected == 'sa',
+                      onTap: () => setState(() => _selected = 'sa'),
+                    )
+                    .animate()
+                    .fadeIn(delay: 630.ms, duration: 500.ms)
+                    .slideX(begin: -0.1, end: 0),
 
                 const Spacer(flex: 2),
 
@@ -144,7 +184,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                _selected == 'en' ? 'Continue' : 'Lanjutkan',
+                                _selected == 'en' ? context.tr('continue') : context.tr('continue'),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w700,
@@ -280,4 +320,3 @@ class _LanguageCard extends StatelessWidget {
     );
   }
 }
-

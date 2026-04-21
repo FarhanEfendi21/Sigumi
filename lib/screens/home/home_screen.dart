@@ -6,6 +6,7 @@ import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
+import '../../services/localization_service.dart';
 import '../../models/news_item.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:shimmer/shimmer.dart';
@@ -426,7 +427,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                       child: Text(
-                        'Menu Utama',
+                        context.tr('main_menu'),
                         style: Theme.of(context).textTheme.titleLarge,
                       ),
                     ),
@@ -441,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _ShadMenuCard(
                           icon: Icons.alt_route_rounded,
-                          label: 'Titik Aman\nEvakuasi',
+                          label: context.tr('evacuation_point'),
                           color: Colors.green,
                           onTap:
                               () => Navigator.pushNamed(
@@ -451,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         _ShadMenuCard(
                           icon: Icons.videocam_rounded,
-                          label: 'Pantauan\nCCTV',
+                          label: context.tr('cctv_monitoring'),
                           color: Colors.teal,
                           onTap:
                               () => Navigator.pushNamed(
@@ -462,7 +463,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         _ShadMenuCard(
                           icon: Icons.school_rounded,
-                          label: 'Edukasi',
+                          label: context.tr('education'),
                           color: Colors.orange,
                           onTap:
                               () => Navigator.pushNamed(
@@ -472,7 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         _ShadMenuCard(
                           icon: Icons.local_hospital_rounded,
-                          label: 'Posko &\nFaskes',
+                          label: context.tr('posko_faskes'),
                           color: Colors.indigo,
                           onTap:
                               () => Navigator.pushNamed(
@@ -482,7 +483,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         _ShadMenuCard(
                           icon: Icons.chat_rounded,
-                          label: 'Tanya\nSi Gumi',
+                          label: context.tr('ask_sigumi'),
                           color: Colors.purple,
                           onTap:
                               () => Navigator.pushNamed(
@@ -492,7 +493,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         _ShadMenuCard(
                           icon: Icons.phone_in_talk_rounded,
-                          label: 'Nomor\nDarurat',
+                          label: context.tr('emergency_number'),
                           color: Colors.red,
                           onTap:
                               () => Navigator.pushNamed(
@@ -502,7 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         _ShadMenuCard(
                           icon: Icons.accessibility_new_rounded,
-                          label: 'Aksesibilitas',
+                          label: context.tr('accessibility'),
                           color: Colors.brown,
                           onTap:
                               () => Navigator.pushNamed(
@@ -534,7 +535,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(width: 10),
                               Text(
-                                'Berita Terkini',
+                                context.tr('latest_news'),
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const Spacer(),
@@ -551,7 +552,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 )
                               else
                                 Text(
-                                  '${newsProvider.newsList.length} berita',
+                                  '${newsProvider.newsList.length} ${context.tr('latest_news').toLowerCase()}',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: SigumiTheme.textSecondary,
@@ -591,7 +592,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   const CircularProgressIndicator(),
                                   const SizedBox(height: 16),
                                   Text(
-                                    'Memuat berita...',
+                                    context.tr('loading_news'),
                                     style: AppFonts.plusJakartaSans(
                                       color: SigumiTheme.textSecondary,
                                     ),
@@ -790,7 +791,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   if (isAutoDetected)
                     Text(
-                      'Lokasi Anda',
+                      context.tr('your_location'),
                       style: TextStyle(
                         color: Colors.green.shade600,
                         fontSize: 9,
@@ -918,7 +919,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              title ?? 'Pilih Daerah',
+                              title ?? context.tr('select_region'),
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -928,7 +929,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 2),
                             Text(
                               subtitle ??
-                                  'Pantau gunung berapi aktif di daerah Anda',
+                                  context.tr('monitor_volcano'),
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: SigumiTheme.textSecondary,
@@ -1233,9 +1234,9 @@ class _TourismBannerCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Title Typography Hierarchy
-                    Text(
-                      'Jelajahi Wisata $region',
-                      style: const TextStyle(
+                      Text(
+                        '${context.tr('explore_tourism')} $region',
+                        style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -1248,7 +1249,7 @@ class _TourismBannerCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            'Temukan destinasi & agenda budaya menarik',
+                            context.tr('find_destination'),
                             style: TextStyle(
                               color: Colors.white.withAlpha(200),
                               fontSize: 12,

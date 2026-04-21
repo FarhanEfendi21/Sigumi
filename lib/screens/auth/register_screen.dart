@@ -8,6 +8,7 @@ import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
+import '../../services/localization_service.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -120,10 +121,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       // Tampilkan dialog sukses sebelum pindah ke Login
       SigumiDialog.show(
         context: context,
-        title: 'Pendaftaran Berhasil',
-        message: 'Akun Anda telah berhasil dibuat. Silakan masuk menggunakan nomor telepon dan kata sandi Anda.',
+        title: context.tr('reg_success_title'),
+        message: context.tr('reg_success_msg'),
         type: SigumiDialogType.success,
-        buttonText: 'Masuk Sekarang',
+        buttonText: context.tr('login_now'),
         onConfirm: () {
           // Pindah ke halaman Login (pop current register screen)
           Navigator.pop(context);
@@ -139,7 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!mounted) return;
     SigumiDialog.show(
       context: context,
-      title: 'Pendaftaran Gagal',
+      title: context.tr('reg_fail_title'),
       message: message,
       type: SigumiDialogType.error,
     );
@@ -149,7 +150,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
-        final isEn = provider.language == 'en';
         final isLoading = provider.isAuthLoading;
 
         return Scaffold(
@@ -187,7 +187,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                           // Title
                           Text(
-                            isEn ? 'Create Account' : 'Daftar Akun Baru',
+                            context.tr('register_title'),
                             style: AppFonts.plusJakartaSans(
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
@@ -198,9 +198,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 6),
 
                           Text(
-                            isEn
-                                ? 'Fill in your details for disaster info personalization'
-                                : 'Isi data untuk personalisasi informasi bencana',
+                            context.tr('register_subtitle'),
                             textAlign: TextAlign.center,
                             style: AppFonts.plusJakartaSans(
                               fontSize: 13,
@@ -230,14 +228,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // Name
-                                    _label(isEn ? 'Full Name' : 'Nama Lengkap'),
+                                    _label(context.tr('name')),
                                     const SizedBox(height: 8),
                                     _buildTextField(
                                       controller: _nameController,
-                                      hint:
-                                          isEn
-                                              ? 'Enter your full name'
-                                              : 'Masukkan nama lengkap',
+                                      hint: context.tr('name_hint'),
                                       icon: Icons.person_outline_rounded,
                                       errorText: _nameError,
                                     ),
@@ -245,16 +240,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     const SizedBox(height: 18),
 
                                     // Phone
-                                    _label(
-                                      isEn ? 'Phone Number' : 'Nomor Telepon',
-                                    ),
+                                    _label(context.tr('phone_number')),
                                     const SizedBox(height: 8),
                                     _buildTextField(
                                       controller: _phoneController,
-                                      hint:
-                                          isEn
-                                              ? 'e.g. 081234567890'
-                                              : 'Contoh: 081234567890',
+                                      hint: context.tr('phone_hint'),
                                       icon: Icons.phone_outlined,
                                       keyboardType: TextInputType.phone,
                                       errorText: _phoneError,
@@ -263,14 +253,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     const SizedBox(height: 18),
 
                                     // Password
-                                    _label(isEn ? 'Password' : 'Kata Sandi'),
+                                    _label(context.tr('password')),
                                     const SizedBox(height: 8),
                                     _buildTextField(
                                       controller: _passwordController,
-                                      hint:
-                                          isEn
-                                              ? 'Min. 6 characters'
-                                              : 'Minimal 6 karakter',
+                                      hint: context.tr('password_hint'),
                                       icon: Icons.lock_outline_rounded,
                                       obscure: _obscurePassword,
                                       errorText: _passwordError,
@@ -294,12 +281,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     const SizedBox(height: 18),
 
                                     // Date of Birth (Date Picker)
-                                    _label(isEn ? 'Date of Birth' : 'Tanggal Lahir'),
+                                    _label(context.tr('date_of_birth')),
                                     const SizedBox(height: 4),
                                     Text(
-                                      isEn
-                                          ? 'For AI personalization of disaster information'
-                                          : 'Untuk personalisasi AI informasi bencana',
+                                      context.tr('dob_ai_note'),
                                       style: AppFonts.plusJakartaSans(
                                         fontSize: 11,
                                         color: SigumiTheme.textSecondary,
@@ -329,7 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             Text(
                                               _selectedDateOfBirth != null
                                                   ? DateFormat('dd MMMM yyyy', 'id').format(_selectedDateOfBirth!)
-                                                  : (isEn ? 'Select date of birth' : 'Pilih tanggal lahir'),
+                                                  : context.tr('dob_hint'),
                                               style: AppFonts.plusJakartaSans(
                                                 fontSize: 14,
                                                 color: _selectedDateOfBirth != null
@@ -405,9 +390,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                             .center,
                                                     children: [
                                                       Text(
-                                                        isEn
-                                                            ? 'Register'
-                                                            : 'Daftar',
+                                                        context.tr('register_btn'),
                                                         style:
                                                             AppFonts.plusJakartaSans(
                                                               fontSize: 16,
@@ -441,9 +424,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                isEn
-                                    ? 'Already have an account? '
-                                    : 'Sudah punya akun? ',
+                                context.tr('already_have_account'),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 13,
                                   color: SigumiTheme.textSecondary,
@@ -452,7 +433,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               GestureDetector(
                                 onTap: () => Navigator.pop(context),
                                 child: Text(
-                                  isEn ? 'Sign In' : 'Masuk',
+                                  context.tr('login'),
                                   style: AppFonts.plusJakartaSans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
