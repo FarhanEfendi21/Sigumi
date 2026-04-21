@@ -19,8 +19,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // Status zona di-collapse secara default saat level <= 2
-  bool _isZoneCardExpanded = false;
 
   @override
   void initState() {
@@ -156,9 +154,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 20),
                           // Status Card (Dynamic Hero Image)
-                          Builder(
-                            builder: (context) {
-                              
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final cardWidth = constraints.maxWidth;
                               String formattedName =
                                   volcano.name
                                       .toLowerCase()
@@ -168,20 +166,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                   'assets/images/$formattedName.jpg';
 
                               return GestureDetector(
-                                  onTap: () => Navigator.pushNamed(
-                                    context,
-                                    AppRoutes.visualMerapi,
-                                    arguments: volcano,
-                                  ),
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.visualMerapi,
+                                  arguments: volcano,
+                                ),
                                 child: Container(
-                                  width: double.infinity,
+                                  width: cardWidth,
+                                  // Tinggi dinamis: 42% lebar layar, min 180, max 240
+                                  height: (cardWidth * 0.42).clamp(180.0, 240.0),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(24),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(
-                                          0xFF1B2E7B,
-                                        ).withAlpha(40),
+                                        color: const Color(0xFF1B2E7B).withAlpha(40),
                                         blurRadius: 24,
                                         offset: const Offset(0, 10),
                                       ),
@@ -196,11 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Image.asset(
                                             imagePath,
                                             fit: BoxFit.cover,
-                                            errorBuilder: (
-                                              context,
-                                              error,
-                                              stackTrace,
-                                            ) {
+                                            errorBuilder: (context, error, _) {
                                               return Container(
                                                 color: SigumiTheme.primaryBlue,
                                                 child: const Center(
@@ -222,131 +216,198 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 begin: Alignment.topCenter,
                                                 end: Alignment.bottomCenter,
                                                 colors: [
-                                                  Colors.black.withAlpha(20),
-                                                  Colors.black.withAlpha(220),
+                                                  Colors.black.withAlpha(15),
+                                                  Colors.black.withAlpha(210),
                                                 ],
-                                                stops: const [0.3, 1.0],
+                                                stops: const [0.25, 1.0],
                                               ),
                                             ),
                                           ),
                                         ),
                                         // Content
-                                        Padding(
-                                          padding: const EdgeInsets.all(20),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 10),
-                                              Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Icon(
-                                                    Icons.landscape,
-                                                    color: Colors.white,
-                                                    size: 32,
-                                                  ),
-                                                  const SizedBox(width: 12),
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          volcano.name,
-                                                          style: const TextStyle(
-                                                            fontFamily:
-                                                                'Plus Jakarta Sans',
-                                                            fontSize: 22,
-                                                            fontWeight:
-                                                                FontWeight.w800,
-                                                            color: Colors.white,
-                                                            letterSpacing: -0.5,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(height: 2),
-                                                        Text(
-                                                          'Elevasi: ${volcano.elevation.toInt()} mdpl',
-                                                          style: const TextStyle(
-                                                            fontFamily:
-                                                                'Plus Jakarta Sans',
-                                                            fontSize: 13,
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            color: Colors.white70,
-                                                          ),
-                                                        ),
-                                                      ],
+                                         Positioned.fill(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                // ── Baris 1: Nama gunung (lebar penuh, tanpa gangguan) ──
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.center,
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.landscape_rounded,
+                                                      color: Colors.white,
+                                                      size: 20,
                                                     ),
-                                                  ),
-                                                  if (provider.isLoadingVolcanoes)
-                                                    Shimmer.fromColors(
-                                                      baseColor: Colors.white24,
-                                                      highlightColor: Colors.white54,
-                                                      child: Container(
-                                                        width: 80,
-                                                        height: 32,
-                                                        decoration: BoxDecoration(
-                                                          color: Colors.white.withAlpha(50),
-                                                          borderRadius: BorderRadius.circular(20),
-                                                        ),
-                                                      ),
-                                                    )
-                                                  else
-                                                    Container(
-                                                      padding:
-                                                          const EdgeInsets.symmetric(
-                                                            horizontal: 14,
-                                                            vertical: 8,
-                                                          ),
-                                                      decoration: BoxDecoration(
-                                                        color: statusColor,
-                                                        borderRadius:
-                                                            BorderRadius.circular(
-                                                              20,
-                                                            ),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: Colors.black
-                                                                .withAlpha(40),
-                                                            blurRadius: 4,
-                                                            offset: const Offset(
-                                                              0,
-                                                              2,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
                                                       child: Text(
-                                                        volcano.statusLabel,
+                                                        volcano.name,
                                                         style: const TextStyle(
                                                           fontFamily:
                                                               'Plus Jakarta Sans',
-                                                          color: Colors.white,
-                                                          fontSize: 12,
+                                                          fontSize: 19,
                                                           fontWeight:
-                                                              FontWeight.w700,
+                                                              FontWeight.w800,
+                                                          color: Colors.white,
+                                                          letterSpacing: -0.5,
                                                         ),
+                                                        maxLines: 1,
+                                                        overflow:
+                                                            TextOverflow
+                                                                .ellipsis,
                                                       ),
                                                     ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 30),
-                                              // ── Zone Indicator Card (kondisional) ──
-                                              _buildZoneIndicatorCard(
-                                                context,
-                                                provider,
-                                              ),
-                                            ],
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 5),
+
+                                                // ── Baris 2: Elevasi · Status MAGMA (info sekunder) ──
+                                                // FittedBox agar bisa menyusut jika layar terlalu sempit
+                                                Padding(
+                                                  padding: const EdgeInsets.only(left: 28),
+                                                  child: FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    alignment: Alignment.centerLeft,
+                                                    child: Row(
+                                                      mainAxisSize: MainAxisSize.min,
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      children: [
+                                                        // Elevasi
+                                                        Text(
+                                                          '${volcano.elevation.toInt()} mdpl',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Plus Jakarta Sans',
+                                                            fontSize: 12,
+                                                            fontWeight: FontWeight.w700,
+                                                            color: Colors.white.withAlpha(170),
+                                                          ),
+                                                        ),
+
+                                                        // Pemisah
+                                                        Padding(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                          child: Text(
+                                                            '·',
+                                                            style: TextStyle(
+                                                              fontSize: 14,
+                                                              color: Colors.white.withAlpha(110),
+                                                              fontWeight: FontWeight.w300,
+                                                            ),
+                                                          ),
+                                                        ),
+
+                                                        // Badge Status MAGMA
+                                                        if (provider.isLoadingVolcanoes)
+                                                          Shimmer.fromColors(
+                                                            baseColor: Colors.white24,
+                                                            highlightColor: Colors.white38,
+                                                            child: Container(
+                                                              width: 64,
+                                                              height: 18,
+                                                              decoration: BoxDecoration(
+                                                                color: Colors.white.withAlpha(40),
+                                                                borderRadius: BorderRadius.circular(12),
+                                                              ),
+                                                            ),
+                                                          )
+                                                        else
+                                                          Container(
+                                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                            decoration: BoxDecoration(
+                                                              color: statusColor.withAlpha(40),
+                                                              border: Border.all(color: statusColor.withAlpha(100), width: 1),
+                                                              borderRadius: BorderRadius.circular(12),
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize: MainAxisSize.min,
+                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                              children: [
+                                                                // Dot
+                                                                Container(
+                                                                  width: 7,
+                                                                  height: 7,
+                                                                  decoration: BoxDecoration(
+                                                                    color: statusColor,
+                                                                    shape: BoxShape.circle,
+                                                                    boxShadow: [
+                                                                      BoxShadow(
+                                                                        color: statusColor.withAlpha(200),
+                                                                        blurRadius: 4,
+                                                                        spreadRadius: 0,
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                                const SizedBox(width: 5),
+                                                                // Label
+                                                                Text(
+                                                                  volcano.statusLabel,
+                                                                  style: const TextStyle(
+                                                                    fontFamily: 'Plus Jakarta Sans',
+                                                                    fontSize: 11,
+                                                                    fontWeight: FontWeight.w700,
+                                                                    color: Colors.white,
+                                                                  ),
+                                                                  maxLines: 1,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                        const SizedBox(width: 8),
+
+                                                        // Waktu Pembaruan
+                                                        if (!provider.isLoadingVolcanoes)
+                                                          Row(
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons.update_rounded,
+                                                                size: 11,
+                                                                color: Colors.white.withAlpha(160),
+                                                              ),
+                                                              const SizedBox(width: 3),
+                                                              Text(
+                                                                DateFormat('d MMM, HH:mm').format(volcano.lastUpdate),
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Plus Jakarta Sans',
+                                                                  fontSize: 10,
+                                                                  fontWeight: FontWeight.w500,
+                                                                  color: Colors.white.withAlpha(160),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                const Spacer(),
+
+                                                // ── Baris Bawah: Zone Indicator ──
+                                                _buildZoneIndicatorCard(
+                                                  context,
+                                                  provider,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
                                 ),
-                              ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
+                              ).animate().fadeIn(duration: 500.ms).slideY(
+                                begin: 0.1,
+                                end: 0,
+                              );
                             },
                           ),
                         ],
@@ -571,178 +632,123 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // ────────────────────────────────────────────────
-  // ZONE INDICATOR CARD — Collapsible saat level ≤ 2
+  // ZONE INDICATOR — Opsi D: Stack vertikal dua baris
+  // Baris 1 (atas)  : jarak — teks inline, tanpa container
+  // Baris 2 (bawah) : status zona — pill badge berwarna
+  // Satu warna per baris → hierarki jelas, tidak bertabrakan
   // ────────────────────────────────────────────────
   Widget _buildZoneIndicatorCard(
     BuildContext context,
     VolcanoProvider provider,
   ) {
     final volcanoLevel = provider.volcano.statusLevel;
-    final zoneLevel = provider.zoneLevel;
-    final zoneColor = SigumiTheme.getStatusColor(zoneLevel);
+    final zoneLevel   = provider.zoneLevel;
+    final zoneColor   = SigumiTheme.getStatusColor(zoneLevel);
     final isHighAlert = volcanoLevel >= 3;
 
-    // Level 3–4: selalu terbuka, tidak bisa dicollapse
-    // Level 1–2: ada tombol toggle expand/collapse
-    final showContent = isHighAlert || _isZoneCardExpanded;
+    final zoneIcon = isHighAlert
+        ? Icons.warning_amber_rounded
+        : Icons.shield_rounded;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(235),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color:
-              isHighAlert ? zoneColor.withAlpha(60) : Colors.grey.withAlpha(40),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color:
-                isHighAlert
-                    ? zoneColor.withAlpha(30)
-                    : Colors.black.withAlpha(12),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, AppRoutes.zoneDetail),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header baris atas: ikon + label + chevron (toggle)
-          GestureDetector(
-            onTap:
-                isHighAlert
-                    ? () => Navigator.pushNamed(context, AppRoutes.zoneDetail)
-                    : () => setState(() {
-                      _isZoneCardExpanded = !_isZoneCardExpanded;
-                    }),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Icon(
-                    isHighAlert
-                        ? Icons.warning_amber_rounded
-                        : Icons.my_location,
-                    color: isHighAlert ? zoneColor : Colors.grey.shade500,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          provider.distanceLabel,
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color:
-                                isHighAlert ? zoneColor : Colors.grey.shade700,
-                          ),
+          // ── Baris 1: Jarak (teks inline, tanpa background) ──
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.near_me_rounded,
+                size: 11,
+                color: Colors.white.withAlpha(170),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                provider.distanceShort,
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withAlpha(220),
+                  letterSpacing: 0,
+                ),
+              ),
+              const SizedBox(width: 3),
+              Text(
+                'dari puncak',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withAlpha(150),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 5),
+
+          // ── Baris 2: Status Zona (pill badge — satu warna penuh) ──
+          // FittedBox agar tidak overflow jika teks zona panjang
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: zoneColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withAlpha(isHighAlert ? 140 : 70),
+                  width: isHighAlert ? 1.5 : 1.0,
+                ),
+                boxShadow: isHighAlert
+                    ? [
+                        BoxShadow(
+                          color: zoneColor.withAlpha(180),
+                          blurRadius: 10,
+                          spreadRadius: 0,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          provider.zoneLabel,
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: 12,
-                            color:
-                                isHighAlert
-                                    ? zoneColor.withAlpha(180)
-                                    : SigumiTheme.textSecondary,
-                          ),
+                      ]
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(35),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
                       ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(zoneIcon, size: 12, color: Colors.white),
+                  const SizedBox(width: 5),
+                  Text(
+                    provider.zoneLabel,
+                    style: const TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 0.1,
                     ),
-                  ),
-                  // Chevron: panah kanan (ke detail) jika level tinggi,
-                  // atau panah atas/bawah (toggle) jika level rendah
-                  Icon(
-                    isHighAlert
-                        ? Icons.chevron_right_rounded
-                        : (showContent
-                            ? Icons.keyboard_arrow_up_rounded
-                            : Icons.keyboard_arrow_down_rounded),
-                    color: isHighAlert ? zoneColor : Colors.grey.shade400,
-                    size: 24,
                   ),
                 ],
               ),
             ),
           ),
-
-          // Konten tambahan — hanya tampil saat expand atau level tinggi
-          AnimatedCrossFade(
-            duration: const Duration(milliseconds: 280),
-            crossFadeState:
-                showContent
-                    ? CrossFadeState.showFirst
-                    : CrossFadeState.showSecond,
-            firstChild: GestureDetector(
-              onTap: () => Navigator.pushNamed(context, AppRoutes.zoneDetail),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color:
-                        isHighAlert
-                            ? zoneColor.withAlpha(18)
-                            : Colors.grey.withAlpha(15),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                      color:
-                          isHighAlert
-                              ? zoneColor.withAlpha(40)
-                              : Colors.grey.withAlpha(25),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline_rounded,
-                        size: 14,
-                        color: isHighAlert ? zoneColor : Colors.grey.shade500,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          isHighAlert
-                              ? 'Status berpotensi bahaya — ketuk untuk detail lengkap'
-                              : 'Ketuk untuk melihat detail status zona',
-                          style: TextStyle(
-                            fontFamily: 'Plus Jakarta Sans',
-                            fontSize: 11,
-                            color:
-                                isHighAlert
-                                    ? zoneColor.withAlpha(200)
-                                    : Colors.grey.shade500,
-                          ),
-                        ),
-                      ),
-                      Icon(
-                        Icons.open_in_new_rounded,
-                        size: 12,
-                        color: isHighAlert ? zoneColor : Colors.grey.shade400,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            secondChild: const SizedBox.shrink(),
-          ),
         ],
       ),
     );
   }
+
+
 
   // ────────────────────────────────────────────────
   // REGION SELECTOR — Header badge dengan deteksi GPS

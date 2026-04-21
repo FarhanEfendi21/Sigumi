@@ -111,6 +111,9 @@ class VolcanoProvider extends ChangeNotifier {
   // ── Lokasi (delegasi ke LocationService) ──
   double get distanceFromMerapi => _locationService.distanceFromVolcano;
   String get distanceLabel => _locationService.distanceLabel;
+  /// Jarak ringkas: hanya angka + satuan, tanpa nama gunung (untuk chip UI)
+  String get distanceShort =>
+      '${_locationService.distanceFromVolcano.toStringAsFixed(1)} km';
   String get zoneLabel => _locationService.zoneLabel;
   int get zoneLevel => _locationService.zoneLevel;
 
