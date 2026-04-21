@@ -113,54 +113,141 @@ class _ChildrenEducationGrid extends StatefulWidget {
 
 class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
   int _currentIndex = 0;
+  // Tracking kartu yang sudah dijawab kuis-nya (in-session)
+  final Set<int> _answeredCards = {};
+  
+  late final List<Map<String, dynamic>> _shuffledCards;
+
+  @override
+  void initState() {
+    super.initState();
+    // Copy data list dan acak urutannya agar kuis selalu berbeda setiap dibuka
+    _shuffledCards = List.from(EducationMockData.childrenTopics)..shuffle();
+  }
+
+  void _onCardAnswered(int index) {
+    setState(() {
+      _answeredCards.add(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final cards = EducationMockData.childrenTopics;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: const _AnimatedHeader(
-            title: 'Petualangan Anak Hebat! 🎈',
-            subtitle: 'Geser kartu di bawah ini dan mainkan kuis serunya!',
-            icon: Icons.child_care_rounded,
+    final cards = _shuffledCards;
+    final activeColor = cards[_currentIndex]['color'] as Color;
+
+    return CustomScrollView(
+      physics: const ClampingScrollPhysics(),
+      slivers: [
+        // ── Banner Hero ──────────────────────────────────────────
+        SliverToBoxAdapter(
+          child: _ChildrenBanner(
+            answeredCount: _answeredCards.length,
+            totalCount: cards.length,
           ),
         ),
-        const Spacer(),
-        CarouselSlider.builder(
-          itemCount: cards.length,
-          itemBuilder: (context, index, realIndex) {
-            return _ChildFlashcardItem(card: cards[index], index: index);
-          },
-          options: CarouselOptions(
-            height: MediaQuery.of(context).size.height * 0.55,
-            enlargeCenterPage: true,
-            viewportFraction: 0.85,
-            enableInfiniteScroll: false,
-            onPageChanged: (index, reason) {
-              setState(() {
-                _currentIndex = index;
-              });
+
+        // ── Carousel Kartu ───────────────────────────────────────
+        SliverToBoxAdapter(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Tinggi kartu lebih leluasa agar konten kuis + feedback muat
+              final cardHeight = MediaQuery.of(context).size.height * 0.60;
+              return CarouselSlider.builder(
+                itemCount: cards.length,
+                itemBuilder: (context, index, realIndex) {
+                  return _ChildFlashcardItem(
+                    card: cards[index],
+                    index: index,
+                    cardNumber: index + 1,
+                    totalCards: cards.length,
+                    onAnswered: () => _onCardAnswered(index),
+                  );
+                },
+                options: CarouselOptions(
+                  height: cardHeight,
+                  enlargeCenterPage: true,
+                  enlargeFactor: 0.18,
+                  viewportFraction: 0.88,
+                  enableInfiniteScroll: false,
+                  onPageChanged: (index, reason) {
+                    setState(() => _currentIndex = index);
+                  },
+                ),
+              );
             },
           ),
         ),
-        const Spacer(),
-        // Dot indicator
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: cards.asMap().entries.map((entry) {
-            return Container(
-              width: _currentIndex == entry.key ? 24.0 : 8.0,
-              height: 8.0,
-              margin: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 4.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
-                color: (cards[entry.key]['color'] as Color)
-                    .withValues(alpha: _currentIndex == entry.key ? 0.9 : 0.3),
-              ),
-            );
-          }).toList(),
+
+        // ── Pill Indicator ───────────────────────────────────────
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Teks posisi
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: activeColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${_currentIndex + 1} / ${cards.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Dots
+                ...cards.asMap().entries.map((entry) {
+                  final isActive = _currentIndex == entry.key;
+                  final cardColor = cards[entry.key]['color'] as Color;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    width: isActive ? 22.0 : 8.0,
+                    height: 8.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: isActive
+                          ? cardColor
+                          : cardColor.withValues(alpha: 0.25),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+
+        // ── Hint geser ───────────────────────────────────────────
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.swipe_rounded,
+                    size: 16, color: Colors.grey.shade400),
+                const SizedBox(width: 6),
+                Text(
+                  'Geser kartu • Ketuk untuk kuis',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade400,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -399,16 +486,58 @@ class _TopicGridCard extends StatelessWidget {
 class _ChildFlashcardItem extends StatefulWidget {
   final Map<String, dynamic> card;
   final int index;
+  final int cardNumber;
+  final int totalCards;
+  final VoidCallback? onAnswered;
 
-  const _ChildFlashcardItem({required this.card, required this.index});
+  const _ChildFlashcardItem({
+    required this.card,
+    required this.index,
+    required this.cardNumber,
+    required this.totalCards,
+    this.onAnswered,
+  });
 
   @override
   State<_ChildFlashcardItem> createState() => _ChildFlashcardItemState();
 }
 
-class _ChildFlashcardItemState extends State<_ChildFlashcardItem> {
+class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
+    with SingleTickerProviderStateMixin {
   int? _selectedAnswerIndex;
   bool _hasAnswered = false;
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _shakeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.elasticIn),
+    );
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    super.dispose();
+  }
+
+  void _handleAnswer(int i, int correctIndex) {
+    setState(() {
+      _selectedAnswerIndex = i;
+      _hasAnswered = true;
+    });
+    widget.onAnswered?.call();
+    // Shake animation jika salah
+    if (i != correctIndex) {
+      _shakeController.forward(from: 0);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -421,239 +550,482 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem> {
     );
   }
 
+  // ─────────────────────────────────────────────────────────
+  // SISI DEPAN KARTU
+  // ─────────────────────────────────────────────────────────
   Widget _buildFrontCard(Color color) {
+
+    // Gradient warna per kartu
+    final gradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        color.withValues(alpha: 0.15),
+        color.withValues(alpha: 0.06),
+        Colors.white,
+      ],
+    );
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(36), // Bubbly corners
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 3),
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(color: color.withValues(alpha: 0.35), width: 2.5),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.15),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: color.withValues(alpha: 0.18),
+            blurRadius: 20,
+            spreadRadius: 1,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Header Image/Emoji
+          // ── Area Emoji (Header) ───────────────────────────
           Expanded(
-            flex: 4,
-            child: Container(
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(33)),
-              ),
-              child: Center(
-                child: Text(
-                  widget.card['emoji'] as String,
-                  style: const TextStyle(fontSize: 80),
-                ).animate(onPlay: (controller) => controller.repeat(reverse: true))
-                 .scaleXY(end: 1.08, duration: 1.5.seconds, curve: Curves.easeInOutSine)
-                 .slideY(end: -0.1, duration: 1.5.seconds, curve: Curves.easeInOutSine),
-              ),
+            flex: 38,
+            child: Stack(
+              children: [
+                // Background dekoratif bintang
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(34)),
+                    child: CustomPaint(
+                      painter: _StarPatternPainter(color: color),
+                    ),
+                  ),
+                ),
+                // Badge Topik
+                Positioned(
+                  top: 14,
+                  left: 14,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.4),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      'Topik ${widget.cardNumber} dari ${widget.totalCards}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 10,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+                // Emoji besar
+                Center(
+                  child: Text(
+                    widget.card['emoji'] as String,
+                    style: const TextStyle(fontSize: 82),
+                  )
+                      .animate(
+                        onPlay: (controller) =>
+                            controller.repeat(reverse: true),
+                      )
+                      .scaleXY(
+                        end: 1.1,
+                        duration: 1800.ms,
+                        curve: Curves.easeInOutSine,
+                      )
+                      .slideY(
+                        end: -0.08,
+                        duration: 1800.ms,
+                        curve: Curves.easeInOutSine,
+                      ),
+                ),
+              ],
             ),
           ),
-          // Content
+
+          // ── Konten Teks ───────────────────────────────────
           Expanded(
-            flex: 6,
+            flex: 62,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Judul
                   Text(
                     widget.card['title'] as String,
-                    textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontWeight: FontWeight.w900,
-                      fontSize: 22,
+                      fontSize: 20,
                       color: color,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  // Intro (Scrollable agar penjelasan tidak akan pernah terpotong)
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Text(
+                        widget.card['intro'] as String,
+                        style: AppFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.5,
+                          color: Colors.black.withValues(alpha: 0.65),
+                          height: 1.45,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    widget.card['intro'] as String,
-                    textAlign: TextAlign.center,
-                    style: AppFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: Colors.black87,
-                      height: 1.5,
-                    ),
+                  // CTA Button
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 11),
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: color.withValues(alpha: 0.4),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '🧠 Ketuk → Main Kuis!',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                        .animate(
+                          onPlay: (c) => c.repeat(reverse: true),
+                        )
+                        .scaleXY(
+                          end: 1.05,
+                          duration: 900.ms,
+                          curve: Curves.easeInOutSine,
+                        ),
                   ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('Ketuk untuk main kuis!',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.touch_app, color: Colors.white, size: 18),
-                      ],
-                    ),
-                  ).animate(onPlay: (controller) => controller.repeat(reverse: true)).scaleXY(end: 1.05, duration: 800.ms),
                 ],
               ),
             ),
           ),
         ],
       ),
-    );
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
+  // ─────────────────────────────────────────────────────────
+  // SISI BELAKANG (KUIS)
+  // ─────────────────────────────────────────────────────────
   Widget _buildBackCard(Color color) {
     if (widget.card['quizAnswers'] == null) {
       return Container(
-         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(36)),
-         child: const Center(child: Text('Belum ada kuis untuk bagian ini!')),
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(36)),
+        child: const Center(
+          child: Text('Belum ada kuis untuk bagian ini!',
+              style: TextStyle(fontSize: 16)),
+        ),
       );
     }
-    
+
     final answers = widget.card['quizAnswers'] as List<String>;
     final correctAnswerIndex = widget.card['correctAnswerIndex'] as int;
+    final isCorrect =
+        _hasAnswered && _selectedAnswerIndex == correctAnswerIndex;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(36),
-        border: Border.all(color: color.withValues(alpha: 0.5), width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+    return AnimatedBuilder(
+      animation: _shakeAnimation,
+      builder: (context, child) {
+        final dx =
+            _hasAnswered && !isCorrect ? 6 * (_shakeAnimation.value * 2 - 1) : 0.0;
+        return Transform.translate(
+          offset: Offset(dx.clamp(-6.0, 6.0), 0),
+          child: child,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(36),
+          border: Border.all(
+            color: _hasAnswered
+                ? (isCorrect
+                    ? Colors.green.withValues(alpha: 0.6)
+                    : Colors.red.withValues(alpha: 0.4))
+                : color.withValues(alpha: 0.4),
+            width: 2.5,
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        child: Column(
-          children: [
-            Text(
-              'Ayo Jawab!',
-              style: AppFonts.plusJakartaSans(
-                fontWeight: FontWeight.w900,
-                fontSize: 22,
-                color: color,
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: (_hasAnswered
+                      ? (isCorrect ? Colors.green : Colors.orange)
+                      : color)
+                  .withValues(alpha: 0.15),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-            const SizedBox(height: 16),
-            Text(
-              widget.card['quizQuestion'] as String,
-              textAlign: TextAlign.center,
-              style: AppFonts.plusJakartaSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Expanded(
-              child: ListView.separated(
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: answers.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, i) {
-                  final isSelected = _selectedAnswerIndex == i;
-                  final isCorrect = i == correctAnswerIndex;
-                  
-                  Color btnColor = Colors.grey.shade100;
-                  Color textColor = Colors.black87;
-                  
-                  if (_hasAnswered) {
-                    if (isCorrect) {
-                      btnColor = Colors.green.shade100;
-                      textColor = Colors.green.shade800;
-                    } else if (isSelected && !isCorrect) {
-                      btnColor = Colors.red.shade100;
-                      textColor = Colors.red.shade800;
-                    }
-                  } else if (isSelected) {
-                    btnColor = color.withValues(alpha: 0.2);
-                  }
-
-                  return InkWell(
-                    onTap: _hasAnswered ? null : () {
-                      setState(() {
-                        _selectedAnswerIndex = i;
-                        _hasAnswered = true;
-                      });
-                    },
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                      decoration: BoxDecoration(
-                        color: btnColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: (_hasAnswered && isCorrect) 
-                             ? Colors.green 
-                             : ((_hasAnswered && isSelected && !isCorrect) ? Colors.red : Colors.transparent),
-                          width: 2,
+          ],
+        ),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(18, 20, 18, 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // ── Header kuis ─────────────────────────────
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text('🧠', style: TextStyle(fontSize: 22)),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ayo Jawab Kuis!',
+                          style: AppFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 17,
+                            color: color,
+                          ),
                         ),
+                        Text(
+                          'Pilih jawaban yang benar ya!',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 14),
+              // ── Pertanyaan ───────────────────────────────
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.07),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: color.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Text(
+                  widget.card['quizQuestion'] as String,
+                  textAlign: TextAlign.center,
+                  style: AppFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14.5,
+                    color: Colors.black87,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+              // ── Pilihan Jawaban ──────────────────────────
+              ...answers.asMap().entries.map((entry) {
+                final i = entry.key;
+                final answer = entry.value;
+                final isSelected = _selectedAnswerIndex == i;
+                final isCorrectAnswer = i == correctAnswerIndex;
+
+                // Tentukan tampilan per state
+                Color pillBg;
+                Color pillBorder;
+                Color pillText;
+                Widget? trailingIcon;
+
+                if (!_hasAnswered) {
+                  pillBg = isSelected
+                      ? color.withValues(alpha: 0.15)
+                      : Colors.grey.shade50;
+                  pillBorder = isSelected ? color : Colors.grey.shade200;
+                  pillText = isSelected ? color : Colors.black87;
+                  trailingIcon = null;
+                } else {
+                  if (isCorrectAnswer) {
+                    pillBg = const Color(0xFFE8F5E9);
+                    pillBorder = Colors.green;
+                    pillText = Colors.green.shade800;
+                    trailingIcon = const Icon(Icons.check_circle_rounded,
+                        color: Colors.green, size: 20);
+                  } else if (isSelected && !isCorrectAnswer) {
+                    pillBg = const Color(0xFFFFEBEE);
+                    pillBorder = Colors.red;
+                    pillText = Colors.red.shade700;
+                    trailingIcon = const Icon(Icons.cancel_rounded,
+                        color: Colors.red, size: 20);
+                  } else {
+                    pillBg = Colors.grey.shade50;
+                    pillBorder = Colors.grey.shade200;
+                    pillText = Colors.grey.shade400;
+                    trailingIcon = null;
+                  }
+                }
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 9),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: _hasAnswered
+                        ? null
+                        : () => _handleAnswer(i, correctAnswerIndex),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: pillBg,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: pillBorder, width: 2),
                       ),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: Text(
-                              answers[i],
-                              style: AppFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13.5,
-                                color: textColor,
+                          // Huruf pilihan (A, B, C)
+                          Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: pillBorder.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                String.fromCharCode(65 + i), // A, B, C
+                                style: TextStyle(
+                                  color: pillText,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ),
-                          if (_hasAnswered && isCorrect)
-                            const Icon(Icons.check_circle, color: Colors.green),
-                          if (_hasAnswered && isSelected && !isCorrect)
-                            const Icon(Icons.cancel, color: Colors.red),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              answer,
+                              style: AppFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13.5,
+                                color: pillText,
+                              ),
+                            ),
+                          ),
+                          if (trailingIcon != null) trailingIcon,
                         ],
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-            if (_hasAnswered)
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: _selectedAnswerIndex == correctAnswerIndex 
-                      ? Colors.green.shade50 
-                      : Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: _selectedAnswerIndex == correctAnswerIndex
-                        ? Colors.green.shade200
-                        : Colors.orange.shade200,
-                  )
-                ),
-                child: Text(
-                  widget.card['explanation'] as String,
-                  textAlign: TextAlign.center,
-                  style: AppFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                    color: _selectedAnswerIndex == correctAnswerIndex
-                        ? Colors.green.shade800
-                        : Colors.orange.shade800,
                   ),
-                ),
-              ).animate().fadeIn().slideY(begin: 0.2, end: 0),
-          ],
+                );
+              }),
+
+              // ── Feedback setelah menjawab ────────────────
+              if (_hasAnswered)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isCorrect
+                          ? [
+                              const Color(0xFFE8F5E9),
+                              const Color(0xFFF1F8E9)
+                            ]
+                          : [
+                              const Color(0xFFFFF8E1),
+                              const Color(0xFFFFFDE7)
+                            ],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: isCorrect
+                          ? Colors.green.shade300
+                          : Colors.orange.shade300,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isCorrect ? '🌟' : '💪',
+                        style: const TextStyle(fontSize: 22),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isCorrect
+                                  ? 'Luar Biasa! Kamu Pintar!'
+                                  : 'Hampir Benar! Semangat!',
+                              style: AppFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 13,
+                                color: isCorrect
+                                    ? Colors.green.shade800
+                                    : Colors.orange.shade800,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              widget.card['explanation'] as String,
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: isCorrect
+                                    ? Colors.green.shade700
+                                    : Colors.orange.shade700,
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, end: 0),
+
+              // Spacer bawah agar ada ruang napas setelah feedback
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
@@ -842,5 +1214,261 @@ class _DisabilityGridCard extends StatelessWidget {
       default: return Icons.person;
     }
   }
+}
+
+// =============================================================================
+// BANNER HERO ANAK-ANAK
+// =============================================================================
+
+class _ChildrenBanner extends StatelessWidget {
+  final int answeredCount;
+  final int totalCount;
+
+  const _ChildrenBanner({
+    required this.answeredCount,
+    required this.totalCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = totalCount > 0 ? answeredCount / totalCount : 0.0;
+    final List<String> starEmojis = List.generate(
+      totalCount,
+      (i) => i < answeredCount ? '⭐' : '☆',
+    );
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFFF9800),
+            Color(0xFFFFB74D),
+            Color(0xFFFFD54F),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF9800).withValues(alpha: 0.35),
+            blurRadius: 20,
+            spreadRadius: 2,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Dekorasi latar - lingkaran transparan
+          Positioned(
+            top: -20,
+            right: -10,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.12),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -15,
+            right: 30,
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.10),
+              ),
+            ),
+          ),
+
+          // Konten utama
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Baris atas: emoji maskot + judul
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '🦸',
+                    style: const TextStyle(fontSize: 44),
+                  )
+                      .animate(
+                        onPlay: (c) => c.repeat(reverse: true),
+                      )
+                      .scaleXY(
+                        end: 1.08,
+                        duration: 1600.ms,
+                        curve: Curves.easeInOutSine,
+                      ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Halo, Pahlawan Cilik! 👋',
+                          style: AppFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                            color: Colors.white,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          answeredCount == 0
+                              ? 'Ayo mulai belajar tentang gunung berapi!'
+                              : answeredCount == totalCount
+                                  ? 'Hebat! Kamu sudah selesaikan semua topik! 🎉'
+                                  : 'Bagus! Terus semangat belajarnya ya!',
+                          style: AppFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.5,
+                            color: Colors.white.withValues(alpha: 0.9),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Label progress
+              Row(
+                children: [
+                  Text(
+                    'Progress Belajar:',
+                    style: AppFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    '$answeredCount/$totalCount kuis selesai',
+                    style: AppFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+
+              // Progress bar animasi
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: progress),
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, _) => LinearProgressIndicator(
+                    value: value,
+                    minHeight: 10,
+                    backgroundColor: Colors.white.withValues(alpha: 0.35),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Bintang per topik
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: starEmojis
+                    .asMap()
+                    .entries
+                    .map(
+                      (e) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: Text(
+                          e.value,
+                          style: const TextStyle(fontSize: 18),
+                        )
+                            .animate(
+                              delay: Duration(milliseconds: 80 * e.key),
+                            )
+                            .scaleXY(
+                              begin: 0.8,
+                              end: 1.0,
+                              duration: 300.ms,
+                              curve: Curves.elasticOut,
+                            ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 500.ms).slideY(begin: -0.05, end: 0);
+  }
+}
+
+// =============================================================================
+// CUSTOM PAINTER — POLA BINTANG DEKORATIF DI HEADER KARTU
+// =============================================================================
+
+class _StarPatternPainter extends CustomPainter {
+  final Color color;
+  _StarPatternPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final circlePaint = Paint()
+      ..color = color.withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+
+    // Background tint lembut
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Paint()..color = color.withValues(alpha: 0.09),
+    );
+
+    // Lingkaran dekoratif
+    canvas.drawCircle(
+        Offset(size.width * 0.85, size.height * 0.18), 38, circlePaint);
+    canvas.drawCircle(
+        Offset(size.width * 0.08, size.height * 0.80), 26, circlePaint);
+    canvas.drawCircle(
+        Offset(size.width * 0.50, size.height * 0.90), 18, circlePaint);
+
+    // Titik-titik kecil dekoratif
+    final dotPaint = Paint()
+      ..color = color.withValues(alpha: 0.18)
+      ..style = PaintingStyle.fill;
+    final dotPositions = [
+      Offset(size.width * 0.20, size.height * 0.15),
+      Offset(size.width * 0.60, size.height * 0.12),
+      Offset(size.width * 0.90, size.height * 0.50),
+      Offset(size.width * 0.30, size.height * 0.70),
+      Offset(size.width * 0.72, size.height * 0.75),
+    ];
+    for (final pos in dotPositions) {
+      canvas.drawCircle(pos, 4, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _StarPatternPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
