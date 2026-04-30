@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network Security Config untuk SIGUMI
+  Memastikan semua koneksi HTTPS ke domain Supabase diizinkan
+  tanpa diblokir oleh sistem keamanan jaringan Android.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- Percaya semua sertifikat CA yang sudah terinstall di sistem -->
+            <certificates src="system" />
+            <!-- Percaya juga CA dari pengguna, berguna untuk testing di corporate network -->
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Izin eksplisit untuk domain Supabase utama SIGUMI -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">supabase.co</domain>
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

@@ -236,7 +236,7 @@ class _OnboardingPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(40),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withAlpha(51),
                   blurRadius: 40,
                   spreadRadius: -10,
                 ),
@@ -338,92 +338,93 @@ class _LanguageSelectionPage extends StatelessWidget {
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Colors.white.withAlpha(50), Colors.white.withAlpha(10)],
-              ),
-              borderRadius: BorderRadius.circular(40),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
-                  blurRadius: 40,
-                  spreadRadius: -10,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  data.title,
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
-                    color: SigumiTheme.primaryBlue,
-                  ),
-                  textAlign: TextAlign.center,
-                ).animate().fadeIn().moveY(begin: -20, end: 0),
-
-                const SizedBox(height: 12),
-
-                Text(
-                  data.description,
-                  textAlign: TextAlign.center,
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 14,
-                    color: SigumiTheme.textSecondary,
-                  ),
-                ).animate().fadeIn(delay: 100.ms),
-
-                const SizedBox(height: 32),
-
-                // Language List Responsif
-                Column(
-                  children: [
-                    _LangCard(
-                      title: 'Bahasa Indonesia',
-                      subtitle: 'ID',
-                      code: 'id',
-                      isSelected: provider.language == 'id',
-                    ),
-                    const SizedBox(height: 12),
-                    _LangCard(
-                      title: 'English (US)',
-                      subtitle: 'EN',
-                      code: 'en',
-                      isSelected: provider.language == 'en',
-                    ),
-                    const SizedBox(height: 12),
-                    _LangCard(
-                      title: 'Basa Jawa',
-                      subtitle: 'JV',
-                      code: 'jv',
-                      isSelected: provider.language == 'jv',
-                    ),
-                    const SizedBox(height: 12),
-                    _LangCard(
-                      title: 'Basa Bali',
-                      subtitle: 'BA',
-                      code: 'ba',
-                      isSelected: provider.language == 'ba',
-                    ),
-                    const SizedBox(height: 12),
-                    _LangCard(
-                      title: 'Basa Sasak',
-                      subtitle: 'SA',
-                      code: 'sa',
-                      isSelected: provider.language == 'sa',
+          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Visual Icon (Clean and minimal)
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: data.color.withAlpha(20),
+                      blurRadius: 30,
+                      spreadRadius: 5,
                     ),
                   ],
-                ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
-              ],
-            ),
+                ),
+                child: Icon(data.icon, size: 48, color: data.color),
+              ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack),
+
+              const SizedBox(height: 32),
+
+              // Title
+              Text(
+                data.title,
+                textAlign: TextAlign.center,
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: SigumiTheme.primaryBlue,
+                  height: 1.2,
+                ),
+              ).animate().fadeIn(delay: 100.ms).moveY(begin: 20, end: 0),
+
+              const SizedBox(height: 16),
+
+              // Description
+              Text(
+                data.description,
+                textAlign: TextAlign.center,
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 16,
+                  color: SigumiTheme.textBody.withAlpha(180),
+                  height: 1.5,
+                ),
+              ).animate().fadeIn(delay: 200.ms).moveY(begin: 20, end: 0),
+
+              const SizedBox(height: 48),
+
+              // Language List
+              Column(
+                children: [
+                  _LangCard(
+                    title: 'Bahasa Indonesia',
+                    code: 'id',
+                    isSelected: provider.language == 'id',
+                  ),
+                  const SizedBox(height: 12),
+                  _LangCard(
+                    title: 'English (US)',
+                    code: 'en',
+                    isSelected: provider.language == 'en',
+                  ),
+                  const SizedBox(height: 12),
+                  _LangCard(
+                    title: 'Basa Jawa',
+                    code: 'jv',
+                    isSelected: provider.language == 'jv',
+                  ),
+                  const SizedBox(height: 12),
+                  _LangCard(
+                    title: 'Basa Bali',
+                    code: 'ba',
+                    isSelected: provider.language == 'ba',
+                  ),
+                  const SizedBox(height: 12),
+                  _LangCard(
+                    title: 'Basa Sasak',
+                    code: 'sa',
+                    isSelected: provider.language == 'sa',
+                  ),
+                ],
+              ).animate().fadeIn(delay: 300.ms).moveY(begin: 20, end: 0),
+            ],
           ),
         ),
       ),
@@ -433,13 +434,11 @@ class _LanguageSelectionPage extends StatelessWidget {
 
 class _LangCard extends StatefulWidget {
   final String title;
-  final String subtitle;
   final String code;
   final bool isSelected;
 
   const _LangCard({
     required this.title,
-    required this.subtitle,
     required this.code,
     required this.isSelected,
   });
@@ -462,32 +461,27 @@ class _LangCardState extends State<_LangCard> {
         scale: _isPressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 100),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 250),
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
           decoration: BoxDecoration(
-            color: widget.isSelected ? SigumiTheme.primaryBlue : Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            color: widget.isSelected 
+                ? SigumiTheme.primaryBlue.withAlpha(15) 
+                : Colors.white,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: widget.isSelected
                   ? SigumiTheme.primaryBlue
-                  : SigumiTheme.divider.withAlpha(50),
-              width: 1.5,
+                  : SigumiTheme.divider.withAlpha(40),
+              width: widget.isSelected ? 2.0 : 1.0,
             ),
             boxShadow: [
-              if (widget.isSelected)
-                BoxShadow(
-                  color: SigumiTheme.primaryBlue.withAlpha(80),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 8),
-                )
-              else
+              if (!widget.isSelected)
                 BoxShadow(
                   color: Colors.black.withAlpha(5),
                   blurRadius: 10,
                   spreadRadius: 0,
-                  offset: const Offset(0, 4),
+                  offset: const Offset(0, 2),
                 ),
             ],
           ),
@@ -497,29 +491,15 @@ class _LangCardState extends State<_LangCard> {
               Text(
                 widget.title,
                 style: AppFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w700,
-                  color: widget.isSelected ? Colors.white : SigumiTheme.textPrimary,
+                  fontWeight: widget.isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: widget.isSelected ? SigumiTheme.primaryBlue : SigumiTheme.textPrimary,
                   fontSize: 16,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: widget.isSelected
-                      ? Colors.white.withAlpha(30)
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  widget.subtitle,
-                  style: AppFonts.plusJakartaSans(
-                    fontWeight: FontWeight.w700,
-                    color: widget.isSelected
-                        ? Colors.white
-                        : SigumiTheme.textSecondary,
-                    fontSize: 12,
-                  ),
-                ),
+              Icon(
+                widget.isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
+                color: widget.isSelected ? SigumiTheme.primaryBlue : SigumiTheme.textSecondary.withAlpha(100),
+                size: 24,
               ),
             ],
           ),

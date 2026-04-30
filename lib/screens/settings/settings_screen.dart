@@ -534,7 +534,7 @@ class _ListRow extends StatelessWidget {
                       style: const TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                         color: SettingsScreen._labelPrimary,
                         letterSpacing: -0.2,
                         height: 1.3,
@@ -622,7 +622,7 @@ class _OfflineRow extends StatelessWidget {
                   style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: SettingsScreen._labelPrimary,
                     letterSpacing: -0.2,
                     height: 1.3,

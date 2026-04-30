@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
+import 'package:sigumi/config/theme.dart';
 import '../../../config/routes.dart';
 
 // Semantic Colors for Status
@@ -36,7 +37,7 @@ class RiskBottomSheet extends StatelessWidget {
     return DraggableScrollableSheet(
       initialChildSize: 0.18, // Hanya menampilkan summary radius progress
       minChildSize: 0.18,
-      maxChildSize: 0.60, // Detail expanded
+      maxChildSize: 0.50, // Detail expanded
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -58,7 +59,9 @@ class RiskBottomSheet extends StatelessWidget {
             controller: scrollController,
             physics: const ClampingScrollPhysics(), // Hindari overscroll bounce saat drag sheet
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+              // Tambahkan padding bawah ekstra agar saat ditarik ke atas, 
+              // tombol paling bawah tidak menumpuk/tertutup oleh Bottom Navigation Bar
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -139,39 +142,10 @@ class RiskBottomSheet extends StatelessWidget {
                     ],
                   ),
                   
-                  // Spacing antara summary dan detail (baru terlihat saat expand)
+                  // Spacing antara summary dan CTA (baru terlihat saat expand)
                   const SizedBox(height: 32),
                   const Divider(),
                   const SizedBox(height: 24),
-                  
-                  // ── Detail Risiko (Expand View) ──
-                  Text(
-                    'Detail Risiko Aktual',
-                    style: AppFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.grey.shade800,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  _DetailRowItem(
-                    icon: Icons.info_outline_rounded,
-                    title: 'Status Saat Ini',
-                    desc: distance <= 10.0 
-                        ? 'Memasuki zona Kawasan Rawan Bencana (KRB).'
-                        : 'Berada di luar kawasan aktivitas material letusan vulkanik utama langsung.',
-                  ),
-                  const SizedBox(height: 16),
-                  _DetailRowItem(
-                    icon: Icons.shield_outlined,
-                    title: 'Rekomendasi Tindakan',
-                    desc: distance <= 10.0 
-                        ? 'Ikuti instruksi tim relawan setempat dan persiapkan Evakuasi Mandiri jika radius mendekati 5 km.'
-                        : 'Tetap tenang dan pantau update pemberitahuan cuaca serta sebaran abu vulkanik di sekitarmu.',
-                  ),
-                  
-                  const SizedBox(height: 32),
                   
                   // ── CTA Buttons ──
                   SizedBox(
@@ -180,7 +154,7 @@ class RiskBottomSheet extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pushNamed(context, AppRoutes.evacuation),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: distance <= 10.0 ? _statusColor : Colors.grey.shade900,
+                        backgroundColor: SigumiTheme.primaryBlue,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -237,62 +211,6 @@ class RiskBottomSheet extends StatelessWidget {
         color: Colors.grey.shade500,
         fontWeight: FontWeight.w600,
       ),
-    );
-  }
-}
-
-class _DetailRowItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String desc;
-
-  const _DetailRowItem({
-    required this.icon,
-    required this.title,
-    required this.desc,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 2),
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.blue.shade50,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 18, color: Colors.blue.shade600),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade900,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                desc,
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

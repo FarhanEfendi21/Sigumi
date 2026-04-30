@@ -45,102 +45,133 @@ class PrimaryInfoCard extends StatelessWidget {
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutCubic,
       margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _statusColor.withAlpha(40), width: 1.5),
+        border: Border.all(color: Colors.grey.shade100, width: 1),
         boxShadow: [
           BoxShadow(
-            color: _statusColor.withAlpha(25), // 0.10 opacity shadow soft
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-            spreadRadius: 2,
-          ),
-          BoxShadow(
-             color: Colors.black.withAlpha(10), // secondary shadow context
-             blurRadius: 8,
-             offset: const Offset(0, 2),
-             spreadRadius: 0,
+            color: Colors.black.withAlpha(15), // subtle shadow
+            blurRadius: 32,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                // Jarak Badge
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.location_on_rounded, size: 14, color: Colors.grey.shade600),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${distance.toStringAsFixed(1)} km',
-                        key: ValueKey<String>(distance.toStringAsFixed(1)), // animates when distance changes
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header: Status Zona ──
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Ikon Status
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _statusColor.withAlpha(20),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  distance <= 10.0 ? Icons.warning_amber_rounded : Icons.gpp_good_rounded,
+                  color: _statusColor,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Teks Status
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _statusText,
+                      key: ValueKey<String>(_statusText),
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: _statusColor,
+                        letterSpacing: -0.5,
+                      ),
+                    ).animate().fade().slideX(begin: -0.05),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Level $zoneLevel',
                         style: AppFonts.plusJakartaSans(
-                          fontSize: 13,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: Colors.grey.shade800,
+                          color: Colors.grey.shade700,
                         ),
-                      ).animate().fade().scale(),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                // Level Info
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _statusColor.withAlpha(20),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'Level $zoneLevel',
-                    style: AppFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: _statusColor,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            // Status Teks Besar
-            Text(
-              _statusText,
-              key: ValueKey<String>(_statusText),
-              style: AppFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
-                color: _statusColor,
               ),
-            ).animate().slideX(begin: -0.1).fade(),
-            const SizedBox(height: 6),
-            // Logic Description
-            Text(
-              _descriptionText,
-              key: ValueKey<String>(_descriptionText),
-              style: AppFonts.plusJakartaSans(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-                height: 1.4,
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 16),
+          
+          // ── Body: Jarak & Deskripsi (Subtle) ──
+          
+          // Jarak
+          Row(
+            children: [
+              Icon(Icons.location_on_outlined, size: 18, color: Colors.grey.shade400),
+              const SizedBox(width: 10),
+              Text(
+                'Jarak ke gunung:',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade500,
+                ),
               ),
-            ).animate().slideX(begin: -0.1).fade(),
-          ],
-        ),
+              const Spacer(),
+              Text(
+                '${distance.toStringAsFixed(1)} km',
+                key: ValueKey<String>(distance.toStringAsFixed(1)),
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.grey.shade800,
+                ),
+              ).animate().fade(),
+            ],
+          ),
+          
+          const SizedBox(height: 12),
+          
+          // Deskripsi
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.info_outline_rounded, size: 18, color: Colors.grey.shade400),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _descriptionText,
+                  key: ValueKey<String>(_descriptionText),
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ).animate().fade().slideY(begin: 0.1),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

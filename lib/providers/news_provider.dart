@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/news_model.dart';
 import '../repositories/news_repository.dart';
+import '../utils/logger.dart';
 
 class NewsProvider extends ChangeNotifier {
   final NewsRepository _repository = NewsRepository();
@@ -22,10 +23,10 @@ class NewsProvider extends ChangeNotifier {
       notifyListeners();
 
       _newsList = await _repository.getLatestNews(limit: limit);
-      print('📰 Provider: ${_newsList.length} news loaded');
+      Logger.success('${_newsList.length} news loaded', tag: 'NewsProvider');
     } catch (e) {
       _error = e.toString();
-      print('❌ Provider error: $_error');
+      Logger.error('Provider error', tag: 'NewsProvider', error: _error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -40,10 +41,10 @@ class NewsProvider extends ChangeNotifier {
       notifyListeners();
 
       _newsList = await _repository.getAllNews();
-      print('📰 Provider: ${_newsList.length} news loaded');
+      Logger.success('${_newsList.length} news loaded', tag: 'NewsProvider');
     } catch (e) {
       _error = e.toString();
-      print('❌ Provider error: $_error');
+      Logger.error('Provider error', tag: 'NewsProvider', error: _error);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -57,7 +58,7 @@ class NewsProvider extends ChangeNotifier {
       return news;
     } catch (e) {
       _error = e.toString();
-      print('❌ Provider error: $_error');
+      Logger.error('Provider error', tag: 'NewsProvider', error: _error);
       return null;
     }
   }

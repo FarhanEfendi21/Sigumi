@@ -5,8 +5,6 @@ import 'package:provider/provider.dart';
 import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:latlong2/latlong.dart' hide Path;
 import '../../models/eruption_history.dart';
 import '../../models/volcano_model.dart';
@@ -103,21 +101,25 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
           ..setNavigationDelegate(
             NavigationDelegate(
               onPageStarted: (_) {
-                if (mounted)
+                if (mounted) {
                   setState(() {
                     _isWebViewLoading = true;
                     _hasWebViewError = false;
                   });
+                }
               },
               onPageFinished: (_) {
-                if (mounted) setState(() => _isWebViewLoading = false);
+                if (mounted) {
+                  setState(() => _isWebViewLoading = false);
+                }
               },
               onWebResourceError: (_) {
-                if (mounted)
+                if (mounted) {
                   setState(() {
                     _isWebViewLoading = false;
                     _hasWebViewError = true;
                   });
+                }
               },
             ),
           )
