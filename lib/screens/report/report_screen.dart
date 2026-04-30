@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sigumi/config/fonts.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/theme.dart';
 import '../../config/constants.dart';
@@ -13,6 +12,7 @@ import '../../services/ai_service.dart';
 import '../../services/location_service.dart';
 import '../../models/report_model.dart';
 import '../../repositories/report_repository.dart';
+import '../../utils/logger.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -146,7 +146,7 @@ class _ReportScreenState extends State<ReportScreen> {
       // Upload gambar ke Supabase jika ada (optional, continue jika gagal)
       String? imageUrl;
       if (_selectedImage != null) {
-        print('📷 Image selected: ${_selectedImage!.name}');
+        Logger.info('Image selected: ${_selectedImage!.name}', tag: 'ReportScreen');
         // Generate temporary report ID untuk folder
         final tempReportId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
         try {
@@ -154,13 +154,13 @@ class _ReportScreenState extends State<ReportScreen> {
             _selectedImage!,
             tempReportId,
           );
-          print('📷 Image URL after upload: $imageUrl');
+          Logger.info('Image URL after upload: $imageUrl', tag: 'ReportScreen');
         } catch (e) {
-          print('⚠️ Skipping image upload: $e');
+          Logger.log('Skipping image upload: $e', tag: 'ReportScreen');
           // Continue tanpa gambar
         }
       } else {
-        print('📷 No image selected');
+        Logger.info('No image selected', tag: 'ReportScreen');
       }
 
       // Siapkan data laporan
@@ -183,10 +183,10 @@ class _ReportScreenState extends State<ReportScreen> {
         'imageUrl': imageUrl,
       };
 
-      print('📝 Submitting report data...');
-      print('   reporterName: $reporterName');
-      print('   category: ${reportData['category']}');
-      print('   imageUrl: $imageUrl');
+      Logger.info('Submitting report data...', tag: 'ReportScreen');
+      Logger.log('reporterName: $reporterName', tag: 'ReportScreen');
+      Logger.log('category: ${reportData['category']}', tag: 'ReportScreen');
+      Logger.log('imageUrl: $imageUrl', tag: 'ReportScreen');
 
       // Ambil lokasi dari nama gunung aktif
       final lokasiFromVolcano = _getLokasiFromVolcano(
@@ -194,14 +194,14 @@ class _ReportScreenState extends State<ReportScreen> {
       );
 
       // Simpan laporan ke Supabase
-      final response = await reportRepository.createReport(
-        reporterName: reportData['reporterName'] as String,
-        phone: reportData['phone'] as String?,
-        category: reportData['category'] as String,
-        title: reportData['title'] as String,
-        description: reportData['description'] as String,
-        location: reportData['location'] as String?,
-        imageUrl: reportData['imageUrl'] as String?,
+      await reportRepository.createReport(
+        reporterName: reportData['reporterName']!,
+        phone: reportData['phone'],
+        category: reportData['category']!,
+        title: reportData['title']!,
+        description: reportData['description']!,
+        location: reportData['location'],
+        imageUrl: reportData['imageUrl'],
         lokasi: lokasiFromVolcano,
       );
 
@@ -217,7 +217,7 @@ class _ReportScreenState extends State<ReportScreen> {
       if (!mounted) return;
 
       try {
-        print('✅ Showing success notification...');
+        Logger.success('Showing success notification...', tag: 'ReportScreen');
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -232,7 +232,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       offset: const Offset(0, 4),
                     ),
@@ -304,12 +304,12 @@ class _ReportScreenState extends State<ReportScreen> {
           },
         );
       } catch (e) {
-        print('⚠️ Error showing dialog: $e');
+        Logger.log('Error showing dialog: $e', tag: 'ReportScreen');
       }
     } catch (e) {
       if (!mounted) return;
 
-      print('❌ Error submitting report: $e');
+      Logger.error('Error submitting report', tag: 'ReportScreen', error: e);
 
       setState(() => _isSubmitting = false);
 
@@ -337,7 +337,7 @@ class _ReportScreenState extends State<ReportScreen> {
         );
       } catch (e) {
         // Ignore if context is invalid
-        print('❌ Error showing snackbar: $e');
+        Logger.error('Error showing snackbar', tag: 'ReportScreen', error: e);
       }
     }
   }

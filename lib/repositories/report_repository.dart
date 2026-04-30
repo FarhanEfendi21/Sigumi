@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import '../models/report_model.dart';
+import '../utils/logger.dart';
 
 class ReportRepository {
   final _supabase = Supabase.instance.client;
@@ -17,16 +17,16 @@ class ReportRepository {
     String? lokasi,
   }) async {
     try {
-      print('📝 Creating report...');
-      print('Data: {');
-      print('  reporter_name: $reporterName');
-      print('  category: $category');
-      print('  title: $title');
-      print('  description: $description');
-      print('  location: $location');
-      print('  image_url: $imageUrl');
-      print('  lokasi: $lokasi');
-      print('}');
+      Logger.info('Creating report...', tag: 'ReportRepository');
+      Logger.log('Data: {', tag: 'ReportRepository');
+      Logger.log('  reporter_name: $reporterName', tag: 'ReportRepository');
+      Logger.log('  category: $category', tag: 'ReportRepository');
+      Logger.log('  title: $title', tag: 'ReportRepository');
+      Logger.log('  description: $description', tag: 'ReportRepository');
+      Logger.log('  location: $location', tag: 'ReportRepository');
+      Logger.log('  image_url: $imageUrl', tag: 'ReportRepository');
+      Logger.log('  lokasi: $lokasi', tag: 'ReportRepository');
+      Logger.log('}', tag: 'ReportRepository');
 
       final response =
           await _supabase
@@ -45,17 +45,17 @@ class ReportRepository {
               .select()
               .single();
 
-      print('✅ Report created successfully: ${response['id']}');
-      print('   By: ${response['reporter_name']}');
-      print('   Lokasi: ${response['lokasi']}');
+      Logger.success('Report created successfully: ${response['id']}', tag: 'ReportRepository');
+      Logger.log('By: ${response['reporter_name']}', tag: 'ReportRepository');
+      Logger.log('Lokasi: ${response['lokasi']}', tag: 'ReportRepository');
       return response;
     } on PostgrestException catch (e) {
-      print('❌ Database error: ${e.message}');
-      print('Error code: ${e.code}');
-      print('Error details: ${e.details}');
+      Logger.error('Database error: ${e.message}', tag: 'ReportRepository');
+      Logger.log('Error code: ${e.code}', tag: 'ReportRepository');
+      Logger.log('Error details: ${e.details}', tag: 'ReportRepository');
       throw Exception('Database error: ${e.message}');
     } catch (e) {
-      print('❌ Error creating report: $e');
+      Logger.error('Error creating report', tag: 'ReportRepository', error: e);
       throw Exception('Error creating report: $e');
     }
   }
@@ -127,8 +127,8 @@ class ReportRepository {
 
       // Baca file sebagai bytes
       final bytes = await image.readAsBytes();
-      print('📸 Image size: ${(bytes.length / 1024).toStringAsFixed(2)} KB');
-      print('📸 Uploading image to: $fileName');
+      Logger.info('Image size: ${(bytes.length / 1024).toStringAsFixed(2)} KB', tag: 'ReportRepository');
+      Logger.info('Uploading image to: $fileName', tag: 'ReportRepository');
 
       // Upload langsung ke Supabase storage
       final response = await _supabase.storage
@@ -139,24 +139,24 @@ class ReportRepository {
             fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
           );
 
-      print('📸 Upload response: $response');
+      Logger.log('Upload response: $response', tag: 'ReportRepository');
 
       // Dapatkan public URL
       final publicUrl = _supabase.storage
           .from('reports')
           .getPublicUrl(fileName);
 
-      print('✅ Image uploaded successfully!');
-      print('   URL: $publicUrl');
+      Logger.success('Image uploaded successfully!', tag: 'ReportRepository');
+      Logger.log('URL: $publicUrl', tag: 'ReportRepository');
       return publicUrl;
     } on StorageException catch (e) {
-      print('❌ Storage error: ${e.message}');
-      print('   Error code: ${e.statusCode}');
-      print('⚠️ Continuing without image...');
+      Logger.error('Storage error: ${e.message}', tag: 'ReportRepository');
+      Logger.log('Error code: ${e.statusCode}', tag: 'ReportRepository');
+      Logger.log('Continuing without image...', tag: 'ReportRepository');
       return null;
     } catch (e) {
-      print('❌ Image upload failed: $e');
-      print('⚠️ Continuing without image...');
+      Logger.error('Image upload failed', tag: 'ReportRepository', error: e);
+      Logger.log('Continuing without image...', tag: 'ReportRepository');
       // Return null jika gagal, tapi jangan throw - laporan tetap bisa submit
       return null;
     }

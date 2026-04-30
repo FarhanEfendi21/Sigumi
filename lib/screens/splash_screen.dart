@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../providers/volcano_provider.dart';
-import '../providers/auth_provider.dart';
 import '../config/theme.dart';
 import '../config/routes.dart';
 

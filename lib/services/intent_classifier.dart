@@ -1,5 +1,6 @@
 import 'package:string_similarity/string_similarity.dart';
 import 'nlp_knowledge_base.dart';
+import '../utils/logger.dart';
 
 abstract class IntentClassifier {
   Future<void> init();
@@ -22,7 +23,7 @@ class TFLiteIntentClassifier implements IntentClassifier {
       // Example: await Tflite.loadModel(model: "assets/model.tflite", labels: "assets/labels.txt");
       _isTfliteInit = false; // Saat ini masih false karena model belum ada
     } catch (e) {
-      print('[SIGUMI] Failed to load TFLite model, falling back to dictionary. Error: $e');
+      Logger.error('Failed to load TFLite model, falling back to dictionary', tag: 'IntentClassifier', error: e);
       _isTfliteInit = false;
     }
   }

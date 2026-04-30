@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../config/fonts.dart';
 import '../../models/news_item.dart';
-import 'package:share_plus/share_plus.dart';
 
 class NewsDetailScreen extends StatelessWidget {
   const NewsDetailScreen({super.key});
@@ -207,7 +207,6 @@ class NewsDetailScreen extends StatelessWidget {
                       onPressed: () {
                         Share.share(
                           '${newsItem.title}\n\nBaca selengkapnya di aplikasi SIGUMI:\nhttps://sigumi.app/news/${newsItem.id}',
-                          subject: newsItem.title,
                         );
                       },
                     ),

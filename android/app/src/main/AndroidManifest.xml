@@ -9,8 +9,11 @@
     <!-- Background location untuk tracking saat app diminimize -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
 
+    <!-- Wajib untuk build apk release agar aplikasi bisa akses internet (Supabase) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
-        android:label="sigumi"
+        android:label="Sigumi"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

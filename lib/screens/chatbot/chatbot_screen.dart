@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/theme.dart';
 import '../../config/fonts.dart';
-import '../../config/constants.dart';
 import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
 import '../../services/voice_service.dart';

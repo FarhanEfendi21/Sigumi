@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
@@ -8,8 +10,6 @@ import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
 import '../../services/localization_service.dart';
 import '../../models/news_item.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:shimmer/shimmer.dart';
 import 'widgets/news_carousel.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,14 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      
       final volcanoProvider = context.read<VolcanoProvider>();
       await volcanoProvider.autoDetectAndSetRegion();
 
+      if (!mounted) return;
+      
       // Fetch news dari Supabase
       final newsProvider = context.read<NewsProvider>();
       await newsProvider.fetchLatestNews(limit: 5);
-
-      if (!mounted) return;
     });
   }
 
@@ -46,9 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
         return Scaffold(
           body: RefreshIndicator(
             onRefresh: () async {
+              // Get provider before async gap
+              final newsProvider = Provider.of<NewsProvider>(context, listen: false);
+              
               await provider.forceRefresh();
+              
+              if (!mounted) return;
+              
               // Refresh berita juga
-              final newsProvider = context.read<NewsProvider>();
               await newsProvider.refreshLatestNews(limit: 5);
             },
             child: SafeArea(

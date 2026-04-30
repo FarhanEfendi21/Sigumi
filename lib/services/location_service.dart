@@ -511,5 +511,6 @@ class LocationService extends ChangeNotifier {
     // CATATAN: sengaja TIDAK memanggil super.dispose() karena
     // LocationService adalah singleton — jika dispose dipanggil,
     // instance tetap hidup dan harus tetap bisa notify listeners.
+    super.dispose();
   }
 }

@@ -51,5 +51,15 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Permissions tambahan untuk Image Picker & Speech To Text -->
+	<key>NSCameraUsageDescription</key>
+	<string>SIGUMI memerlukan akses kamera untuk mengambil foto profil atau melaporkan kondisi visual di lapangan.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>SIGUMI memerlukan akses galeri untuk memilih foto profil atau foto laporan kejadian.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>SIGUMI memerlukan akses mikrofon untuk fitur perintah suara (Speech-to-Text).</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>SIGUMI memerlukan akses pengenalan suara untuk mengubah perintah suara Anda menjadi teks secara akurat.</string>
 </dict>
 </plist>
