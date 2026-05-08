@@ -683,12 +683,12 @@ class _FilterChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: isActive
-              ? const Color(0xFF1E1E2C)
+              ? SigumiTheme.primaryBlue
               : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isActive
-                ? const Color(0xFF1E1E2C)
+                ? SigumiTheme.primaryBlue
                 : Colors.grey.shade200,
             width: 1.5,
           ),

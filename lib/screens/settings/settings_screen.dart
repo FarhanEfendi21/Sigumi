@@ -33,6 +33,11 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
+        // ── Guest Mode: tampilkan halaman khusus ──────────────────
+        if (provider.isGuest) {
+          return const _GuestProfileView();
+        }
+
         return Scaffold(
           backgroundColor: _bgColor,
           // Gunakan transparent AppBar ala iOS — judul muncul di body
@@ -698,3 +703,268 @@ class _LogoutRow extends StatelessWidget {
     );
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GUEST PROFILE VIEW
+// Ditampilkan di tab Profil saat pengguna belum login (Guest Mode)
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _GuestProfileView extends StatelessWidget {
+  const _GuestProfileView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: SettingsScreen._bgColor,
+      appBar: AppBar(
+        backgroundColor: SettingsScreen._bgColor,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: true,
+        title: Text(
+          'Profil',
+          style: AppFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            color: SettingsScreen._labelPrimary,
+            fontSize: 18,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const SizedBox(height: 32),
+
+              // ── Avatar Placeholder ──────────────────────────────────
+              Container(
+                width: 96,
+                height: 96,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: SettingsScreen._bgColor,
+                  border: Border.all(
+                    color: SigumiTheme.primaryBlue.withAlpha(40),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  CupertinoIcons.person_crop_circle,
+                  size: 60,
+                  color: SigumiTheme.primaryBlue.withAlpha(80),
+                ),
+              )
+                  .animate()
+                  .scale(
+                    begin: const Offset(0.8, 0.8),
+                    duration: 400.ms,
+                    curve: Curves.easeOutBack,
+                  )
+                  .fadeIn(),
+
+              const SizedBox(height: 16),
+
+              // ── Label Guest ─────────────────────────────────────────
+              Text(
+                'Mode Tamu',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: SettingsScreen._labelPrimary,
+                ),
+              ).animate().fadeIn(delay: 100.ms),
+
+              const SizedBox(height: 8),
+
+              Text(
+                'Anda sedang menjelajahi SIGUMI\nsebagai tamu tanpa akun.',
+                textAlign: TextAlign.center,
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: SettingsScreen._labelSecondary,
+                  height: 1.6,
+                ),
+              ).animate().fadeIn(delay: 150.ms),
+
+              const SizedBox(height: 32),
+
+              // ── Card Manfaat Login ──────────────────────────────────
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: SigumiTheme.primaryBlue.withAlpha(25),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dengan akun, Anda bisa:',
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: SettingsScreen._labelSecondary,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    ...[
+                      (Icons.edit_note_rounded, 'Kirim Laporan Bencana',
+                          'Laporkan kejadian di sekitar Anda'),
+                      (Icons.chat_bubble_rounded, 'Tanya Chatbot AI Sigumi',
+                          'Dapatkan jawaban seputar kebencanaan'),
+                      (Icons.tune_rounded, 'Simpan Preferensi',
+                          'Bahasa, aksesibilitas, & notifikasi'),
+                      (Icons.history_rounded, 'Riwayat Laporan',
+                          'Pantau laporan yang pernah Anda buat'),
+                    ].map(
+                      (item) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                color: SigumiTheme.primaryBlue.withAlpha(12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Icon(
+                                item.$1,
+                                size: 17,
+                                color: SigumiTheme.primaryBlue,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.$2,
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: SettingsScreen._labelPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    item.$3,
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: SettingsScreen._labelSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, end: 0),
+
+              const SizedBox(height: 28),
+
+              // ── Tombol Masuk ────────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [SigumiTheme.primaryBlue, Color(0xFF2A3E9A)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: SigumiTheme.primaryBlue.withAlpha(70),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, AppRoutes.login),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    icon: const Icon(Icons.login_rounded, size: 20),
+                    label: Text(
+                      'Masuk ke Akun',
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.15, end: 0),
+
+              const SizedBox(height: 12),
+
+              // ── Tombol Daftar ───────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton.icon(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, AppRoutes.register),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: SigumiTheme.primaryBlue,
+                    side: BorderSide(
+                      color: SigumiTheme.primaryBlue.withAlpha(100),
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
+                  label: Text(
+                    'Buat Akun Baru',
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ).animate().fadeIn(delay: 350.ms).slideY(begin: 0.15, end: 0),
+
+              const SizedBox(height: 32),
+
+              // ── Label versi ─────────────────────────────────────────
+              Text(
+                'SIGUMI v1.0.0',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: SettingsScreen._labelTertiary,
+                ),
+              ).animate().fadeIn(delay: 400.ms),
+
+              const SizedBox(height: 96),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

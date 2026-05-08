@@ -63,7 +63,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _finishOnboarding() {
     context.read<VolcanoProvider>().completeOnboarding();
-    Navigator.pushReplacementNamed(context, AppRoutes.login);
+    Navigator.pushReplacementNamed(context, AppRoutes.main);
   }
 
   @override

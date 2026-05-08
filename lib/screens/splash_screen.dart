@@ -22,10 +22,9 @@ class _SplashScreenState extends State<SplashScreen> {
         final provider = context.read<VolcanoProvider>();
         if (provider.isFirstTime) {
           Navigator.pushReplacementNamed(context, AppRoutes.onboarding);
-        } else if (provider.isAuthenticated) {
-          Navigator.pushReplacementNamed(context, AppRoutes.main);
         } else {
-          Navigator.pushReplacementNamed(context, AppRoutes.login);
+          // Guest atau Authenticated — langsung ke Main
+          Navigator.pushReplacementNamed(context, AppRoutes.main);
         }
       }
     });
