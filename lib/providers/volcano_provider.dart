@@ -79,6 +79,7 @@ class VolcanoProvider extends ChangeNotifier {
   List<NewsItem> get newsItems => _newsItems;
   UserModel? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
+  bool get isGuest => !_isAuthenticated;
   bool get isAuthLoading => _isAuthLoading;
   String? get authError => _authError;
   String get language => _language;

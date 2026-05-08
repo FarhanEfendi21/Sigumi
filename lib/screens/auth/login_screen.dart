@@ -73,7 +73,13 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     if (success) {
-      Navigator.pushReplacementNamed(context, AppRoutes.main);
+      if (Navigator.canPop(context)) {
+        // Dibuka dari modal guest — kembali ke MainNavigation
+        Navigator.pop(context);
+      } else {
+        // Dibuka dari splash/fresh state — replace ke main
+        Navigator.pushReplacementNamed(context, AppRoutes.main);
+      }
     } else if (provider.authError != null) {
       _showError(provider.authError!);
       provider.clearAuthError();
