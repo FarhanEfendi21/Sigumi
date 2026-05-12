@@ -8,6 +8,7 @@ import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/localization_service.dart';
+import 'package:flutter/services.dart';
 
 /// Halaman Profil — mengikuti pedoman Apple Human Interface Guidelines (HIG).
 ///
@@ -517,7 +518,10 @@ class _ListRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
         splashColor: SettingsScreen._separatorColor.withAlpha(60),
         highlightColor: SettingsScreen._bgColor.withAlpha(120),
         child: Padding(
@@ -653,7 +657,10 @@ class _OfflineRow extends StatelessWidget {
           CupertinoSwitch(
             value: provider.isOffline,
             activeTrackColor: SigumiTheme.primaryBlue,
-            onChanged: (_) => provider.toggleOffline(),
+            onChanged: (val) {
+              HapticFeedback.lightImpact();
+              provider.toggleOffline();
+            },
           ),
         ],
       ),
@@ -672,7 +679,10 @@ class _LogoutRow extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.heavyImpact();
+          onTap();
+        },
         splashColor: SettingsScreen._destructiveRed.withAlpha(20),
         highlightColor: SettingsScreen._destructiveRed.withAlpha(10),
         child: const Padding(
@@ -896,8 +906,10 @@ class _GuestProfileView extends StatelessWidget {
                     ],
                   ),
                   child: ElevatedButton.icon(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRoutes.login),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.pushNamed(context, AppRoutes.login);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
@@ -925,8 +937,10 @@ class _GuestProfileView extends StatelessWidget {
                 width: double.infinity,
                 height: 52,
                 child: OutlinedButton.icon(
-                  onPressed: () =>
-                      Navigator.pushNamed(context, AppRoutes.register),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pushNamed(context, AppRoutes.register);
+                  },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: SigumiTheme.primaryBlue,
                     side: BorderSide(

@@ -288,9 +288,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
   }
 
   // ────────────────────────────────────────────────────────
-  // SECTION ZONA KRB — Selalu ada, tapi bisa di-collapse
-  // Level 1–2: default collapsed, ada dropdown
-  // Level 3–4: selalu expanded, tidak bisa di-collapse
+  // SECTION ZONA KRB — Selalu ada dan bisa di-collapse
   // ────────────────────────────────────────────────────────
   Widget _buildKrbSection(
     BuildContext context,
@@ -298,17 +296,15 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     bool isHighAlert,
     double hPad,
   ) {
-    final showExpand = !isHighAlert;
-    final isExpanded = isHighAlert || _isKrbExpanded;
+    final showExpand = true;
+    final isExpanded = _isKrbExpanded;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header section dengan tombol toggle
         GestureDetector(
-          onTap: showExpand
-              ? () => setState(() => _isKrbExpanded = !_isKrbExpanded)
-              : null,
+          onTap: () => setState(() => _isKrbExpanded = !_isKrbExpanded),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
