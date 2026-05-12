@@ -5,6 +5,7 @@ import '../../config/fonts.dart';
 import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
+import 'package:flutter/services.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -51,6 +52,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _onNext() {
+    HapticFeedback.lightImpact();
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 600),
@@ -62,6 +64,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _finishOnboarding() {
+    HapticFeedback.lightImpact();
     context.read<VolcanoProvider>().completeOnboarding();
     Navigator.pushReplacementNamed(context, AppRoutes.main);
   }
@@ -456,7 +459,10 @@ class _LangCardState extends State<_LangCard> {
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
-      onTap: () => context.read<VolcanoProvider>().setLanguage(widget.code),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.read<VolcanoProvider>().setLanguage(widget.code);
+      },
       child: AnimatedScale(
         scale: _isPressed ? 0.98 : 1.0,
         duration: const Duration(milliseconds: 100),

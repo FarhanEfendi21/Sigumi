@@ -11,6 +11,7 @@ import '../../services/ai_service.dart';
 import '../../services/localization_service.dart';
 import '../../models/news_item.dart';
 import 'widgets/news_carousel.dart';
+import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -1127,7 +1128,10 @@ class _ShadMenuCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
           borderRadius: BorderRadius.circular(16),
           splashColor: color.withAlpha(30),
           highlightColor: color.withAlpha(15),
@@ -1218,7 +1222,10 @@ class _TourismBannerCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => Navigator.pushNamed(context, AppRoutes.tourism),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            Navigator.pushNamed(context, AppRoutes.tourism);
+          },
           child: Stack(
             children: [
               // Decorative Background Icon

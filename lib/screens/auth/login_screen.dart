@@ -8,6 +8,7 @@ import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
 import '../../services/localization_service.dart';
+import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -52,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _login() async {
+    HapticFeedback.lightImpact();
     if (!_validate()) return;
 
     final phone = _phoneController.text.trim();

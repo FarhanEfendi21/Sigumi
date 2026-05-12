@@ -9,6 +9,7 @@ import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
 import '../../services/localization_service.dart';
+import 'package:flutter/services.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -94,6 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _register() async {
+    HapticFeedback.lightImpact();
     if (!_validate()) return;
 
     final name = _nameController.text.trim();

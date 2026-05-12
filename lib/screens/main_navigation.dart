@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -52,6 +53,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   void _onTabTap(int index) {
+    HapticFeedback.lightImpact();
     final isGuest = context.read<VolcanoProvider>().isGuest;
 
     if (isGuest && _authRequiredTabs.contains(index)) {
