@@ -93,6 +93,7 @@ class AiService {
   /// - [userLat], [userLng]: koordinat user untuk pencarian titik kumpul
   static Future<ChatMessage> getResponse(
     String userMessage, {
+    required String languageCode,
     bool isVoice = false,
     UserModel? user,
     double? userLat,
@@ -106,11 +107,10 @@ class AiService {
 
     // 3. Jika intent evakuasi DAN lokasi tersedia → intercept dengan titik kumpul
     if (intentResult.intent == 'evakuasi' && userLat != null && userLng != null) {
-      String detectedLang = NlpEngine.detectLanguage(userMessage);
       return _buildEvacuationResponse(
         userLat: userLat,
         userLng: userLng,
-        language: detectedLang,
+        language: languageCode,
         ageCategory: ageCategory,
         confidence: intentResult.confidence,
       );
@@ -119,6 +119,7 @@ class AiService {
     // 4. Untuk intent lainnya, delegasi ke NlpEngine
     return await NlpEngine.processMessage(
       userMessage,
+      appLanguage: languageCode,
       isVoice: isVoice,
       ageCategory: ageCategory,
     );
@@ -225,7 +226,7 @@ class AiService {
       language: language,
       messageType: MessageType.text,
       confidence: confidence,
-      detectedIntent: 'evakuasi',
+      intentId: 'evakuasi',
       isVoice: false,
     );
   }

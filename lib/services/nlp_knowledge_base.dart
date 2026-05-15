@@ -853,4 +853,45 @@ class NlpKnowledgeBase {
     'belajaraq': 'belajar', 'endeq': 'tidak',
     'leq': 'di', 'jok': 'ke', 'lampaq': 'jalan',
   };
+
+  // ═══════════════════════════════════════════════════════════════
+  // QUICK ACTION LABELS — Terjemahan tombol quick action chatbot
+  // ═══════════════════════════════════════════════════════════════
+  static const Map<String, List<Map<String, String>>> quickActionLabels = {
+    'id': [
+      {'label': 'Status Gunung', 'message': 'status gunung hari ini?'},
+      {'label': 'Jalur Evakuasi', 'message': 'jalur evakuasi mana?'},
+      {'label': 'Zona Bahaya', 'message': 'berapa zona bahayanya?'},
+      {'label': 'Tips Hujan Abu', 'message': 'tips saat hujan abu'},
+      {'label': 'Nomor Darurat', 'message': 'nomor telepon darurat'},
+    ],
+    'en': [
+      {'label': 'Volcano Status', 'message': 'volcano status today?'},
+      {'label': 'Evacuation Route', 'message': 'where is the evacuation route?'},
+      {'label': 'Danger Zone', 'message': 'what is the danger zone?'},
+      {'label': 'Ash Rain Tips', 'message': 'tips for ash rain'},
+      {'label': 'Emergency Numbers', 'message': 'emergency telephone numbers'},
+    ],
+    'jv': [
+      {'label': 'Status Gunung', 'message': 'status gunung saiki?'},
+      {'label': 'Jalur Evakuasi', 'message': 'jalur evakuasi ndi?'},
+      {'label': 'Zona Bahaya', 'message': 'piro zona bahayane?'},
+      {'label': 'Tips Udan Abu', 'message': 'tips wektu udan abu'},
+      {'label': 'Nomor Darurat', 'message': 'nomor telepon darurat'},
+    ],
+    'ba': [
+      {'label': 'Status Gunung', 'message': 'status gunung mangkin?'},
+      {'label': 'Jalur Evakuasi', 'message': 'jalur evakuasi dija?'},
+      {'label': 'Zona Bahaya', 'message': 'kuda zona bahayane?'},
+      {'label': 'Tips Ujan Abu', 'message': 'tips dugas ujan abu'},
+      {'label': 'Nomor Darurat', 'message': 'nomor telepon darurat'},
+    ],
+    'sas': [
+      {'label': 'Status Gunung', 'message': 'status gunung niki?'},
+      {'label': 'Jalur Evakuasi', 'message': 'jalur evakuasi mbe?'},
+      {'label': 'Zona Bahaya', 'message': 'berape zona bahayane?'},
+      {'label': 'Tips Ujan Abu', 'message': 'tips ujan abu'},
+      {'label': 'Nomor Darurat', 'message': 'nomor telepon darurat'},
+    ],
+  };
 }

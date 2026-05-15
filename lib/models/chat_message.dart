@@ -13,7 +13,7 @@ class ChatMessage {
   final MessageType messageType;
   final bool isVoice;
   final double? confidence;
-  final String? detectedIntent;
+  final String? intentId;
 
   ChatMessage({
     required this.content,
@@ -23,7 +23,7 @@ class ChatMessage {
     this.messageType = MessageType.text,
     this.isVoice = false,
     this.confidence,
-    this.detectedIntent,
+    this.intentId,
   });
 
   /// Factory constructor untuk pesan sistem (welcome, info, dll.)
@@ -34,6 +34,7 @@ class ChatMessage {
       timestamp: DateTime.now(),
       language: language,
       messageType: MessageType.system,
+      intentId: 'salam', // history intentId untuk pesan selamat datang
     );
   }
 
