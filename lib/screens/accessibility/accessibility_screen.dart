@@ -12,25 +12,34 @@ class AccessibilityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
+        final isHighContrast = provider.highContrast;
+        final bgColor = isHighContrast ? SigumiTheme.hcBackground : Colors.white;
+        final surfaceColor = isHighContrast ? SigumiTheme.hcSurface : Colors.white;
+        final primaryTextColor = isHighContrast ? SigumiTheme.hcPrimary : const Color(0xFF1E1E2C);
+        final secondaryTextColor = isHighContrast ? SigumiTheme.hcPrimary : const Color(0xFF4B4B5A);
+        final tertiaryTextColor = isHighContrast ? SigumiTheme.hcDivider : const Color(0xFF6B6B78);
+        final borderColor = isHighContrast ? SigumiTheme.hcBorder : const Color(0xFFE5E7EB);
+        final accentColor = isHighContrast ? SigumiTheme.hcSecondary : SigumiTheme.primaryBlue;
+        
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: bgColor,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: surfaceColor,
             elevation: 0,
             scrolledUnderElevation: 0,
             centerTitle: true,
-            iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
+            iconTheme: IconThemeData(color: primaryTextColor),
             title: Text(
               'Aksesibilitas Eksklusif',
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
-                color: const Color(0xFF1E1E2C),
+                color: primaryTextColor,
               ),
             ),
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
-              child: Container(color: const Color(0xFFE5E7EB), height: 1),
+              child: Container(color: borderColor, height: isHighContrast ? 2 : 1),
             ),
           ),
           body: SingleChildScrollView(
@@ -42,10 +51,15 @@ class AccessibilityScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: SigumiTheme.primaryBlue.withValues(alpha: 0.04),
+                    color: isHighContrast 
+                        ? SigumiTheme.hcSurface 
+                        : SigumiTheme.primaryBlue.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                      color: isHighContrast 
+                          ? SigumiTheme.hcBorder 
+                          : SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                      width: isHighContrast ? 2 : 1,
                     ),
                   ),
                   child: Row(
@@ -53,12 +67,16 @@ class AccessibilityScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                          color: isHighContrast 
+                              ? SigumiTheme.hcSecondary 
+                              : SigumiTheme.primaryBlue.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.accessibility_new_rounded,
-                          color: SigumiTheme.primaryBlue,
+                          color: isHighContrast 
+                              ? SigumiTheme.hcBackground 
+                              : SigumiTheme.primaryBlue,
                           size: 28,
                         ),
                       ),
@@ -70,7 +88,7 @@ class AccessibilityScreen extends StatelessWidget {
                             fontSize: 14,
                             height: 1.5,
                             fontWeight: FontWeight.w500,
-                            color: const Color(0xFF4B4B5A),
+                            color: secondaryTextColor,
                           ),
                         ),
                       ),
@@ -84,10 +102,12 @@ class AccessibilityScreen extends StatelessWidget {
                 _buildSectionHeader(
                   'Tampilan Visual',
                   Icons.visibility_outlined,
+                  tertiaryTextColor,
                 ),
                 const SizedBox(height: 16),
 
                 _SettingsCard(
+                  isHighContrast: isHighContrast,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -99,7 +119,7 @@ class AccessibilityScreen extends StatelessWidget {
                             style: AppFonts.plusJakartaSans(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: const Color(0xFF1E1E2C),
+                              color: primaryTextColor,
                             ),
                           ),
                           Text(
@@ -107,7 +127,7 @@ class AccessibilityScreen extends StatelessWidget {
                             style: AppFonts.plusJakartaSans(
                               fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              color: SigumiTheme.primaryBlue,
+                              color: accentColor,
                             ),
                           ),
                         ],
@@ -120,7 +140,7 @@ class AccessibilityScreen extends StatelessWidget {
                             style: AppFonts.plusJakartaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: const Color(0xFF6B6B78),
+                              color: tertiaryTextColor,
                             ),
                           ),
                           Expanded(
@@ -136,7 +156,7 @@ class AccessibilityScreen extends StatelessWidget {
                             style: AppFonts.plusJakartaSans(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E1E2C),
+                              color: primaryTextColor,
                             ),
                           ),
                         ],
@@ -147,7 +167,7 @@ class AccessibilityScreen extends StatelessWidget {
                           'Review Teks Dinamis',
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14 * provider.fontSize,
-                            color: const Color(0xFF4B4B5A),
+                            color: secondaryTextColor,
                           ),
                         ),
                       ),
@@ -158,11 +178,12 @@ class AccessibilityScreen extends StatelessWidget {
                 const SizedBox(height: 12),
 
                 _SettingsCard(
+                  isHighContrast: isHighContrast,
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.contrast_rounded,
-                        color: SigumiTheme.primaryBlue,
+                        color: accentColor,
                         size: 22,
                       ),
                       const SizedBox(width: 16),
@@ -175,14 +196,14 @@ class AccessibilityScreen extends StatelessWidget {
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF1E1E2C),
+                                color: primaryTextColor,
                               ),
                             ),
                             Text(
                               'Optimalkan keterbacaan warna',
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 12,
-                                color: const Color(0xFF6B6B78),
+                                color: tertiaryTextColor,
                               ),
                             ),
                           ],
@@ -199,15 +220,16 @@ class AccessibilityScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // ── Bantuan Suara Section ──
-                _buildSectionHeader('Bantuan Suara', Icons.volume_up_outlined),
+                _buildSectionHeader('Bantuan Suara', Icons.volume_up_outlined, tertiaryTextColor),
                 const SizedBox(height: 16),
 
                 _SettingsCard(
+                  isHighContrast: isHighContrast,
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.record_voice_over_rounded,
-                        color: SigumiTheme.primaryBlue,
+                        color: accentColor,
                         size: 22,
                       ),
                       const SizedBox(width: 16),
@@ -220,14 +242,14 @@ class AccessibilityScreen extends StatelessWidget {
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF1E1E2C),
+                                color: primaryTextColor,
                               ),
                             ),
                             Text(
                               'Narasi otomatis teks penting',
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 12,
-                                color: const Color(0xFF6B6B78),
+                                color: tertiaryTextColor,
                               ),
                             ),
                           ],
@@ -244,15 +266,16 @@ class AccessibilityScreen extends StatelessWidget {
                 const SizedBox(height: 32),
 
                 // ── Sistem Section ──
-                _buildSectionHeader('Sistem', Icons.settings_outlined),
+                _buildSectionHeader('Sistem', Icons.settings_outlined, tertiaryTextColor),
                 const SizedBox(height: 16),
 
                 _SettingsCard(
+                  isHighContrast: isHighContrast,
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.language_rounded,
-                        color: SigumiTheme.primaryBlue,
+                        color: accentColor,
                         size: 22,
                       ),
                       const SizedBox(width: 16),
@@ -262,7 +285,7 @@ class AccessibilityScreen extends StatelessWidget {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E1E2C),
+                            color: primaryTextColor,
                           ),
                         ),
                       ),
@@ -359,7 +382,7 @@ class AccessibilityScreen extends StatelessWidget {
                     style: AppFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
-                      color: const Color(0xFFE5E7EB),
+                      color: tertiaryTextColor,
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -373,17 +396,17 @@ class AccessibilityScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
+  Widget _buildSectionHeader(String title, IconData icon, Color color) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: const Color(0xFF6B6B78)),
+        Icon(icon, size: 18, color: color),
         const SizedBox(width: 8),
         Text(
           title.toUpperCase(),
           style: AppFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF6B6B78),
+            color: color,
             letterSpacing: 1.0,
           ),
         ),
@@ -394,7 +417,12 @@ class AccessibilityScreen extends StatelessWidget {
 
 class _SettingsCard extends StatelessWidget {
   final Widget child;
-  const _SettingsCard({required this.child});
+  final bool isHighContrast;
+  
+  const _SettingsCard({
+    required this.child, 
+    this.isHighContrast = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -402,10 +430,13 @@ class _SettingsCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isHighContrast ? SigumiTheme.hcSurface : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
+        border: Border.all(
+          color: isHighContrast ? SigumiTheme.hcBorder : const Color(0xFFE5E7EB),
+          width: isHighContrast ? 2 : 1,
+        ),
+        boxShadow: isHighContrast ? [] : [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,

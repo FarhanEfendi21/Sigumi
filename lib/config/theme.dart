@@ -37,6 +37,20 @@ class SigumiTheme {
   static const Color statusSiaga = Color(0xFFFF9800);
   static const Color statusAwas = Color(0xFFF44336);
 
+  // ── High Contrast Mode Colors (WCAG AAA compliant) ──
+  static const Color hcBackground = Color(0xFF000000); // Pure black
+  static const Color hcSurface = Color(0xFF1A1A1A); // Dark gray surface
+  static const Color hcPrimary = Color(0xFFFFFFFF); // Pure white text
+  static const Color hcSecondary = Color(0xFFFFD600); // Bright yellow accent
+  static const Color hcBorder = Color(0xFFFFFFFF); // White borders
+  static const Color hcDivider = Color(0xFF666666); // Medium gray divider
+  
+  // High contrast status colors (higher saturation)
+  static const Color hcStatusNormal = Color(0xFF00FF00); // Bright green
+  static const Color hcStatusWaspada = Color(0xFFFFFF00); // Bright yellow
+  static const Color hcStatusSiaga = Color(0xFFFF8800); // Bright orange
+  static const Color hcStatusAwas = Color(0xFFFF0000); // Bright red
+
   // Zone Colors
   static const Color zoneDanger = Color(0x40F44336);
   static const Color zoneWarning = Color(0x40FF9800);
@@ -184,7 +198,156 @@ class SigumiTheme {
     );
   }
 
-  static Color getStatusColor(int level) {
+  static ThemeData get highContrastTheme {
+    return ThemeData(
+      useMaterial3: true,
+      fontFamily: AppFonts.family,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: hcSecondary,
+        primary: hcPrimary,
+        secondary: hcSecondary,
+        surface: hcSurface,
+        brightness: Brightness.dark,
+        onPrimary: hcBackground,
+        onSecondary: hcBackground,
+        onSurface: hcPrimary,
+      ),
+      scaffoldBackgroundColor: hcBackground,
+      textTheme: const TextTheme().copyWith(
+        headlineLarge: AppFonts.plusJakartaSans(
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          color: hcPrimary,
+        ),
+        headlineMedium: AppFonts.plusJakartaSans(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: hcPrimary,
+        ),
+        titleLarge: AppFonts.plusJakartaSans(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: hcPrimary,
+        ),
+        titleMedium: AppFonts.plusJakartaSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: hcPrimary,
+        ),
+        bodyLarge: AppFonts.plusJakartaSans(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: hcPrimary,
+        ),
+        bodyMedium: AppFonts.plusJakartaSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: hcPrimary,
+        ),
+        labelLarge: AppFonts.plusJakartaSans(
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+          color: hcBackground,
+        ),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: hcSurface,
+        foregroundColor: hcPrimary,
+        elevation: 0,
+        centerTitle: true,
+        scrolledUnderElevation: 0,
+        shadowColor: Colors.transparent,
+        titleTextStyle: AppFonts.plusJakartaSans(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: hcPrimary,
+          letterSpacing: 0.3,
+        ),
+        iconTheme: const IconThemeData(color: hcPrimary),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: hcSecondary,
+          foregroundColor: hcBackground,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+            side: const BorderSide(color: hcBorder, width: 2),
+          ),
+          textStyle: AppFonts.plusJakartaSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: hcBorder, width: 2),
+        ),
+        color: hcSurface,
+        surfaceTintColor: Colors.transparent,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: hcSurface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: hcBorder, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: hcBorder, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(28),
+          borderSide: const BorderSide(color: hcSecondary, width: 3),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ),
+        hintStyle: AppFonts.plusJakartaSans(
+          color: hcDivider,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        labelStyle: AppFonts.plusJakartaSans(
+          color: hcPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: hcSurface,
+        selectedItemColor: hcSecondary,
+        unselectedItemColor: hcDivider,
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+      ),
+      dividerColor: hcDivider,
+      iconTheme: const IconThemeData(color: hcPrimary),
+    );
+  }
+
+  static Color getStatusColor(int level, {bool highContrast = false}) {
+    if (highContrast) {
+      switch (level) {
+        case 1:
+          return hcStatusNormal;
+        case 2:
+          return hcStatusWaspada;
+        case 3:
+          return hcStatusSiaga;
+        case 4:
+          return hcStatusAwas;
+        default:
+          return hcStatusNormal;
+      }
+    }
+    
     switch (level) {
       case 1:
         return statusNormal;

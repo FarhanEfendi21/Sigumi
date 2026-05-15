@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
+import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
@@ -41,12 +42,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+    
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
         final volcano = provider.volcano;
-        final statusColor = SigumiTheme.getStatusColor(volcano.statusLevel);
+        final statusColor = SigumiTheme.getStatusColor(volcano.statusLevel, highContrast: isHighContrast);
 
         return Scaffold(
+          backgroundColor: context.bgSecondary,
           body: RefreshIndicator(
             onRefresh: () async {
               // Get provider before async gap
@@ -70,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: isHighContrast ? null : const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
@@ -80,17 +84,16 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                           stops: [0.0, 0.55, 1.0],
                         ),
+                        color: isHighContrast ? context.bgSurface : null,
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(28),
                           bottomRight: Radius.circular(28),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1B2E7B).withAlpha(18),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+                        border: isHighContrast ? Border.all(
+                          color: context.borderColor,
+                          width: context.borderWidth,
+                        ) : null,
+                        boxShadow: context.cardShadow,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,8 +115,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       AiService.getPersonalizedGreeting(
                                         provider.currentUser,
                                       ),
-                                      style: const TextStyle(
-                                        color: Color(0xFF5A6380),
+                                      style: TextStyle(
+                                        color: context.textTertiary,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -133,23 +136,27 @@ class _HomeScreenState extends State<HomeScreen> {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.orange.withAlpha(30),
+                                        color: context.warningColor.withValues(alpha: 0.15),
                                         borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: context.warningColor.withValues(alpha: 0.3),
+                                        ),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             Icons.cloud_off,
-                                            color: Colors.orange,
+                                            color: context.warningColor,
                                             size: 14,
                                           ),
-                                          SizedBox(width: 4),
+                                          const SizedBox(width: 4),
                                           Text(
                                             'Offline',
                                             style: TextStyle(
-                                              color: Colors.orange,
+                                              color: context.warningColor,
                                               fontSize: 11,
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],
@@ -221,7 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              gradient: LinearGradient(
+                                              gradient: isHighContrast ? null : LinearGradient(
                                                 begin: Alignment.topCenter,
                                                 end: Alignment.bottomCenter,
                                                 colors: [
@@ -230,6 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ],
                                                 stops: const [0.25, 1.0],
                                               ),
+                                              color: isHighContrast ? context.overlayDark(0.7) : null,
                                             ),
                                           ),
                                         ),
@@ -775,9 +783,12 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1B2E7B).withAlpha(15),
+            color: context.accentPrimary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF1B2E7B).withAlpha(20)),
+            border: Border.all(
+              color: context.borderColor,
+              width: context.borderWidth,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -788,8 +799,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     : Icons.location_on_rounded,
                 color:
                     isAutoDetected
-                        ? Colors.green.shade600
-                        : const Color(0xFF1B2E7B),
+                        ? context.successColor
+                        : context.accentPrimary,
                 size: 16,
               ),
               const SizedBox(width: 4),
@@ -801,15 +812,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       context.tr('your_location'),
                       style: TextStyle(
-                        color: Colors.green.shade600,
+                        color: context.successColor,
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   Text(
                     provider.selectedRegion,
-                    style: const TextStyle(
-                      color: Color(0xFF1B2E7B),
+                    style: TextStyle(
+                      color: context.textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -817,9 +828,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(width: 2),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: Color(0xFF1B2E7B),
+                color: context.textPrimary,
                 size: 16,
               ),
             ],
@@ -883,11 +894,15 @@ class _HomeScreenState extends State<HomeScreen> {
         return PopScope(
           canPop: isDismissible,
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: context.bgPrimary,
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
+              ),
+              border: Border.all(
+                color: context.borderColor,
+                width: context.borderWidth,
               ),
             ),
             child: Column(
@@ -1118,9 +1133,11 @@ class _ShadMenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = color.withAlpha(15);
-    final iconBgColor = color.withAlpha(30);
-    final iconColor = color.withAlpha(220);
+    final isHighContrast = context.isHighContrast;
+    final bgColor = isHighContrast ? context.bgSurface : color.withAlpha(15);
+    final iconBgColor = isHighContrast ? context.accentSecondary.withValues(alpha: 0.3) : color.withAlpha(30);
+    final iconColor = isHighContrast ? context.textPrimary : color.withAlpha(220);
+    final borderColor = isHighContrast ? context.borderColor : color.withAlpha(40);
 
     return ShadCard(
       padding: EdgeInsets.zero,
@@ -1139,7 +1156,10 @@ class _ShadMenuCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withAlpha(40), width: 1),
+              border: Border.all(
+                color: borderColor,
+                width: context.borderWidth,
+              ),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
@@ -1163,7 +1183,7 @@ class _ShadMenuCard extends StatelessWidget {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: SigumiTheme.textPrimary.withAlpha(220),
+                        color: context.textPrimary,
                         height: 1.1,
                       ),
                       maxLines: 2,
@@ -1197,6 +1217,7 @@ class _TourismBannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
     // Default fallback to signature blue if region not strictly matched
     final bgColor = _regionColors[region] ?? const Color(0xFF1B2E7B);
 
@@ -1204,13 +1225,18 @@ class _TourismBannerCard extends StatelessWidget {
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 110),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: isHighContrast ? null : LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [bgColor, bgColor.withAlpha(200)],
         ),
+        color: isHighContrast ? context.accentPrimary : null,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
+        border: isHighContrast ? Border.all(
+          color: context.borderColor,
+          width: context.borderWidth,
+        ) : null,
+        boxShadow: isHighContrast ? [] : [
           BoxShadow(
             color: bgColor.withAlpha(50),
             blurRadius: 12,

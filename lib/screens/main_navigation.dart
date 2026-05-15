@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../config/theme.dart';
 import '../config/fonts.dart';
 import '../config/routes.dart';
+import '../config/theme_extensions.dart';
 import '../providers/volcano_provider.dart';
 import '../services/localization_service.dart';
 import 'home/home_screen.dart';
@@ -75,11 +76,11 @@ class _MainNavigationState extends State<MainNavigation> {
       builder: (_) => _LoginPromptSheet(
         targetTabIndex: targetTabIndex,
         onLoginSuccess: () {
-          // Setelah login sukses, navigasi ke tab yang dicoba
+          // Setelah login sukses, kembali ke home (index 0)
           if (mounted) {
             setState(() {
-              _loadedTabs.add(targetTabIndex);
-              _currentIndex = targetTabIndex;
+              _loadedTabs.add(0);
+              _currentIndex = 0;
             });
           }
         },
@@ -157,9 +158,13 @@ class _LoginPromptSheet extends StatelessWidget {
     final info = _tabInfo[targetTabIndex]!;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: context.bgPrimary,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border.all(
+          color: context.borderColor,
+          width: context.borderWidth,
+        ),
       ),
       padding: EdgeInsets.fromLTRB(
         24, 16, 24, MediaQuery.of(context).padding.bottom + 24,
@@ -172,7 +177,7 @@ class _LoginPromptSheet extends StatelessWidget {
             width: 40,
             height: 5,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: context.dividerColor,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -183,10 +188,10 @@ class _LoginPromptSheet extends StatelessWidget {
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: SigumiTheme.primaryBlue.withAlpha(15),
+              color: context.accentPrimary.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(info.icon, color: SigumiTheme.primaryBlue, size: 34),
+            child: Icon(info.icon, color: context.accentPrimary, size: 34),
           )
               .animate()
               .scale(
@@ -202,21 +207,24 @@ class _LoginPromptSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
-              color: Colors.orange.shade50,
+              color: context.warningColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.orange.shade200),
+              border: Border.all(
+                color: context.warningColor,
+                width: context.borderWidth,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.lock_rounded, size: 13, color: Colors.orange.shade700),
+                Icon(Icons.lock_rounded, size: 13, color: context.warningColor),
                 const SizedBox(width: 5),
                 Text(
                   'Perlu Login',
                   style: AppFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: Colors.orange.shade700,
+                    color: context.warningColor,
                   ),
                 ),
               ],
@@ -231,7 +239,7 @@ class _LoginPromptSheet extends StatelessWidget {
             style: AppFonts.plusJakartaSans(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF1A1A1A),
+              color: context.textPrimary,
             ),
           ).animate().fadeIn(delay: 150.ms),
 
@@ -243,7 +251,7 @@ class _LoginPromptSheet extends StatelessWidget {
             textAlign: TextAlign.center,
             style: AppFonts.plusJakartaSans(
               fontSize: 14,
-              color: Colors.grey.shade600,
+              color: context.textSecondary,
               height: 1.5,
             ),
           ).animate().fadeIn(delay: 200.ms),
@@ -256,17 +264,16 @@ class _LoginPromptSheet extends StatelessWidget {
             height: 52,
             child: DecoratedBox(
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: context.isHighContrast ? null : const LinearGradient(
                   colors: [SigumiTheme.primaryBlue, Color(0xFF2A3E9A)],
                 ),
+                color: context.isHighContrast ? context.accentPrimary : null,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: SigumiTheme.primaryBlue.withAlpha(70),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                border: context.isHighContrast ? Border.all(
+                  color: context.borderColor,
+                  width: context.borderWidth,
+                ) : null,
+                boxShadow: context.cardShadow,
               ),
               child: ElevatedButton.icon(
                 onPressed: () async {
@@ -283,7 +290,7 @@ class _LoginPromptSheet extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  foregroundColor: Colors.white,
+                  foregroundColor: context.isHighContrast ? context.bgPrimary : Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -317,10 +324,10 @@ class _LoginPromptSheet extends StatelessWidget {
                 }
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: SigumiTheme.primaryBlue,
+                foregroundColor: context.accentPrimary,
                 side: BorderSide(
-                  color: SigumiTheme.primaryBlue.withAlpha(100),
-                  width: 1.5,
+                  color: context.borderColor,
+                  width: context.borderWidth,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -346,7 +353,7 @@ class _LoginPromptSheet extends StatelessWidget {
               'Lanjut sebagai Tamu',
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
-                color: Colors.grey.shade500,
+                color: context.textTertiary,
               ),
             ),
           ).animate().fadeIn(delay: 350.ms),
@@ -403,22 +410,13 @@ class _ModernBottomNav extends StatelessWidget {
       child: Container(
         height: 72,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.bgSurface,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: SigumiTheme.primaryBlue.withAlpha(18),
-              blurRadius: 24,
-              spreadRadius: 0,
-              offset: const Offset(0, 4),
-            ),
-            BoxShadow(
-              color: Colors.black.withAlpha(10),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-          border: Border.all(color: SigumiTheme.divider.withAlpha(60)),
+          boxShadow: context.cardShadow,
+          border: Border.all(
+            color: context.borderColor,
+            width: context.borderWidth,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -450,7 +448,7 @@ class _ModernBottomNav extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? SigumiTheme.primaryBlue.withAlpha(20)
+                                  ? context.accentPrimary.withValues(alpha: 0.15)
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -458,10 +456,10 @@ class _ModernBottomNav extends StatelessWidget {
                               isSelected ? item.activeIcon : item.icon,
                               size: isSelected ? 24 : 22,
                               color: isLocked
-                                  ? SigumiTheme.textSecondary.withAlpha(140)
+                                  ? context.textTertiary
                                   : isSelected
-                                      ? SigumiTheme.primaryBlue
-                                      : SigumiTheme.textSecondary,
+                                      ? context.accentPrimary
+                                      : context.textSecondary,
                             ),
                           ),
                           // Lock badge kecil
@@ -473,10 +471,10 @@ class _ModernBottomNav extends StatelessWidget {
                                 width: 14,
                                 height: 14,
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.shade400,
+                                  color: context.warningColor,
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.white,
+                                    color: context.bgSurface,
                                     width: 1.5,
                                   ),
                                 ),
@@ -498,10 +496,10 @@ class _ModernBottomNav extends StatelessWidget {
                               ? FontWeight.w700
                               : FontWeight.w500,
                           color: isLocked
-                              ? SigumiTheme.textSecondary.withAlpha(140)
+                              ? context.textTertiary
                               : isSelected
-                                  ? SigumiTheme.primaryBlue
-                                  : SigumiTheme.textSecondary,
+                                  ? context.accentPrimary
+                                  : context.textSecondary,
                         ),
                         child: Consumer<VolcanoProvider>(
                           builder: (ctx, prov, _) => Text(

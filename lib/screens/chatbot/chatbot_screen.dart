@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/theme.dart';
 import '../../config/fonts.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
 import '../../services/voice_service.dart';
@@ -104,7 +105,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     return await showDialog<bool>(
           context: context,
           barrierDismissible: false,
-          builder: (context) => Dialog(
+          builder: (dialogContext) => Dialog(
+            backgroundColor: dialogContext.bgSurface,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             child: Padding(
@@ -117,13 +119,13 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: SigumiTheme.primaryBlue.withValues(alpha: 0.08),
+                      color: dialogContext.accentPrimary.withValues(alpha: 0.08),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.mic_rounded,
                       size: 36,
-                      color: SigumiTheme.primaryBlue,
+                      color: dialogContext.accentPrimary,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -133,7 +135,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     style: AppFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1E1E2C),
+                      color: dialogContext.textPrimary,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -143,7 +145,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.',
                     style: AppFonts.plusJakartaSans(
                       fontSize: 14,
-                      color: const Color(0xFF6B6B78),
+                      color: dialogContext.textTertiary,
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
@@ -155,14 +157,14 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     width: double.infinity,
                     child: ShadButton(
                       height: 48,
-                      backgroundColor: SigumiTheme.primaryBlue,
-                      onPressed: () => Navigator.of(context).pop(true),
+                      backgroundColor: dialogContext.accentPrimary,
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
                       child: Text(
                         'Izinkan Akses',
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: dialogContext.bgPrimary,
                         ),
                       ),
                     ),
@@ -174,13 +176,13 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     width: double.infinity,
                     child: ShadButton.outline(
                       height: 48,
-                      onPressed: () => Navigator.of(context).pop(false),
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
                       child: Text(
                         'Nanti Saja',
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: const Color(0xFF6B6B78),
+                          color: dialogContext.textTertiary,
                         ),
                       ),
                     ),
@@ -197,7 +199,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   void _showPermissionDeniedDialog() {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (dialogContext) => Dialog(
+        backgroundColor: dialogContext.bgSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -209,13 +212,13 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 width: 72,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
+                  color: dialogContext.warningColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.mic_off_rounded,
                   size: 36,
-                  color: Colors.orange.shade600,
+                  color: dialogContext.warningColor,
                 ),
               ),
               const SizedBox(height: 20),
@@ -225,7 +228,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 style: AppFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E1E2C),
+                  color: dialogContext.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -235,7 +238,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 'Fitur voice input memerlukan akses ke mikrofon.\n\nAnda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.',
                 style: AppFonts.plusJakartaSans(
                   fontSize: 14,
-                  color: const Color(0xFF6B6B78),
+                  color: dialogContext.textTertiary,
                   height: 1.5,
                 ),
                 textAlign: TextAlign.center,
@@ -246,14 +249,14 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 width: double.infinity,
                 child: ShadButton(
                   height: 48,
-                  backgroundColor: SigumiTheme.primaryBlue,
-                  onPressed: () => Navigator.of(context).pop(),
+                  backgroundColor: dialogContext.accentPrimary,
+                  onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text(
                     'Mengerti',
                     style: AppFonts.plusJakartaSans(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: dialogContext.bgPrimary,
                     ),
                   ),
                 ),
@@ -271,9 +274,12 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       SnackBar(
         content: Text(
           message,
-          style: AppFonts.plusJakartaSans(color: Colors.white, fontSize: 13),
+          style: AppFonts.plusJakartaSans(
+            color: context.bgPrimary, 
+            fontSize: 13
+          ),
         ),
-        backgroundColor: SigumiTheme.statusAwas,
+        backgroundColor: context.errorColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
@@ -426,17 +432,23 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< Updated upstream
   
     const Color bgColor = Color(0xFFF8F9FA);
     const Color headerTextColor = Color(0xFF1E1E2C);
+=======
+    final currentAppLanguage = context.watch<VolcanoProvider>().language;
+    final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
+                         NlpKnowledgeBase.quickActionLabels['id']!;
+>>>>>>> Stashed changes
 
     return Scaffold(
-      backgroundColor: bgColor,
+      backgroundColor: context.bgSecondary,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.bgPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: headerTextColor),
+        iconTheme: IconThemeData(color: context.textPrimary),
         centerTitle: true,
         title: Row(
           mainAxisSize: MainAxisSize.min,
@@ -446,16 +458,19 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
-                color: const Color(0xFF1E1E2C),
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: Colors.green.shade50,
+                color: context.successColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.green.shade200),
+                border: Border.all(
+                  color: context.successColor.withValues(alpha: 0.3),
+                  width: context.borderWidth,
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -464,7 +479,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     width: 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: Colors.green.shade500,
+                      color: context.successColor,
                       shape: BoxShape.circle,
                     ),
                   )
@@ -476,7 +491,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   Text(
                     'Aktif',
                     style: AppFonts.plusJakartaSans(
-                      color: Colors.green.shade700,
+                      color: context.successColor,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                     ),
@@ -489,8 +504,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
-            height: 1,
-            color: const Color(0xFFE5E7EB),
+            height: context.borderWidth,
+            color: context.dividerColor,
           ),
         ),
       ),
@@ -518,7 +533,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
           // Quick Actions (Horizontal Scroll)
           Container(
-            color: Colors.white,
+            color: context.bgPrimary,
             padding: const EdgeInsets.only(top: 12, bottom: 8),
             child: SizedBox(
               height: 36,
@@ -556,15 +571,21 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SigumiTheme.primaryBlue.withValues(alpha: 0.05),
-            Colors.red.withValues(alpha: 0.04),
+            context.accentPrimary.withValues(alpha: 0.05),
+            context.errorColor.withValues(alpha: 0.04),
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
-        border: const Border(
-          top: BorderSide(color: Color(0xFFE5E7EB), width: 0.5),
-          bottom: BorderSide(color: Color(0xFFE5E7EB), width: 0.5),
+        border: Border(
+          top: BorderSide(
+            color: context.dividerColor, 
+            width: context.borderWidth,
+          ),
+          bottom: BorderSide(
+            color: context.dividerColor, 
+            width: context.borderWidth,
+          ),
         ),
       ),
       child: Row(
@@ -574,12 +595,12 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: Colors.red.shade50,
+              color: context.errorColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.mic_rounded,
-              color: Colors.red.shade500,
+              color: context.errorColor,
               size: 20,
             ),
           )
@@ -602,7 +623,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   style: AppFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.red.shade600,
+                    color: context.errorColor,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -610,7 +631,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   'Silakan bicara dengan jelas',
                   style: AppFonts.plusJakartaSans(
                     fontSize: 11,
-                    color: const Color(0xFF9CA3AF),
+                    color: context.textTertiary,
                   ),
                 ),
               ],
@@ -633,7 +654,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     width: 3,
                     height: height,
                     decoration: BoxDecoration(
-                      color: Colors.red.shade400.withValues(
+                      color: context.errorColor.withValues(
                           alpha: 0.5 + value * 0.5),
                       borderRadius: BorderRadius.circular(2),
                     ),
@@ -652,19 +673,13 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.red.shade500,
+                color: context.errorColor,
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.red.shade300.withValues(alpha: 0.4),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: context.cardShadow,
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.stop_rounded,
-                color: Colors.white,
+                color: context.bgPrimary,
                 size: 20,
               ),
             ),
@@ -684,17 +699,14 @@ class _ChatbotScreenState extends State<ChatbotScreen>
         bottom: 12 + MediaQuery.of(context).padding.bottom,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(
-          top: BorderSide(color: Color(0xFFE5E7EB), width: 1),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
+        color: context.bgPrimary,
+        border: Border(
+          top: BorderSide(
+            color: context.dividerColor, 
+            width: context.borderWidth,
           ),
-        ],
+        ),
+        boxShadow: context.cardShadow,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -718,13 +730,13 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               onSubmitted: (_) => _sendMessage(),
               style: AppFonts.plusJakartaSans(
                 fontSize: 14,
-                color: const Color(0xFF1E1E2C),
+                color: context.textPrimary,
               ),
               placeholderStyle: AppFonts.plusJakartaSans(
                 fontSize: 14,
                 color: _isListening
-                    ? Colors.red.shade400
-                    : const Color(0xFF9CA3AF),
+                    ? context.errorColor
+                    : context.textTertiary,
               ),
             ),
           ),
@@ -736,9 +748,13 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             width: 48,
             height: 48,
             padding: EdgeInsets.zero,
-            backgroundColor: SigumiTheme.primaryBlue,
+            backgroundColor: context.accentPrimary,
             onPressed: () => _sendMessage(),
-            child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+            child: Icon(
+              Icons.send_rounded, 
+              color: context.bgPrimary, 
+              size: 20
+            ),
           ),
         ],
       ),
@@ -766,7 +782,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   height: 48 * _pulseAnimation.value,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.red.shade300
+                    color: context.errorColor
                         .withValues(alpha: 0.3 * (2 - _pulseAnimation.value)),
                   ),
                 );
@@ -779,15 +795,15 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             height: 48,
             padding: EdgeInsets.zero,
             backgroundColor:
-                _isListening ? Colors.red.shade50 : Colors.white,
+                _isListening ? context.errorColor.withValues(alpha: 0.1) : context.bgPrimary,
             onPressed: _toggleListening,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               child: Icon(
                 _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
                 color: _isListening
-                    ? Colors.red.shade600
-                    : const Color(0xFF6B6B78),
+                    ? context.errorColor
+                    : context.textTertiary,
                 size: 22,
               ),
             ),
@@ -806,16 +822,13 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.bgSurface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(
+                color: context.borderColor,
+                width: context.borderWidth,
+              ),
+              boxShadow: context.cardShadow,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -823,11 +836,14 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                    color: context.accentPrimary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.info_outline_rounded,
-                      size: 14, color: SigumiTheme.primaryBlue),
+                  child: Icon(
+                    Icons.info_outline_rounded,
+                    size: 14, 
+                    color: context.accentPrimary
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Flexible(
@@ -835,7 +851,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     message.content,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: const Color(0xFF6B6B78),
+                      color: context.textTertiary,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -863,26 +879,23 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.bgSurface,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                border: Border.all(
+                  color: context.borderColor,
+                  width: context.borderWidth,
+                ),
+                boxShadow: context.cardShadow,
               ),
               child: ClipOval(
                 child: Padding(
                   padding: const EdgeInsets.all(6),
                   child: Image.asset(
                     'assets/images/SIGUMI-logo.png',
-                    errorBuilder: (ctx, err, stack) => const Icon(
+                    errorBuilder: (ctx, err, stack) => Icon(
                         Icons.smart_toy_rounded,
                         size: 20,
-                        color: SigumiTheme.primaryBlue),
+                        color: context.accentPrimary),
                   ),
                 ),
               ),
@@ -899,7 +912,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isUser ? SigumiTheme.primaryBlue : Colors.white,
+                color: isUser ? context.accentPrimary : context.bgSurface,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -908,16 +921,11 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 ),
                 border: isUser
                     ? null
-                    : Border.all(color: const Color(0xFFE5E7EB)),
-                boxShadow: [
-                  BoxShadow(
-                    color: isUser
-                        ? SigumiTheme.primaryBlue.withValues(alpha: 0.2)
-                        : Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                    : Border.all(
+                        color: context.borderColor,
+                        width: context.borderWidth,
+                      ),
+                boxShadow: context.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment:
@@ -933,8 +941,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                             Icons.mic_rounded,
                             size: 14,
                             color: isUser
-                                ? Colors.white.withValues(alpha: 0.7)
-                                : const Color(0xFF9CA3AF),
+                                ? context.bgPrimary.withValues(alpha: 0.7)
+                                : context.textTertiary,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -943,8 +951,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: isUser
-                                  ? Colors.white.withValues(alpha: 0.7)
-                                  : const Color(0xFF9CA3AF),
+                                  ? context.bgPrimary.withValues(alpha: 0.7)
+                                  : context.textTertiary,
                             ),
                           ),
                         ],
@@ -953,7 +961,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   Text(
                     message.content,
                     style: AppFonts.plusJakartaSans(
-                      color: isUser ? Colors.white : const Color(0xFF1E1E2C),
+                      color: isUser ? context.bgPrimary : context.textPrimary,
                       fontSize: 14,
                       height: 1.5,
                       fontWeight: FontWeight.w500,
@@ -962,8 +970,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   if (!isUser) ...[
                     const SizedBox(height: 8),
                     Container(
-                      height: 1,
-                      color: const Color(0xFFE5E7EB),
+                      height: context.borderWidth,
+                      color: context.dividerColor,
                     ),
                     const SizedBox(height: 6),
                     Row(
@@ -983,14 +991,18 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.volume_up_rounded, size: 16, color: SigumiTheme.primaryBlue),
+                                  Icon(
+                                    Icons.volume_up_rounded, 
+                                    size: 16, 
+                                    color: context.accentPrimary
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Dengarkan',
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: SigumiTheme.primaryBlue,
+                                      color: context.accentPrimary,
                                     ),
                                   ),
                                 ],
@@ -1003,7 +1015,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                            Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                                color: context.accentPrimary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -1011,7 +1023,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: SigumiTheme.primaryBlue,
+                                  color: context.accentPrimary,
                                 ),
                               ),
                            ),
@@ -1041,25 +1053,34 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.bgSurface,
               shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              border: Border.all(
+                color: context.borderColor,
+                width: context.borderWidth,
+              ),
             ),
-            child: const Icon(Icons.smart_toy_rounded,
-                size: 20, color: SigumiTheme.primaryBlue),
+            child: Icon(
+              Icons.smart_toy_rounded,
+              size: 20, 
+              color: context.accentPrimary
+            ),
           ),
           const SizedBox(width: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.bgSurface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
                 bottomLeft: Radius.circular(4),
                 bottomRight: Radius.circular(16),
               ),
-              border: Border.all(color: const Color(0xFFE5E7EB)),
+              border: Border.all(
+                color: context.borderColor,
+                width: context.borderWidth,
+              ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -1068,8 +1089,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   width: 6,
                   height: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF9CA3AF),
+                  decoration: BoxDecoration(
+                    color: context.textTertiary,
                     shape: BoxShape.circle,
                   ),
                 )
@@ -1111,13 +1132,13 @@ class _QuickActionButton extends StatelessWidget {
         height: 36,
         padding: const EdgeInsets.symmetric(horizontal: 14),
         onPressed: onTap,
-        backgroundColor: Colors.white,
+        backgroundColor: context.bgSurface,
         child: Text(
           label,
           style: AppFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF4B5563),
+            color: context.textSecondary,
           ),
         ),
       ),
