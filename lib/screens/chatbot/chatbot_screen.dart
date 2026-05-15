@@ -8,6 +8,7 @@ import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
 import '../../services/voice_service.dart';
 import '../../services/location_service.dart';
+import '../../services/nlp_knowledge_base.dart';
 import '../../providers/volcano_provider.dart';
 
 class ChatbotScreen extends StatefulWidget {
@@ -290,9 +291,10 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   void _sendWelcomeMessage() {
     final provider = context.read<VolcanoProvider>();
     final user = provider.currentUser;
+    final currentAppLanguage = provider.language;
     setState(() {
       _messages.add(ChatMessage.system(
-        '${AiService.getWelcomeMessage('id', user: user)}\n\nℹ️ Chatbot ini dapat mendeteksi bahasa otomatis (id, en, jv, su, ba, sas). Anda bebas mengetik atau menggunakan suara.',
+        '${AiService.getWelcomeMessage(currentAppLanguage, user: user)}\n\nℹ️ Chatbot merespons menggunakan bahasa aplikasi yang Anda pilih di menu Pengaturan.',
       ));
     });
   }
@@ -312,13 +314,14 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     final text = _messageController.text.trim();
     if (text.isEmpty) return;
 
+    final currentAppLanguage = context.read<VolcanoProvider>().language;
+
     setState(() {
       _messages.add(ChatMessage(
         content: text,
         isUser: true,
         timestamp: DateTime.now(),
-        // language property handled by auto-detect later, default to user input text
-        language: 'id',
+        language: currentAppLanguage,
         isVoice: isVoice,
       ));
       _isTyping = true;
@@ -343,6 +346,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
         final response = await AiService.getResponse(
           text,
+          languageCode: currentAppLanguage,
           isVoice: isVoice,
           user: user,
           userLat: locationService.userLat,
@@ -430,17 +434,87 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     _sendMessage();
   }
 
+  String _getListeningText(String lang) {
+    switch(lang) {
+      case 'en': return 'Listening...';
+      case 'jv': return 'Ngrungokake...';
+      case 'ba': return 'Mirengang...';
+      case 'sas': return 'Mendengaq...';
+      default: return 'Mendengarkan...';
+    }
+  }
+
+  String _getSpeakClearlyText(String lang) {
+    switch(lang) {
+      case 'en': return 'Please speak clearly';
+      case 'jv': return 'Tulung ngomong sing cetha';
+      case 'ba': return 'Durus mabaos sane tatas';
+      case 'sas': return 'Silaq bebaos saq jelas';
+      default: return 'Silakan bicara dengan jelas';
+    }
+  }
+
+  String _getAskPlaceholder(String lang) {
+    switch(lang) {
+      case 'en': return 'Ask Si Gumi...';
+      case 'jv': return 'Takon Si Gumi...';
+      case 'ba': return 'Takon Si Gumi...';
+      case 'sas': return 'Betakon Si Gumi...';
+      default: return 'Tanya Si Gumi...';
+    }
+  }
+
+  String _getListeningPlaceholder(String lang) {
+    switch(lang) {
+      case 'en': return 'Listening to voice...';
+      case 'jv': return 'Ngrungokake swara...';
+      case 'ba': return 'Mirengang swara...';
+      case 'sas': return 'Mendengaq suare...';
+      default: return 'Mendengarkan suara...';
+    }
+  }
+
+  String _getDisplayContent(ChatMessage message, String currentLang) {
+    if (message.intentId != null) {
+      final responses = NlpKnowledgeBase.responses[message.intentId];
+      if (responses != null) {
+        // Khusus untuk intent evakuasi dinamis yang dikalkulasi AiService, kita biarkan text aslinya.
+        // Namun, respons dinamis ini dirender sekali. Untuk reactivity penuh pada respons dinamis, 
+        // lebih baik logic format berada di tingkat widget state jika memungkinkan.
+        // Di sini kita proteksi agar tidak tertimpa teks statis:
+        if (message.intentId == 'evakuasi' && message.content.contains('km')) {
+          return message.content; 
+        }
+
+        String baseContent = message.content;
+        if (responses.containsKey(currentLang)) {
+          baseContent = responses[currentLang]!;
+        } else if (responses.containsKey('id')) {
+          baseContent = responses['id']!;
+        }
+        
+        if (message.messageType == MessageType.system && message.intentId == 'salam') {
+          return '$baseContent\n\nℹ️ Chatbot merespons menggunakan bahasa aplikasi yang Anda pilih di menu Pengaturan.';
+        }
+        return baseContent;
+      }
+    }
+    return message.content;
+  }
+
   @override
   Widget build(BuildContext context) {
-<<<<<<< Updated upstream
   
-    const Color bgColor = Color(0xFFF8F9FA);
-    const Color headerTextColor = Color(0xFF1E1E2C);
-=======
     final currentAppLanguage = context.watch<VolcanoProvider>().language;
     final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
                          NlpKnowledgeBase.quickActionLabels['id']!;
->>>>>>> Stashed changes
+                         
+    const Color bgColor = Color(0xFFF8F9FA);
+    const Color headerTextColor = Color(0xFF1E1E2C);
+
+    final currentAppLanguage = context.watch<VolcanoProvider>().language;
+    final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
+                         NlpKnowledgeBase.quickActionLabels['id']!;
 
     return Scaffold(
       backgroundColor: context.bgSecondary,
@@ -529,7 +603,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           ),
 
           // Listening Overlay — Tampil saat mic aktif
-          if (_isListening) _buildListeningOverlay(),
+          if (_isListening) _buildListeningOverlay(currentAppLanguage),
 
           // Quick Actions (Horizontal Scroll)
           Container(
@@ -540,31 +614,25 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _QuickActionButton('Status Gunung',
-                      () => _quickSend('status gunung hari ini?')),
-                  _QuickActionButton('Jalur Evakuasi',
-                      () => _quickSend('jalur evakuasi mana?')),
-                  _QuickActionButton('Zona Bahaya',
-                      () => _quickSend('berapa zona bahayanya?')),
-                  _QuickActionButton('Tips Hujan Abu',
-                      () => _quickSend('tips saat hujan abu')),
-                  _QuickActionButton('Nomor Darurat',
-                      () => _quickSend('nomor telepon darurat')),
-                ],
+                children: quickActions.map((action) {
+                  return _QuickActionButton(
+                    action['label']!,
+                    () => _quickSend(action['message']!),
+                  );
+                }).toList(),
               ),
             ),
           ),
 
           // Input Area Bottom Bar
-          _buildInputBar(context),
+          _buildInputBar(context, currentAppLanguage),
         ],
       ),
     );
   }
 
   /// Widget overlay saat mic sedang mendengarkan — tampilkan visual feedback
-  Widget _buildListeningOverlay() {
+  Widget _buildListeningOverlay(String appLanguage) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -619,7 +687,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Mendengarkan...',
+                  _getListeningText(appLanguage),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -628,7 +696,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Silakan bicara dengan jelas',
+                  _getSpeakClearlyText(appLanguage),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 11,
                     color: context.textTertiary,
@@ -690,7 +758,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   }
 
   /// Input bar (bottom) dengan mic button yang sudah diupgrade
-  Widget _buildInputBar(BuildContext context) {
+  Widget _buildInputBar(BuildContext context, String appLanguage) {
     return Container(
       padding: EdgeInsets.only(
         left: 16,
@@ -721,7 +789,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             child: ShadInput(
               controller: _messageController,
               placeholder: Text(
-                  _isListening ? 'Mendengarkan suara...' : 'Tanya Si Gumi...'),
+                  _isListening ? _getListeningPlaceholder(appLanguage) : _getAskPlaceholder(appLanguage)),
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               maxLines: 4,
@@ -814,6 +882,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   }
 
   Widget _buildMessageBubble(ChatMessage message, int index) {
+    final actLang = context.read<VolcanoProvider>().language;
+    final displayContent = _getDisplayContent(message, actLang);
+
     if (message.messageType == MessageType.system) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -848,7 +919,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 const SizedBox(width: 10),
                 Flexible(
                   child: Text(
-                    message.content,
+                    displayContent,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 12,
                       color: context.textTertiary,
@@ -959,7 +1030,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                       ),
                     ),
                   Text(
-                    message.content,
+                    displayContent,
                     style: AppFonts.plusJakartaSans(
                       color: isUser ? context.bgPrimary : context.textPrimary,
                       fontSize: 14,
@@ -984,7 +1055,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                           child: InkWell(
                             onTap: () async {
                                // Manual tts
-                               await _voiceService.speak(message.content, language: message.language);
+                               await _voiceService.speak(displayContent, language: message.language);
                             },
                             borderRadius: BorderRadius.circular(20),
                             child: Padding(

@@ -16,36 +16,7 @@ class NlpEngine {
     await _classifier!.init();
   }
 
-  /// Deteksi bahasa secara otomatis dari input text
-  static String detectLanguage(String query) {
-    if (query.trim().isEmpty) return 'id';
-    
-    String normalized = _normalizeText(query);
-    List<String> words = normalized.split(' ');
-    
-    Map<String, int> scores = {
-      'id': 0, 'en': 0, 'jv': 0, 'ba': 0, 'sas': 0
-    };
-    
-    for (String word in words) {
-      NlpKnowledgeBase.languageMarkers.forEach((lang, markers) {
-        if (markers.contains(word)) {
-          scores[lang] = (scores[lang] ?? 0) + 1;
-        }
-      });
-    }
-    
-    String detectedLang = 'id';
-    int maxScore = 0;
-    scores.forEach((lang, score) {
-      if (score > maxScore) {
-        maxScore = score;
-        detectedLang = lang;
-      }
-    });
 
-    return detectedLang;
-  }
 
   /// Deteksi intent dari query user menggunakan Classifier abstrak
   static Future<({String intent, double confidence})> detectIntent(String query) async {
@@ -83,20 +54,18 @@ class NlpEngine {
   /// Generate ChatMessage respons berdasarkan bahasa terbaca dan NLP intent
   static Future<ChatMessage> processMessage(
     String text, {
+    required String appLanguage,
     bool isVoice = false,
     String ageCategory = 'dewasa',
   }) async {
-    // 1. Auto detect bahasa
-    String detectedLanguage = detectLanguage(text);
-
-    // 2. Deteksi intent dengan model/dictionary
+    // 1. Deteksi intent dengan model/dictionary
     final result = await detectIntent(text);
     final intent = result.intent;
     
-    // 3. Ambil respons sesuai bahasa
+    // 2. Ambil respons sesuai bahasa (dari pengaturan aplikasi)
     String responseText = _getLocalizedResponse(
       intent: intent,
-      language: detectedLanguage,
+      language: appLanguage,
       ageCategory: ageCategory,
     );
 
@@ -104,10 +73,10 @@ class NlpEngine {
       content: responseText,
       isUser: false,
       timestamp: DateTime.now(),
-      language: detectedLanguage, // simpan bahasa terdeteksi
+      language: appLanguage, // simpan bahasa aktif aplikasi
       messageType: MessageType.text,
       confidence: result.confidence,
-      detectedIntent: intent,
+      intentId: intent,
       isVoice: false,
     );
   }
