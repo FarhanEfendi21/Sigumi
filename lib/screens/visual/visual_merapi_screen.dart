@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart' hide Path;
 import '../../models/eruption_history.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
+import '../../widgets/volcanic_report_section.dart';
 
 /// Data kamera CCTV Merapi
 class _CctvCamera {
@@ -79,6 +80,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VolcanoProvider>().fetchEruptionHistory();
+      context.read<VolcanoProvider>().fetchDailyReports();
     });
   }
 
@@ -491,6 +493,14 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                           .animate()
                           .fadeIn(delay: 150.ms, duration: 400.ms)
                           .slideY(begin: 0.05, end: 0),
+
+                      const SizedBox(height: 32),
+
+                      // ── Laporan Harian MAGMA ──
+                      VolcanicReportSection(
+                        reports: provider.dailyReports,
+                        isLoading: provider.isLoadingDailyReports,
+                      ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
 
                       const SizedBox(height: 32),
 
