@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/theme.dart';
@@ -504,22 +505,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
     final currentAppLanguage = context.watch<VolcanoProvider>().language;
     final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
                          NlpKnowledgeBase.quickActionLabels['id']!;
-                         
-=======
-<<<<<<< Updated upstream
-  
->>>>>>> master
-    const Color bgColor = Color(0xFFF8F9FA);
-    const Color headerTextColor = Color(0xFF1E1E2C);
-=======
-    final currentAppLanguage = context.watch<VolcanoProvider>().language;
-    final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
-                         NlpKnowledgeBase.quickActionLabels['id']!;
->>>>>>> Stashed changes
 
     return Scaffold(
       backgroundColor: context.bgSecondary,
