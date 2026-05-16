@@ -1,0 +1,176 @@
+"use client"
+
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { newsService } from "@/services/newsService"
+import { uploadImage } from "@/services/uploadService"
+import { toast } from "sonner"
+import Link from "next/link"
+import { ArrowLeft, Save, ImagePlus } from "lucide-react"
+
+export default function CreateNews() {
+  const router = useRouter()
+  const [title, setTitle] = useState("")
+  const [content, setContent] = useState("")
+  const [file, setFile] = useState(null)
+  const [preview, setPreview] = useState(null)
+  const [loading, setLoading] = useState(false)
+
+  const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files?.[0]
+    if (!selectedFile) return
+
+    if (!selectedFile.type.startsWith("image/")) {
+      toast.error("Format file harus berupa gambar")
+      return
+    }
+
+    if (selectedFile.size > MAX_SIZE) {
+      toast.error("Ukuran maksimal file gambar adalah 5MB")
+      return
+    }
+
+    setFile(selectedFile)
+    setPreview(URL.createObjectURL(selectedFile))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      setLoading(true)
+      const loadingToast = toast.loading("Mempublikasikan berita...")
+
+      let imageUrl = null
+      if (file) {
+        imageUrl = await uploadImage(file)
+      }
+
+      const { error } = await newsService.create({
+        title,
+        content,
+        image_url: imageUrl,
+      })
+
+      if (error) throw error
+
+      toast.dismiss(loadingToast)
+      toast.success("Berita berhasil dipublikasikan")
+
+      setTimeout(() => {
+        router.push("/news")
+      }, 1200)
+
+    } catch (err) {
+      console.error(err)
+      toast.error("Gagal mempublikasikan berita")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen p-6 md:p-10 max-w-4xl mx-auto font-sans">
+      <div className="mb-8">
+        <Link href="/news" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-white font-medium transition-colors mb-6">
+          <ArrowLeft className="w-4 h-4" />
+          Katalog Berita
+        </Link>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Tulis Berita Baru</h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Isi formulir berikut untuk mempublikasikan artikel ke publik.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1a1a2e] rounded-xl shadow-sm border border-gray-200 dark:border-white/10 overflow-hidden">
+        
+        <div className="p-6 md:p-8 space-y-8">
+          {/* Judul */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Judul Berita Singkat
+            </label>
+            <input
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black/20 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm"
+              placeholder="Contoh: Pemkab Salurkan Bantuan Logistik"
+            />
+          </div>
+
+          {/* Konten */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Isi Konten Berita
+            </label>
+            <textarea
+              required
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-black/20 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all duration-200 text-sm resize-none"
+              rows={8}
+              placeholder="Tuliskan detail berita lengkap di sini..."
+            />
+          </div>
+
+          {/* Upload File */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Gambar Utama (Thumbnail)
+            </label>
+            <label className="flex items-center gap-3 w-full px-4 py-3 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors group">
+                <div className="p-2 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 rounded-lg group-hover:scale-105 transition-transform">
+                   <ImagePlus className="w-5 h-5" />
+                </div>
+                <div className="flex flex-col flex-1">
+                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Pilih berkas gambar...</span>
+                   <span className="text-xs text-gray-500 dark:text-gray-500">Maksimal 5MB. Format JPG, PNG, WEBP didukung.</span>
+                </div>
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                />
+            </label>
+          </div>
+
+          {preview && (
+            <div className="rounded-xl overflow-hidden border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-black/20">
+              <img
+                src={preview}
+                className="w-full max-h-[300px] object-contain"
+                alt="Preview"
+              />
+            </div>
+          )}
+
+        </div>
+
+        {/* Action Footer */}
+        <div className="px-6 py-4 bg-gray-50 dark:bg-black/20 border-t border-gray-200 dark:border-white/10 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="px-5 py-2.5 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/5 transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 transition-colors focus:ring-4 focus:ring-blue-500/20"
+          >
+            {loading ? (
+                <>Menyimpan...</>
+            ) : (
+                <><Save className="w-4 h-4"/> Publikasikan Berita</>
+            )}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  )
+}
