@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -75,7 +76,8 @@ class _GeneralEducationGrid extends StatelessWidget {
           sliver: SliverToBoxAdapter(
             child: _AnimatedHeader(
               title: 'Panduan Edukasi Umum',
-              subtitle: 'Pelajari dasar-dasar kesiapsiagaan menghadapi bencana gunung berapi dengan panduan yang jelas.',
+              subtitle:
+                  'Pelajari dasar-dasar kesiapsiagaan menghadapi bencana gunung berapi dengan panduan yang jelas.',
               icon: Icons.menu_book,
             ),
           ),
@@ -87,7 +89,7 @@ class _GeneralEducationGrid extends StatelessWidget {
               maxCrossAxisExtent: 220,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              mainAxisExtent: 220, // Fixed height untuk jaminan responsivitas teks
+              mainAxisExtent: 220,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -113,21 +115,20 @@ class _ChildrenEducationGrid extends StatefulWidget {
 
 class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
   int _currentIndex = 0;
-  // Tracking kartu yang sudah dijawab kuis-nya (in-session)
-  final Set<int> _answeredCards = {};
-  
+  // Tracking kartu yang sudah dijawab semua kuis-nya (in-session)
+  final Set<int> _completedCards = {};
+
   late final List<Map<String, dynamic>> _shuffledCards;
 
   @override
   void initState() {
     super.initState();
-    // Copy data list dan acak urutannya agar kuis selalu berbeda setiap dibuka
     _shuffledCards = List.from(EducationMockData.childrenTopics)..shuffle();
   }
 
-  void _onCardAnswered(int index) {
+  void _onCardCompleted(int index) {
     setState(() {
-      _answeredCards.add(index);
+      _completedCards.add(index);
     });
   }
 
@@ -142,7 +143,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
         // ── Banner Hero ──────────────────────────────────────────
         SliverToBoxAdapter(
           child: _ChildrenBanner(
-            answeredCount: _answeredCards.length,
+            answeredCount: _completedCards.length,
             totalCount: cards.length,
           ),
         ),
@@ -151,8 +152,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
         SliverToBoxAdapter(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              // Tinggi kartu lebih leluasa agar konten kuis + feedback muat
-              final cardHeight = MediaQuery.of(context).size.height * 0.60;
+              final cardHeight = MediaQuery.of(context).size.height * 0.62;
               return CarouselSlider.builder(
                 itemCount: cards.length,
                 itemBuilder: (context, index, realIndex) {
@@ -161,7 +161,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
                     index: index,
                     cardNumber: index + 1,
                     totalCards: cards.length,
-                    onAnswered: () => _onCardAnswered(index),
+                    onCompleted: () => _onCardCompleted(index),
                   );
                 },
                 options: CarouselOptions(
@@ -186,10 +186,10 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Teks posisi
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
                     color: activeColor,
                     borderRadius: BorderRadius.circular(20),
@@ -204,7 +204,6 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
                   ),
                 ),
                 const SizedBox(width: 10),
-                // Dots
                 ...cards.asMap().entries.map((entry) {
                   final isActive = _currentIndex == entry.key;
                   final cardColor = cards[entry.key]['color'] as Color;
@@ -234,8 +233,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.swipe_rounded,
-                    size: 16, color: Colors.grey.shade400),
+                Icon(Icons.swipe_rounded, size: 16, color: Colors.grey.shade400),
                 const SizedBox(width: 6),
                 Text(
                   'Geser kartu • Ketuk untuk kuis',
@@ -254,7 +252,6 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
   }
 }
 
-
 class _DisabilityEducationGrid extends StatelessWidget {
   const _DisabilityEducationGrid();
 
@@ -268,7 +265,8 @@ class _DisabilityEducationGrid extends StatelessWidget {
           sliver: SliverToBoxAdapter(
             child: _AnimatedHeader(
               title: 'Aksesibilitas & Inklusi ♿',
-              subtitle: 'Panduan khusus bagi individu dengan disabilitas dan lansia untuk memastikan keselamatan bersama.',
+              subtitle:
+                  'Panduan khusus bagi individu dengan disabilitas dan lansia untuk memastikan keselamatan bersama.',
               icon: Icons.accessibility_new,
             ),
           ),
@@ -280,10 +278,11 @@ class _DisabilityEducationGrid extends StatelessWidget {
               maxCrossAxisExtent: 220,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              mainAxisExtent: 240, // Height sedikit ditingkatkan untuk Disability (biasanya judul lebih panjang)
+              mainAxisExtent: 240,
             ),
             delegate: SliverChildBuilderDelegate(
-              (context, index) => _DisabilityGridCard(item: items[index], index: index),
+              (context, index) =>
+                  _DisabilityGridCard(item: items[index], index: index),
               childCount: items.length,
             ),
           ),
@@ -400,7 +399,6 @@ class _TopicGridCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail Top Half
             Expanded(
               flex: 5,
               child: Container(
@@ -416,7 +414,6 @@ class _TopicGridCard extends StatelessWidget {
                 ),
               ),
             ),
-            // Bottom Info
             Expanded(
               flex: 6,
               child: Padding(
@@ -425,7 +422,8 @@ class _TopicGridCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: topic.color.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(6),
@@ -470,32 +468,39 @@ class _TopicGridCard extends StatelessWidget {
           ],
         ),
       ),
-    ).animate().fadeIn(
-      delay: Duration(milliseconds: 100 * index),
-      duration: 400.ms,
-    ).scale(
-      delay: Duration(milliseconds: 100 * index),
-      duration: 400.ms,
-      begin: const Offset(0.9, 0.9),
-      end: const Offset(1, 1),
-      curve: Curves.easeOutCubic,
-    );
+    )
+        .animate()
+        .fadeIn(
+          delay: Duration(milliseconds: 100 * index),
+          duration: 400.ms,
+        )
+        .scale(
+          delay: Duration(milliseconds: 100 * index),
+          duration: 400.ms,
+          begin: const Offset(0.9, 0.9),
+          end: const Offset(1, 1),
+          curve: Curves.easeOutCubic,
+        );
   }
 }
+
+// =============================================================================
+// FLASHCARD ITEM — 5 pertanyaan per kartu, randomized
+// =============================================================================
 
 class _ChildFlashcardItem extends StatefulWidget {
   final Map<String, dynamic> card;
   final int index;
   final int cardNumber;
   final int totalCards;
-  final VoidCallback? onAnswered;
+  final VoidCallback? onCompleted;
 
   const _ChildFlashcardItem({
     required this.card,
     required this.index,
     required this.cardNumber,
     required this.totalCards,
-    this.onAnswered,
+    this.onCompleted,
   });
 
   @override
@@ -504,14 +509,21 @@ class _ChildFlashcardItem extends StatefulWidget {
 
 class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
     with SingleTickerProviderStateMixin {
+  // ── Quiz state ──────────────────────────────────────────────────
+  late List<Map<String, dynamic>> _quizQuestions; // 5 soal teracak
+  int _currentQuestionIndex = 0;
   int? _selectedAnswerIndex;
   bool _hasAnswered = false;
+  int _correctCount = 0;
+  bool _quizFinished = false;
+
   late AnimationController _shakeController;
   late Animation<double> _shakeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _initQuiz();
     _shakeController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -521,28 +533,58 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
     );
   }
 
+  void _initQuiz() {
+    final allQuestions =
+        List<Map<String, dynamic>>.from(widget.card['quizQuestions'] as List);
+    allQuestions.shuffle(Random());
+    // Ambil 5 soal (atau semua kalau < 5)
+    _quizQuestions = allQuestions.take(5).toList();
+    _currentQuestionIndex = 0;
+    _selectedAnswerIndex = null;
+    _hasAnswered = false;
+    _correctCount = 0;
+    _quizFinished = false;
+  }
+
+  void _handleAnswer(int selectedIndex, int correctIndex) {
+    if (_hasAnswered) return;
+    setState(() {
+      _selectedAnswerIndex = selectedIndex;
+      _hasAnswered = true;
+      if (selectedIndex == correctIndex) {
+        _correctCount++;
+      } else {
+        _shakeController.forward(from: 0);
+      }
+    });
+  }
+
+  void _nextQuestion() {
+    if (_currentQuestionIndex < _quizQuestions.length - 1) {
+      setState(() {
+        _currentQuestionIndex++;
+        _selectedAnswerIndex = null;
+        _hasAnswered = false;
+      });
+    } else {
+      setState(() => _quizFinished = true);
+      widget.onCompleted?.call();
+    }
+  }
+
+  void _restartQuiz() {
+    setState(() => _initQuiz());
+  }
+
   @override
   void dispose() {
     _shakeController.dispose();
     super.dispose();
   }
 
-  void _handleAnswer(int i, int correctIndex) {
-    setState(() {
-      _selectedAnswerIndex = i;
-      _hasAnswered = true;
-    });
-    widget.onAnswered?.call();
-    // Shake animation jika salah
-    if (i != correctIndex) {
-      _shakeController.forward(from: 0);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final color = widget.card['color'] as Color;
-
     return FlipCard(
       direction: FlipDirection.HORIZONTAL,
       front: _buildFrontCard(color),
@@ -550,12 +592,10 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
     );
   }
 
-  // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────
   // SISI DEPAN KARTU
-  // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────
   Widget _buildFrontCard(Color color) {
-
-    // Gradient warna per kartu
     final gradient = LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
@@ -589,7 +629,6 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
             flex: 38,
             child: Stack(
               children: [
-                // Background dekoratif bintang
                 Positioned.fill(
                   child: ClipRRect(
                     borderRadius:
@@ -599,13 +638,12 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                     ),
                   ),
                 ),
-                // Badge Topik
                 Positioned(
                   top: 14,
                   left: 14,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.circular(20),
@@ -628,16 +666,37 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                     ),
                   ),
                 ),
-                // Emoji besar
+                // Badge jumlah soal
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: color.withValues(alpha: 0.3), width: 1.5),
+                    ),
+                    child: Text(
+                      '5 Soal 🧠',
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ),
                 Center(
                   child: Text(
                     widget.card['emoji'] as String,
                     style: const TextStyle(fontSize: 82),
                   )
                       .animate(
-                        onPlay: (controller) =>
-                            controller.repeat(reverse: true),
-                      )
+                          onPlay: (controller) =>
+                              controller.repeat(reverse: true))
                       .scaleXY(
                         end: 1.1,
                         duration: 1800.ms,
@@ -662,7 +721,6 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Judul
                   Text(
                     widget.card['title'] as String,
                     style: AppFonts.plusJakartaSans(
@@ -675,7 +733,6 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  // Intro (Scrollable agar penjelasan tidak akan pernah terpotong)
                   Expanded(
                     child: SingleChildScrollView(
                       physics: const BouncingScrollPhysics(),
@@ -691,7 +748,6 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // CTA Button
                   Center(
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -711,7 +767,7 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '🧠 Ketuk → Main Kuis!',
+                            '🧠 Ketuk → Main Kuis 5 Soal!',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
@@ -721,9 +777,7 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                         ],
                       ),
                     )
-                        .animate(
-                          onPlay: (c) => c.repeat(reverse: true),
-                        )
+                        .animate(onPlay: (c) => c.repeat(reverse: true))
                         .scaleXY(
                           end: 1.05,
                           duration: 900.ms,
@@ -739,31 +793,25 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
-  // ─────────────────────────────────────────────────────────
-  // SISI BELAKANG (KUIS)
-  // ─────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────
+  // SISI BELAKANG (KUIS — 5 SOAL)
+  // ─────────────────────────────────────────────────────────────────
   Widget _buildBackCard(Color color) {
-    if (widget.card['quizAnswers'] == null) {
-      return Container(
-        decoration: BoxDecoration(
-            color: Colors.white, borderRadius: BorderRadius.circular(36)),
-        child: const Center(
-          child: Text('Belum ada kuis untuk bagian ini!',
-              style: TextStyle(fontSize: 16)),
-        ),
-      );
+    if (_quizFinished) {
+      return _buildFinishCard(color);
     }
 
-    final answers = widget.card['quizAnswers'] as List<String>;
-    final correctAnswerIndex = widget.card['correctAnswerIndex'] as int;
-    final isCorrect =
-        _hasAnswered && _selectedAnswerIndex == correctAnswerIndex;
+    final currentQ = _quizQuestions[_currentQuestionIndex];
+    final answers = currentQ['answers'] as List<String>;
+    final correctIndex = currentQ['correctIndex'] as int;
+    final isCorrect = _hasAnswered && _selectedAnswerIndex == correctIndex;
 
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
-        final dx =
-            _hasAnswered && !isCorrect ? 6 * (_shakeAnimation.value * 2 - 1) : 0.0;
+        final dx = _hasAnswered && !isCorrect
+            ? 6 * (_shakeAnimation.value * 2 - 1)
+            : 0.0;
         return Transform.translate(
           offset: Offset(dx.clamp(-6.0, 6.0), 0),
           child: child,
@@ -808,7 +856,7 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                       color: color.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Text('🧠', style: TextStyle(fontSize: 22)),
+                    child: const Text('🧠', style: TextStyle(fontSize: 22)),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -816,7 +864,7 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Ayo Jawab Kuis!',
+                          'Soal ${_currentQuestionIndex + 1} dari ${_quizQuestions.length}',
                           style: AppFonts.plusJakartaSans(
                             fontWeight: FontWeight.w900,
                             fontSize: 17,
@@ -836,19 +884,30 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                 ],
               ),
 
+              // ── Progress bar soal ────────────────────────
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: (_currentQuestionIndex + 1) / _quizQuestions.length,
+                  minHeight: 6,
+                  backgroundColor: color.withValues(alpha: 0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(color),
+                ),
+              ),
+
               const SizedBox(height: 14),
+
               // ── Pertanyaan ───────────────────────────────
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: color.withValues(alpha: 0.2),
-                  ),
+                  border: Border.all(color: color.withValues(alpha: 0.2)),
                 ),
                 child: Text(
-                  widget.card['quizQuestion'] as String,
+                  currentQ['question'] as String,
                   textAlign: TextAlign.center,
                   style: AppFonts.plusJakartaSans(
                     fontWeight: FontWeight.w800,
@@ -860,14 +919,14 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
               ),
 
               const SizedBox(height: 14),
+
               // ── Pilihan Jawaban ──────────────────────────
               ...answers.asMap().entries.map((entry) {
                 final i = entry.key;
                 final answer = entry.value;
                 final isSelected = _selectedAnswerIndex == i;
-                final isCorrectAnswer = i == correctAnswerIndex;
+                final isCorrectAnswer = i == correctIndex;
 
-                // Tentukan tampilan per state
                 Color pillBg;
                 Color pillBorder;
                 Color pillText;
@@ -907,7 +966,7 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                     borderRadius: BorderRadius.circular(20),
                     onTap: _hasAnswered
                         ? null
-                        : () => _handleAnswer(i, correctAnswerIndex),
+                        : () => _handleAnswer(i, correctIndex),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 250),
                       padding: const EdgeInsets.symmetric(
@@ -919,7 +978,6 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                       ),
                       child: Row(
                         children: [
-                          // Huruf pilihan (A, B, C)
                           Container(
                             width: 26,
                             height: 26,
@@ -929,7 +987,7 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                             ),
                             child: Center(
                               child: Text(
-                                String.fromCharCode(65 + i), // A, B, C
+                                String.fromCharCode(65 + i),
                                 style: TextStyle(
                                   color: pillText,
                                   fontWeight: FontWeight.w900,
@@ -958,16 +1016,13 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
               }),
 
               // ── Feedback setelah menjawab ────────────────
-              if (_hasAnswered)
+              if (_hasAnswered) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: isCorrect
-                          ? [
-                              const Color(0xFFE8F5E9),
-                              const Color(0xFFF1F8E9)
-                            ]
+                          ? [const Color(0xFFE8F5E9), const Color(0xFFF1F8E9)]
                           : [
                               const Color(0xFFFFF8E1),
                               const Color(0xFFFFFDE7)
@@ -1006,7 +1061,7 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              widget.card['explanation'] as String,
+                              currentQ['explanation'] as String,
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 12,
                                 color: isCorrect
@@ -1022,7 +1077,35 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
                   ),
                 ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.2, end: 0),
 
-              // Spacer bawah agar ada ruang napas setelah feedback
+                const SizedBox(height: 12),
+
+                // ── Tombol Soal Berikutnya ───────────────
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _nextQuestion,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: color,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      _currentQuestionIndex < _quizQuestions.length - 1
+                          ? 'Soal Berikutnya →'
+                          : 'Lihat Hasil Kuis 🎉',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ).animate().fadeIn(duration: 300.ms).slideY(begin: 0.1, end: 0),
+              ],
+
               const SizedBox(height: 8),
             ],
           ),
@@ -1030,189 +1113,139 @@ class _ChildFlashcardItemState extends State<_ChildFlashcardItem>
       ),
     );
   }
-}
 
+  // ─────────────────────────────────────────────────────────────────
+  // KARTU HASIL AKHIR KUIS
+  // ─────────────────────────────────────────────────────────────────
+  Widget _buildFinishCard(Color color) {
+    final total = _quizQuestions.length;
+    final isAllCorrect = _correctCount == total;
+    final isPerfect = _correctCount == total;
+    final String emoji = isPerfect
+        ? '🏆'
+        : _correctCount >= 3
+            ? '⭐'
+            : '💪';
+    final String title = isPerfect
+        ? 'Sempurna! Kamu Jenius!'
+        : _correctCount >= 3
+            ? 'Hebat! Kamu Hampir Sempurna!'
+            : 'Terus Semangat Belajar!';
+    final String subtitle = isPerfect
+        ? 'Semua $_correctCount dari $total soal benar! Kamu luar biasa!'
+        : 'Kamu menjawab $_correctCount dari $total soal dengan benar.';
 
-class _DisabilityGridCard extends StatelessWidget {
-  final Map<String, dynamic> item;
-  final int index;
-
-  const _DisabilityGridCard({required this.item, required this.index});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Color(item['color'] as int);
-    final iconData = _getIconData(item['icon'] as String);
-    final isSpecialNeeds = item['title'] == 'Lansia';
-
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(36),
+        border: Border.all(
+          color: isAllCorrect
+              ? Colors.amber.withValues(alpha: 0.6)
+              : color.withValues(alpha: 0.4),
+          width: 2.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (isAllCorrect ? Colors.amber : color).withValues(alpha: 0.2),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          _showTipsModal(context, item, color, iconData);
-        },
+      child: Padding(
+        padding: const EdgeInsets.all(28),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Expanded(
-              flex: 4,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                ),
-                child: Center(
-                  child: Icon(iconData, size: 40, color: color),
-                ),
+            // Emoji hasil
+            Text(emoji, style: const TextStyle(fontSize: 72))
+                .animate(onPlay: (c) => c.repeat(reverse: true))
+                .scaleXY(
+                    end: 1.15,
+                    duration: 1200.ms,
+                    curve: Curves.easeInOutSine),
+
+            const SizedBox(height: 20),
+
+            // Judul
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: AppFonts.plusJakartaSans(
+                fontWeight: FontWeight.w900,
+                fontSize: 22,
+                color: isAllCorrect ? Colors.amber.shade700 : color,
+                height: 1.2,
               ),
             ),
-            Expanded(
-              flex: 5,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        isSpecialNeeds ? 'LANSIA' : 'DIFABEL',
-                        style: AppFonts.plusJakartaSans(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: color,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      item['title'] as String,
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Ketuk untuk baca tips →',
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: SigumiTheme.primaryBlue,
-                      ),
-                    ),
-                  ],
+
+            const SizedBox(height: 10),
+
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 14,
+                color: Colors.black54,
+                height: 1.5,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Skor visual
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(total, (i) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    i < _correctCount ? '⭐' : '☆',
+                    style: const TextStyle(fontSize: 24),
+                  )
+                      .animate(
+                          delay: Duration(milliseconds: 100 * i))
+                      .scaleXY(
+                          begin: 0.5,
+                          end: 1.0,
+                          duration: 400.ms,
+                          curve: Curves.elasticOut),
+                );
+              }),
+            ),
+
+            const SizedBox(height: 28),
+
+            // Tombol ulangi
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _restartQuiz,
+                icon: const Icon(Icons.refresh_rounded, size: 18),
+                label: const Text(
+                  'Ulangi Kuis',
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  elevation: 0,
                 ),
               ),
             ),
           ],
         ),
       ),
-    ).animate().fadeIn(
-      delay: Duration(milliseconds: 100 * index),
-      duration: 400.ms,
-    );
-  }
-
-  void _showTipsModal(BuildContext context, Map<String, dynamic> item, Color color, IconData icon) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          children: [
-            const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(4))),
-            const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                    child: Icon(icon, color: color),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item['title'] as String,
-                          style: AppFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: Colors.black87),
-                        ),
-                        Text(
-                          item['subtitle'] as String,
-                          style: AppFonts.plusJakartaSans(fontSize: 12, color: SigumiTheme.textSecondary),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 32),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                itemCount: (item['tips'] as List<String>).length,
-                separatorBuilder: (_, __) => const SizedBox(height: 16),
-                itemBuilder: (ctx, i) => Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      margin: const EdgeInsets.only(top: 2),
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
-                      child: Icon(Icons.check, size: 12, color: color),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        (item['tips'] as List<String>)[i],
-                        style: AppFonts.plusJakartaSans(fontSize: 14, height: 1.5, color: Colors.black87),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getIconData(String name) {
-    switch (name) {
-      case 'hearing': return Icons.hearing;
-      case 'visibility_off': return Icons.visibility_off;
-      case 'accessible': return Icons.accessible;
-      case 'elderly': return Icons.elderly;
-      default: return Icons.person;
-    }
+    ).animate().fadeIn(duration: 500.ms).scale(
+        begin: const Offset(0.9, 0.9),
+        end: const Offset(1, 1),
+        curve: Curves.easeOutCubic);
   }
 }
 
@@ -1263,7 +1296,6 @@ class _ChildrenBanner extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Dekorasi latar - lingkaran transparan
           Positioned(
             top: -20,
             right: -10,
@@ -1288,27 +1320,18 @@ class _ChildrenBanner extends StatelessWidget {
               ),
             ),
           ),
-
-          // Konten utama
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Baris atas: emoji maskot + judul
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '🦸',
-                    style: const TextStyle(fontSize: 44),
-                  )
-                      .animate(
-                        onPlay: (c) => c.repeat(reverse: true),
-                      )
+                  Text('🦸', style: const TextStyle(fontSize: 44))
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
                       .scaleXY(
-                        end: 1.08,
-                        duration: 1600.ms,
-                        curve: Curves.easeInOutSine,
-                      ),
+                          end: 1.08,
+                          duration: 1600.ms,
+                          curve: Curves.easeInOutSine),
                   const SizedBox(width: 14),
                   Expanded(
                     child: Column(
@@ -1342,10 +1365,7 @@ class _ChildrenBanner extends StatelessWidget {
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
-
-              // Label progress
               Row(
                 children: [
                   Text(
@@ -1358,7 +1378,7 @@ class _ChildrenBanner extends StatelessWidget {
                   ),
                   const Spacer(),
                   Text(
-                    '$answeredCount/$totalCount kuis selesai',
+                    '$answeredCount/$totalCount topik selesai',
                     style: AppFonts.plusJakartaSans(
                       fontWeight: FontWeight.w800,
                       fontSize: 12,
@@ -1368,8 +1388,6 @@ class _ChildrenBanner extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-
-              // Progress bar animasi
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: TweenAnimationBuilder<double>(
@@ -1380,16 +1398,12 @@ class _ChildrenBanner extends StatelessWidget {
                     value: value,
                     minHeight: 10,
                     backgroundColor: Colors.white.withValues(alpha: 0.35),
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                      Colors.white,
-                    ),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
-
-              // Bintang per topik
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: starEmojis
@@ -1398,13 +1412,9 @@ class _ChildrenBanner extends StatelessWidget {
                     .map(
                       (e) => Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: Text(
-                          e.value,
-                          style: const TextStyle(fontSize: 18),
-                        )
+                        child: Text(e.value, style: const TextStyle(fontSize: 18))
                             .animate(
-                              delay: Duration(milliseconds: 80 * e.key),
-                            )
+                                delay: Duration(milliseconds: 80 * e.key))
                             .scaleXY(
                               begin: 0.8,
                               end: 1.0,
@@ -1424,6 +1434,206 @@ class _ChildrenBanner extends StatelessWidget {
 }
 
 // =============================================================================
+// DISABILITY GRID CARD
+// =============================================================================
+
+class _DisabilityGridCard extends StatelessWidget {
+  final Map<String, dynamic> item;
+  final int index;
+
+  const _DisabilityGridCard({required this.item, required this.index});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Color(item['color'] as int);
+    final iconData = _getIconData(item['icon'] as String);
+    final isSpecialNeeds = item['title'] == 'Lansia';
+
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _showTipsModal(context, item, color, iconData),
+        child: Column(
+          children: [
+            Expanded(
+              flex: 4,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1)),
+                child: Center(child: Icon(iconData, size: 40, color: color)),
+              ),
+            ),
+            Expanded(
+              flex: 5,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        isSpecialNeeds ? 'LANSIA' : 'DIFABEL',
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: color,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      item['title'] as String,
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Ketuk untuk baca tips →',
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: SigumiTheme.primaryBlue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: Duration(milliseconds: 100 * index), duration: 400.ms);
+  }
+
+  void _showTipsModal(BuildContext context, Map<String, dynamic> item,
+      Color color, IconData icon) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(4)),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Icon(icon, color: color),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['title'] as String,
+                          style: AppFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black87),
+                        ),
+                        Text(
+                          item['subtitle'] as String,
+                          style: AppFonts.plusJakartaSans(
+                              fontSize: 12, color: SigumiTheme.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 32),
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                itemCount: (item['tips'] as List<String>).length,
+                separatorBuilder: (_, __) => const SizedBox(height: 16),
+                itemBuilder: (ctx, i) => Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 2),
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.15),
+                          shape: BoxShape.circle),
+                      child: Icon(Icons.check, size: 12, color: color),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        (item['tips'] as List<String>)[i],
+                        style: AppFonts.plusJakartaSans(
+                            fontSize: 14, height: 1.5, color: Colors.black87),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getIconData(String name) {
+    switch (name) {
+      case 'hearing':
+        return Icons.hearing;
+      case 'visibility_off':
+        return Icons.visibility_off;
+      case 'accessible':
+        return Icons.accessible;
+      case 'elderly':
+        return Icons.elderly;
+      default:
+        return Icons.person;
+    }
+  }
+}
+
+// =============================================================================
 // CUSTOM PAINTER — POLA BINTANG DEKORATIF DI HEADER KARTU
 // =============================================================================
 
@@ -1437,13 +1647,11 @@ class _StarPatternPainter extends CustomPainter {
       ..color = color.withValues(alpha: 0.08)
       ..style = PaintingStyle.fill;
 
-    // Background tint lembut
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint()..color = color.withValues(alpha: 0.09),
     );
 
-    // Lingkaran dekoratif
     canvas.drawCircle(
         Offset(size.width * 0.85, size.height * 0.18), 38, circlePaint);
     canvas.drawCircle(
@@ -1451,7 +1659,6 @@ class _StarPatternPainter extends CustomPainter {
     canvas.drawCircle(
         Offset(size.width * 0.50, size.height * 0.90), 18, circlePaint);
 
-    // Titik-titik kecil dekoratif
     final dotPaint = Paint()
       ..color = color.withValues(alpha: 0.18)
       ..style = PaintingStyle.fill;
@@ -1471,4 +1678,3 @@ class _StarPatternPainter extends CustomPainter {
   bool shouldRepaint(covariant _StarPatternPainter oldDelegate) =>
       oldDelegate.color != color;
 }
-
