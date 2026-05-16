@@ -431,6 +431,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
+                    // Guest Login Prompt Banner
+                    if (provider.isGuest)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                        child: _GuestLoginBanner(),
+                      ),
+
                     // Tourism Promo Banner
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
@@ -1196,6 +1203,292 @@ class _ShadMenuCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GUEST LOGIN BANNER — Premium Soft UI Design (2025)
+// Design inspired by: Apple HIG, Linear, Notion
+// ─────────────────────────────────────────────────────────────────
+
+class _GuestLoginBanner extends StatefulWidget {
+  const _GuestLoginBanner();
+
+  @override
+  State<_GuestLoginBanner> createState() => _GuestLoginBannerState();
+}
+
+class _GuestLoginBannerState extends State<_GuestLoginBanner> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Modern Color Palette
+    final bgColor = isHighContrast 
+        ? context.bgSurface 
+        : (isDark ? const Color(0xFF1E293B) : Colors.white);
+    
+    final borderColor = isHighContrast
+        ? context.borderColor
+        : (isDark 
+            ? const Color(0xFF334155).withValues(alpha: 0.4)
+            : const Color(0xFFE5E7EB).withValues(alpha: 0.6));
+    
+    final textPrimary = isHighContrast
+        ? context.textPrimary
+        : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A));
+    
+    final textSecondary = isHighContrast
+        ? context.textSecondary
+        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+    
+    final accentStart = isHighContrast
+        ? context.accentPrimary
+        : SigumiTheme.primaryBlue;
+    
+    final accentEnd = isHighContrast
+        ? context.accentPrimary
+        : const Color(0xFF2A3E9A);
+
+    return Transform.scale(
+      scale: _isPressed ? 0.98 : 1.0,
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: borderColor,
+            width: 1,
+          ),
+          boxShadow: isHighContrast ? [] : [
+            BoxShadow(
+              color: isDark 
+                  ? Colors.black.withValues(alpha: 0.2)
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+              spreadRadius: 0,
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pushNamed(context, AppRoutes.login);
+            },
+            onTapDown: (_) => setState(() => _isPressed = true),
+            onTapUp: (_) => setState(() => _isPressed = false),
+            onTapCancel: () => setState(() => _isPressed = false),
+            borderRadius: BorderRadius.circular(20),
+            splashColor: accentStart.withValues(alpha: 0.05),
+            highlightColor: accentStart.withValues(alpha: 0.03),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  // Accent Line (Vertical)
+                  TweenAnimationBuilder<double>(
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
+                    tween: Tween(begin: 0.0, end: 1.0),
+                    builder: (context, value, child) {
+                      return Container(
+                        width: 3,
+                        height: 52 * value,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              accentStart,
+                              accentEnd,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      );
+                    },
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Icon (Subtle)
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: accentStart.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 20,
+                      color: accentStart,
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 16),
+                  
+                  // Text Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        Text(
+                          'Masuk ke Akun',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: textPrimary,
+                            letterSpacing: -0.3,
+                            height: 1.3,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // Description
+                        Text(
+                          'Akses laporan, chatbot AI, dan fitur premium lainnya',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(width: 12),
+                  
+                  // CTA Button (Premium Style)
+                  _PremiumButton(
+                    label: 'Masuk',
+                    accentStart: accentStart,
+                    accentEnd: accentEnd,
+                    isDark: isDark,
+                    isHighContrast: isHighContrast,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ).animate()
+      .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+      .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PREMIUM BUTTON COMPONENT
+// ─────────────────────────────────────────────────────────────────
+
+class _PremiumButton extends StatefulWidget {
+  final String label;
+  final Color accentStart;
+  final Color accentEnd;
+  final bool isDark;
+  final bool isHighContrast;
+
+  const _PremiumButton({
+    required this.label,
+    required this.accentStart,
+    required this.accentEnd,
+    required this.isDark,
+    required this.isHighContrast,
+  });
+
+  @override
+  State<_PremiumButton> createState() => _PremiumButtonState();
+}
+
+class _PremiumButtonState extends State<_PremiumButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          Navigator.pushNamed(context, AppRoutes.login);
+        },
+        child: Transform.scale(
+          scale: _isPressed ? 0.95 : (_isHovered ? 1.02 : 1.0),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 12,
+            ),
+            decoration: BoxDecoration(
+            gradient: widget.isHighContrast ? null : LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                widget.accentStart,
+                widget.accentEnd,
+              ],
+            ),
+            color: widget.isHighContrast ? widget.accentStart : null,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: widget.isHighContrast ? [] : [
+              BoxShadow(
+                color: widget.accentStart.withValues(alpha:
+                  _isPressed ? 0.2 : (_isHovered ? 0.3 : 0.25),
+                ),
+                blurRadius: _isPressed ? 8 : (_isHovered ? 16 : 12),
+                offset: Offset(0, _isPressed ? 2 : (_isHovered ? 6 : 4)),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.label,
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: _isHovered ? 20 : 0,
+                child: _isHovered
+                    ? const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 16,
+                        color: Colors.white,
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
     );
   }
 }

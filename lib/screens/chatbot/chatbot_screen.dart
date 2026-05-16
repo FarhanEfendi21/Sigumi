@@ -432,16 +432,6 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< Updated upstream
-  
-    const Color bgColor = Color(0xFFF8F9FA);
-    const Color headerTextColor = Color(0xFF1E1E2C);
-=======
-    final currentAppLanguage = context.watch<VolcanoProvider>().language;
-    final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
-                         NlpKnowledgeBase.quickActionLabels['id']!;
->>>>>>> Stashed changes
-
     return Scaffold(
       backgroundColor: context.bgSecondary,
       appBar: AppBar(
