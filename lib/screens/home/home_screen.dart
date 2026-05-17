@@ -5,7 +5,6 @@ import 'package:shimmer/shimmer.dart';
 import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
-import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
@@ -42,15 +41,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isHighContrast = context.isHighContrast;
-    
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
         final volcano = provider.volcano;
-        final statusColor = SigumiTheme.getStatusColor(volcano.statusLevel, highContrast: isHighContrast);
+        final statusColor = SigumiTheme.getStatusColor(volcano.statusLevel);
 
         return Scaffold(
-          backgroundColor: context.bgSecondary,
           body: RefreshIndicator(
             onRefresh: () async {
               // Get provider before async gap
@@ -74,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                       decoration: BoxDecoration(
-                        gradient: isHighContrast ? null : const LinearGradient(
+                        gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
@@ -84,16 +80,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                           stops: [0.0, 0.55, 1.0],
                         ),
-                        color: isHighContrast ? context.bgSurface : null,
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(28),
                           bottomRight: Radius.circular(28),
                         ),
-                        border: isHighContrast ? Border.all(
-                          color: context.borderColor,
-                          width: context.borderWidth,
-                        ) : null,
-                        boxShadow: context.cardShadow,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1B2E7B).withAlpha(18),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,8 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       AiService.getPersonalizedGreeting(
                                         provider.currentUser,
                                       ),
-                                      style: TextStyle(
-                                        color: context.textTertiary,
+                                      style: const TextStyle(
+                                        color: Color(0xFF5A6380),
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -136,27 +133,23 @@ class _HomeScreenState extends State<HomeScreen> {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: context.warningColor.withValues(alpha: 0.15),
+                                        color: Colors.orange.withAlpha(30),
                                         borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: context.warningColor.withValues(alpha: 0.3),
-                                        ),
                                       ),
-                                      child: Row(
+                                      child: const Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             Icons.cloud_off,
-                                            color: context.warningColor,
+                                            color: Colors.orange,
                                             size: 14,
                                           ),
-                                          const SizedBox(width: 4),
+                                          SizedBox(width: 4),
                                           Text(
                                             'Offline',
                                             style: TextStyle(
-                                              color: context.warningColor,
+                                              color: Colors.orange,
                                               fontSize: 11,
-                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],
@@ -228,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              gradient: isHighContrast ? null : LinearGradient(
+                                              gradient: LinearGradient(
                                                 begin: Alignment.topCenter,
                                                 end: Alignment.bottomCenter,
                                                 colors: [
@@ -237,7 +230,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ],
                                                 stops: const [0.25, 1.0],
                                               ),
-                                              color: isHighContrast ? context.overlayDark(0.7) : null,
                                             ),
                                           ),
                                         ),
@@ -430,13 +422,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-
-                    // Guest Login Prompt Banner
-                    if (provider.isGuest)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                        child: _GuestLoginBanner(),
-                      ),
 
                     // Tourism Promo Banner
                     Padding(
@@ -790,12 +775,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: context.accentPrimary.withValues(alpha: 0.1),
+            color: const Color(0xFF1B2E7B).withAlpha(15),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: context.borderColor,
-              width: context.borderWidth,
-            ),
+            border: Border.all(color: const Color(0xFF1B2E7B).withAlpha(20)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -806,8 +788,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     : Icons.location_on_rounded,
                 color:
                     isAutoDetected
-                        ? context.successColor
-                        : context.accentPrimary,
+                        ? Colors.green.shade600
+                        : const Color(0xFF1B2E7B),
                 size: 16,
               ),
               const SizedBox(width: 4),
@@ -819,15 +801,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       context.tr('your_location'),
                       style: TextStyle(
-                        color: context.successColor,
+                        color: Colors.green.shade600,
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   Text(
                     provider.selectedRegion,
-                    style: TextStyle(
-                      color: context.textPrimary,
+                    style: const TextStyle(
+                      color: Color(0xFF1B2E7B),
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -835,9 +817,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(width: 2),
-              Icon(
+              const Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: context.textPrimary,
+                color: Color(0xFF1B2E7B),
                 size: 16,
               ),
             ],
@@ -901,15 +883,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return PopScope(
           canPop: isDismissible,
           child: Container(
-            decoration: BoxDecoration(
-              color: context.bgPrimary,
-              borderRadius: const BorderRadius.only(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
-              ),
-              border: Border.all(
-                color: context.borderColor,
-                width: context.borderWidth,
               ),
             ),
             child: Column(
@@ -1140,11 +1118,9 @@ class _ShadMenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isHighContrast = context.isHighContrast;
-    final bgColor = isHighContrast ? context.bgSurface : color.withAlpha(15);
-    final iconBgColor = isHighContrast ? context.accentSecondary.withValues(alpha: 0.3) : color.withAlpha(30);
-    final iconColor = isHighContrast ? context.textPrimary : color.withAlpha(220);
-    final borderColor = isHighContrast ? context.borderColor : color.withAlpha(40);
+    final bgColor = color.withAlpha(15);
+    final iconBgColor = color.withAlpha(30);
+    final iconColor = color.withAlpha(220);
 
     return ShadCard(
       padding: EdgeInsets.zero,
@@ -1163,10 +1139,7 @@ class _ShadMenuCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: borderColor,
-                width: context.borderWidth,
-              ),
+              border: Border.all(color: color.withAlpha(40), width: 1),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             child: Row(
@@ -1190,7 +1163,7 @@ class _ShadMenuCard extends StatelessWidget {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: context.textPrimary,
+                        color: SigumiTheme.textPrimary.withAlpha(220),
                         height: 1.1,
                       ),
                       maxLines: 2,
@@ -1203,292 +1176,6 @@ class _ShadMenuCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// GUEST LOGIN BANNER — Premium Soft UI Design (2025)
-// Design inspired by: Apple HIG, Linear, Notion
-// ─────────────────────────────────────────────────────────────────
-
-class _GuestLoginBanner extends StatefulWidget {
-  const _GuestLoginBanner();
-
-  @override
-  State<_GuestLoginBanner> createState() => _GuestLoginBannerState();
-}
-
-class _GuestLoginBannerState extends State<_GuestLoginBanner> {
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final isHighContrast = context.isHighContrast;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    // Modern Color Palette
-    final bgColor = isHighContrast 
-        ? context.bgSurface 
-        : (isDark ? const Color(0xFF1E293B) : Colors.white);
-    
-    final borderColor = isHighContrast
-        ? context.borderColor
-        : (isDark 
-            ? const Color(0xFF334155).withValues(alpha: 0.4)
-            : const Color(0xFFE5E7EB).withValues(alpha: 0.6));
-    
-    final textPrimary = isHighContrast
-        ? context.textPrimary
-        : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A));
-    
-    final textSecondary = isHighContrast
-        ? context.textSecondary
-        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
-    
-    final accentStart = isHighContrast
-        ? context.accentPrimary
-        : SigumiTheme.primaryBlue;
-    
-    final accentEnd = isHighContrast
-        ? context.accentPrimary
-        : const Color(0xFF2A3E9A);
-
-    return Transform.scale(
-      scale: _isPressed ? 0.98 : 1.0,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: borderColor,
-            width: 1,
-          ),
-          boxShadow: isHighContrast ? [] : [
-            BoxShadow(
-              color: isDark 
-                  ? Colors.black.withValues(alpha: 0.2)
-                  : Colors.black.withValues(alpha: 0.04),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.pushNamed(context, AppRoutes.login);
-            },
-            onTapDown: (_) => setState(() => _isPressed = true),
-            onTapUp: (_) => setState(() => _isPressed = false),
-            onTapCancel: () => setState(() => _isPressed = false),
-            borderRadius: BorderRadius.circular(20),
-            splashColor: accentStart.withValues(alpha: 0.05),
-            highlightColor: accentStart.withValues(alpha: 0.03),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  // Accent Line (Vertical)
-                  TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOutCubic,
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    builder: (context, value, child) {
-                      return Container(
-                        width: 3,
-                        height: 52 * value,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              accentStart,
-                              accentEnd,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      );
-                    },
-                  ),
-                  
-                  const SizedBox(width: 16),
-                  
-                  // Icon (Subtle)
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: accentStart.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 20,
-                      color: accentStart,
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 16),
-                  
-                  // Text Content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title
-                        Text(
-                          'Masuk ke Akun',
-                          style: AppFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: textPrimary,
-                            letterSpacing: -0.3,
-                            height: 1.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        // Description
-                        Text(
-                          'Akses laporan, chatbot AI, dan fitur premium lainnya',
-                          style: AppFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: textSecondary,
-                            height: 1.4,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 12),
-                  
-                  // CTA Button (Premium Style)
-                  _PremiumButton(
-                    label: 'Masuk',
-                    accentStart: accentStart,
-                    accentEnd: accentEnd,
-                    isDark: isDark,
-                    isHighContrast: isHighContrast,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    ).animate()
-      .fadeIn(duration: 500.ms, curve: Curves.easeOut)
-      .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// PREMIUM BUTTON COMPONENT
-// ─────────────────────────────────────────────────────────────────
-
-class _PremiumButton extends StatefulWidget {
-  final String label;
-  final Color accentStart;
-  final Color accentEnd;
-  final bool isDark;
-  final bool isHighContrast;
-
-  const _PremiumButton({
-    required this.label,
-    required this.accentStart,
-    required this.accentEnd,
-    required this.isDark,
-    required this.isHighContrast,
-  });
-
-  @override
-  State<_PremiumButton> createState() => _PremiumButtonState();
-}
-
-class _PremiumButtonState extends State<_PremiumButton> {
-  bool _isHovered = false;
-  bool _isPressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
-        onTap: () {
-          HapticFeedback.mediumImpact();
-          Navigator.pushNamed(context, AppRoutes.login);
-        },
-        child: Transform.scale(
-          scale: _isPressed ? 0.95 : (_isHovered ? 1.02 : 1.0),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 12,
-            ),
-            decoration: BoxDecoration(
-            gradient: widget.isHighContrast ? null : LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                widget.accentStart,
-                widget.accentEnd,
-              ],
-            ),
-            color: widget.isHighContrast ? widget.accentStart : null,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: widget.isHighContrast ? [] : [
-              BoxShadow(
-                color: widget.accentStart.withValues(alpha:
-                  _isPressed ? 0.2 : (_isHovered ? 0.3 : 0.25),
-                ),
-                blurRadius: _isPressed ? 8 : (_isHovered ? 16 : 12),
-                offset: Offset(0, _isPressed ? 2 : (_isHovered ? 6 : 4)),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.label,
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: _isHovered ? 20 : 0,
-                child: _isHovered
-                    ? const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 16,
-                        color: Colors.white,
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
     );
   }
 }
@@ -1510,7 +1197,6 @@ class _TourismBannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isHighContrast = context.isHighContrast;
     // Default fallback to signature blue if region not strictly matched
     final bgColor = _regionColors[region] ?? const Color(0xFF1B2E7B);
 
@@ -1518,18 +1204,13 @@ class _TourismBannerCard extends StatelessWidget {
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 110),
       decoration: BoxDecoration(
-        gradient: isHighContrast ? null : LinearGradient(
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [bgColor, bgColor.withAlpha(200)],
         ),
-        color: isHighContrast ? context.accentPrimary : null,
         borderRadius: BorderRadius.circular(16),
-        border: isHighContrast ? Border.all(
-          color: context.borderColor,
-          width: context.borderWidth,
-        ) : null,
-        boxShadow: isHighContrast ? [] : [
+        boxShadow: [
           BoxShadow(
             color: bgColor.withAlpha(50),
             blurRadius: 12,

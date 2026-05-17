@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
-import 'package:sigumi/config/theme_extensions.dart';
 
 class BlurTopBar extends StatelessWidget {
   final String title;
@@ -26,11 +25,11 @@ class BlurTopBar extends StatelessWidget {
           width: double.infinity,
           height: MediaQuery.of(context).padding.top + kToolbarHeight,
           decoration: BoxDecoration(
-            color: context.bgPrimary.withAlpha(isMapFocused ? 100 : 180), // Lebih transparan saat fokus
+            color: Colors.white.withAlpha(isMapFocused ? 100 : 180), // Lebih transparan saat fokus
             border: Border(
               bottom: BorderSide(
-                color: context.dividerColor.withAlpha(isMapFocused ? 0 : 128),
-                width: context.borderWidth,
+                color: Colors.black.withAlpha(isMapFocused ? 0 : 20),
+                width: 0.5,
               ),
             ),
           ),
@@ -46,7 +45,7 @@ class BlurTopBar extends StatelessWidget {
                     style: AppFonts.plusJakartaSans(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: context.textPrimary,
+                      color: const Color(0xFF1E1E2C),
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -60,9 +59,9 @@ class BlurTopBar extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
                     child: IconButton(
                       onPressed: onBack,
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.arrow_back_ios_new_rounded,
-                        color: context.textPrimary,
+                        color: Color(0xFF1E1E2C),
                         size: 20,
                       ),
                       tooltip: 'Kembali',
@@ -81,7 +80,7 @@ class BlurTopBar extends StatelessWidget {
                         isMapFocused
                             ? Icons.fullscreen_exit_rounded
                             : Icons.fullscreen_rounded,
-                        color: context.textPrimary,
+                        color: const Color(0xFF1E1E2C),
                         size: 26,
                       ),
                       tooltip:

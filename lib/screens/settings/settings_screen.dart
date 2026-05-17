@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
-import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/localization_service.dart';
@@ -23,9 +22,13 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   // ── Konstanta warna ──────────────────────────────────────────────
+  static const _bgColor = Color(0xFFF2F2F7); // iOS systemGroupedBackground
+  static const _surfaceColor = Colors.white;
   static const _labelPrimary = Color(0xFF1E1E2C); // iOS label
   static const _labelSecondary = Color(0xFF8E8E93); // iOS secondaryLabel
   static const _labelTertiary = Color(0xFFAEAEB2); // iOS tertiaryLabel
+  static const _separatorColor = Color(0xFFE5E5EA); // iOS separator
+  static const _destructiveRed = Color(0xFFFF3B30); // iOS systemRed
 
   @override
   Widget build(BuildContext context) {
@@ -37,10 +40,10 @@ class SettingsScreen extends StatelessWidget {
         }
 
         return Scaffold(
-          backgroundColor: context.bgSecondary,
+          backgroundColor: _bgColor,
           // Gunakan transparent AppBar ala iOS — judul muncul di body
           appBar: AppBar(
-            backgroundColor: context.bgSecondary,
+            backgroundColor: _bgColor,
             elevation: 0,
             scrolledUnderElevation: 0,
             centerTitle: true,
@@ -48,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
               context.tr('nav_profile'),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
-                color: context.textPrimary,
+                color: _labelPrimary,
                 fontSize: 18,
               ),
             ),
@@ -301,13 +304,8 @@ class _ProfileHero extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
-        color: context.bgSurface,
+        color: SettingsScreen._surfaceColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: context.borderColor,
-          width: context.borderWidth,
-        ),
-        boxShadow: context.cardShadow,
       ),
       child: Row(
         children: [
@@ -322,11 +320,11 @@ class _ProfileHero extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: context.textPrimary,
+                    color: SettingsScreen._labelPrimary,
                     letterSpacing: -0.5,
                     height: 1.2,
                   ),
@@ -336,11 +334,11 @@ class _ProfileHero extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   contact,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 14,
                     fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
+                    color: SettingsScreen._labelSecondary,
                     letterSpacing: -0.1,
                   ),
                   maxLines: 1,
@@ -372,7 +370,7 @@ class _AvatarWidget extends StatelessWidget {
       height: 72,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: context.isHighContrast ? null : const LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
@@ -380,21 +378,22 @@ class _AvatarWidget extends StatelessWidget {
             Color(0xFF0D2060), // lebih gelap
           ],
         ),
-        color: context.isHighContrast ? context.accentPrimary : null,
-        border: Border.all(
-          color: context.isHighContrast ? context.borderColor : Colors.transparent,
-          width: context.borderWidth,
-        ),
-        boxShadow: context.cardShadow,
+        boxShadow: [
+          BoxShadow(
+            color: SigumiTheme.primaryBlue.withAlpha(45),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       alignment: Alignment.center,
       child: Text(
         initials.isEmpty ? '?' : initials,
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'Plus Jakarta Sans',
           fontSize: 26,
           fontWeight: FontWeight.w700,
-          color: context.isHighContrast ? context.bgPrimary : Colors.white,
+          color: Colors.white,
           letterSpacing: -0.5,
         ),
       ),
@@ -420,19 +419,16 @@ class _LanguageBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: context.bgSecondary,
+        color: SettingsScreen._bgColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: context.borderColor,
-        ),
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'Plus Jakarta Sans',
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: context.textSecondary,
+          color: SettingsScreen._labelSecondary,
           letterSpacing: 0.1,
         ),
       ),
@@ -456,11 +452,11 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(left: 32, bottom: 8),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
+        style: const TextStyle(
           fontFamily: 'Plus Jakarta Sans',
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: context.textSecondary,
+          color: SettingsScreen._labelSecondary,
           letterSpacing: 0.8,
         ),
       ),
@@ -479,13 +475,8 @@ class _GroupedList extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: context.bgSurface,
+        color: SettingsScreen._surfaceColor,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: context.borderColor,
-          width: context.borderWidth,
-        ),
-        boxShadow: context.cardShadow,
       ),
       clipBehavior: Clip.hardEdge,
       child: Column(mainAxisSize: MainAxisSize.min, children: children),
@@ -495,15 +486,13 @@ class _GroupedList extends StatelessWidget {
 
 /// Garis pemisah inset (tidak menyentuh tepi kiri — mengikuti letak ikon)
 class _ListDivider extends StatelessWidget {
-  const _ListDivider();
-  
   @override
   Widget build(BuildContext context) {
-    return Divider(
+    return const Divider(
       height: 1,
-      thickness: context.borderWidth,
+      thickness: 0.5,
       indent: 58, // rata dengan teks, setelah ikon 36 + margin 14 + gap 8
-      color: context.dividerColor,
+      color: SettingsScreen._separatorColor,
     );
   }
 }
@@ -533,8 +522,8 @@ class _ListRow extends StatelessWidget {
           HapticFeedback.lightImpact();
           onTap();
         },
-        splashColor: context.dividerColor.withValues(alpha: 0.3),
-        highlightColor: context.bgSecondary.withValues(alpha: 0.5),
+        splashColor: SettingsScreen._separatorColor.withAlpha(60),
+        highlightColor: SettingsScreen._bgColor.withAlpha(120),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
@@ -551,11 +540,11 @@ class _ListRow extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: context.textPrimary,
+                        color: SettingsScreen._labelPrimary,
                         letterSpacing: -0.2,
                         height: 1.3,
                       ),
@@ -563,11 +552,11 @@ class _ListRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
-                        color: context.textSecondary,
+                        color: SettingsScreen._labelSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -576,10 +565,10 @@ class _ListRow extends StatelessWidget {
               ),
 
               // Chevron navigasi
-              Icon(
+              const Icon(
                 CupertinoIcons.chevron_right,
                 size: 16,
-                color: context.textTertiary,
+                color: SettingsScreen._labelTertiary,
               ),
             ],
           ),
@@ -637,13 +626,13 @@ class _OfflineRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
+                const Text(
                   'Data Offline',
                   style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: context.textPrimary,
+                    color: SettingsScreen._labelPrimary,
                     letterSpacing: -0.2,
                     height: 1.3,
                   ),
@@ -653,11 +642,11 @@ class _OfflineRow extends StatelessWidget {
                   provider.isOffline
                       ? 'Mode offline aktif'
                       : 'Menggunakan data online',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
+                    color: SettingsScreen._labelSecondary,
                     height: 1.4,
                   ),
                 ),
@@ -667,7 +656,7 @@ class _OfflineRow extends StatelessWidget {
           // CupertinoSwitch untuk tampilan yang tumpah/tepat seperti iOS
           CupertinoSwitch(
             value: provider.isOffline,
-            activeTrackColor: context.accentPrimary,
+            activeTrackColor: SigumiTheme.primaryBlue,
             onChanged: (val) {
               HapticFeedback.lightImpact();
               provider.toggleOffline();
@@ -694,26 +683,26 @@ class _LogoutRow extends StatelessWidget {
           HapticFeedback.heavyImpact();
           onTap();
         },
-        splashColor: context.errorColor.withValues(alpha: 0.1),
-        highlightColor: context.errorColor.withValues(alpha: 0.05),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+        splashColor: SettingsScreen._destructiveRed.withAlpha(20),
+        highlightColor: SettingsScreen._destructiveRed.withAlpha(10),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 17),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 CupertinoIcons.square_arrow_left,
                 size: 19,
-                color: context.errorColor,
+                color: SettingsScreen._destructiveRed,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 'Keluar',
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: context.errorColor,
+                  color: SettingsScreen._destructiveRed,
                   letterSpacing: -0.2,
                 ),
               ),
@@ -736,9 +725,9 @@ class _GuestProfileView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.bgSecondary,
+      backgroundColor: SettingsScreen._bgColor,
       appBar: AppBar(
-        backgroundColor: context.bgSecondary,
+        backgroundColor: SettingsScreen._bgColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
@@ -746,7 +735,7 @@ class _GuestProfileView extends StatelessWidget {
           'Profil',
           style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
-            color: context.textPrimary,
+            color: SettingsScreen._labelPrimary,
             fontSize: 18,
           ),
         ),
@@ -767,16 +756,16 @@ class _GuestProfileView extends StatelessWidget {
                 height: 96,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: context.bgSurface,
+                  color: SettingsScreen._bgColor,
                   border: Border.all(
-                    color: context.accentPrimary.withValues(alpha: 0.3),
-                    width: context.borderWidth,
+                    color: SigumiTheme.primaryBlue.withAlpha(40),
+                    width: 2,
                   ),
                 ),
                 child: Icon(
                   CupertinoIcons.person_crop_circle,
                   size: 60,
-                  color: context.accentPrimary.withValues(alpha: 0.5),
+                  color: SigumiTheme.primaryBlue.withAlpha(80),
                 ),
               )
                   .animate()
@@ -795,7 +784,7 @@ class _GuestProfileView extends StatelessWidget {
                 style: AppFonts.plusJakartaSans(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: context.textPrimary,
+                  color: SettingsScreen._labelPrimary,
                 ),
               ).animate().fadeIn(delay: 100.ms),
 
@@ -806,7 +795,7 @@ class _GuestProfileView extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: AppFonts.plusJakartaSans(
                   fontSize: 14,
-                  color: context.textSecondary,
+                  color: SettingsScreen._labelSecondary,
                   height: 1.6,
                 ),
               ).animate().fadeIn(delay: 150.ms),
@@ -818,13 +807,11 @@ class _GuestProfileView extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: context.bgSurface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: context.borderColor,
-                    width: context.borderWidth,
+                    color: SigumiTheme.primaryBlue.withAlpha(25),
                   ),
-                  boxShadow: context.cardShadow,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
