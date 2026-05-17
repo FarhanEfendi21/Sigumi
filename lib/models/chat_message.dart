@@ -12,6 +12,10 @@ class ChatMessage {
   final String language;
   final MessageType messageType;
   final bool isVoice;
+  /// Menandai bahwa pesan ini berasal dari input suara (bukan ketikan).
+  /// Digunakan oleh Voice Assistant Loop untuk menentukan apakah
+  /// bot harus otomatis membacakan respons via TTS.
+  final bool isVoiceInput;
   final double? confidence;
   final String? intentId;
 
@@ -22,6 +26,7 @@ class ChatMessage {
     this.language = 'id',
     this.messageType = MessageType.text,
     this.isVoice = false,
+    this.isVoiceInput = false,
     this.confidence,
     this.intentId,
   });

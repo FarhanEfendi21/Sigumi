@@ -1,4 +1,7 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
+import '../config/globals.dart';
+import '../config/routes.dart';
 import '../models/chat_message.dart';
 import '../models/user_model.dart';
 import 'nlp_engine.dart';
@@ -399,5 +402,109 @@ class AiService {
       default:
         return 'Pantau arah angin dan ikuti jalur evakuasi yang direkomendasikan BPBD.';
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // NAVIGATION INTENT — Navigasi Otomatis dari Voice Assistant
+  // ═══════════════════════════════════════════════════════════════
+
+  /// Mapping intent NLP ke route aplikasi.
+  /// Jika intent bukan navigasi, return null.
+  static String? _getRouteForIntent(String intentId) {
+    switch (intentId) {
+      case 'evakuasi':
+        return AppRoutes.map;
+      case 'status':
+        return AppRoutes.home;
+      case 'bantuan':
+        return AppRoutes.emergency;
+      case 'zona_bahaya':
+        return AppRoutes.map;
+      case 'sop_evakuasi':
+        return AppRoutes.education;
+      case 'jadwal_pelatihan':
+        return AppRoutes.education;
+      case 'tas_siaga':
+        return AppRoutes.education;
+      case 'mitigasi_abu':
+        return AppRoutes.education;
+      case 'p3k':
+        return AppRoutes.education;
+      default:
+        return null;
+    }
+  }
+
+  /// Teks konfirmasi navigasi yang dibacakan TTS sebelum pindah halaman.
+  static String _getNavigationConfirmation(String intentId, String language) {
+    final Map<String, Map<String, String>> confirmations = {
+      'evakuasi': {
+        'id': 'Membuka halaman peta evakuasi.',
+        'en': 'Opening evacuation map.',
+      },
+      'status': {
+        'id': 'Membuka halaman beranda untuk melihat status gunung.',
+        'en': 'Opening home page to check volcano status.',
+      },
+      'bantuan': {
+        'id': 'Membuka halaman kontak darurat.',
+        'en': 'Opening emergency contacts page.',
+      },
+      'zona_bahaya': {
+        'id': 'Membuka halaman peta zona bahaya.',
+        'en': 'Opening danger zone map.',
+      },
+      'sop_evakuasi': {
+        'id': 'Membuka halaman edukasi evakuasi.',
+        'en': 'Opening evacuation education page.',
+      },
+      'jadwal_pelatihan': {
+        'id': 'Membuka halaman edukasi pelatihan.',
+        'en': 'Opening training education page.',
+      },
+      'tas_siaga': {
+        'id': 'Membuka halaman edukasi kesiapsiagaan.',
+        'en': 'Opening preparedness education page.',
+      },
+      'mitigasi_abu': {
+        'id': 'Membuka halaman edukasi mitigasi.',
+        'en': 'Opening mitigation education page.',
+      },
+      'p3k': {
+        'id': 'Membuka halaman edukasi P3K.',
+        'en': 'Opening first aid education page.',
+      },
+    };
+
+    final intentConfirm = confirmations[intentId];
+    if (intentConfirm != null) {
+      return intentConfirm[language] ?? intentConfirm['id'] ?? 'Memproses...';
+    }
+    return language == 'en' ? 'Processing...' : 'Memproses...';
+  }
+
+  /// Mencoba melakukan navigasi otomatis berdasarkan intent.
+  /// Dipanggil oleh GlobalAssistantProvider setelah mendapat respons.
+  ///
+  /// Return true jika navigasi berhasil dilakukan.
+  static bool tryNavigateForIntent(String intentId) {
+    final route = _getRouteForIntent(intentId);
+    if (route == null) return false;
+
+    final navigator = globalNavigatorKey.currentState;
+    if (navigator == null) {
+      debugPrint('[AiService] ⚠️ Navigator not available for auto-navigate.');
+      return false;
+    }
+
+    // Gunakan pushNamed agar user bisa kembali ke halaman sebelumnya
+    navigator.pushNamed(route);
+    debugPrint('[AiService] 🗺️ Auto-navigated to: $route (intent: $intentId)');
+    return true;
+  }
+
+  /// Mendapatkan teks konfirmasi navigasi untuk TTS.
+  static String getNavigationText(String intentId, String language) {
+    return _getNavigationConfirmation(intentId, language);
   }
 }

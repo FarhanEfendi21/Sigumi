@@ -33,6 +33,7 @@ dependencies:
   supabase_flutter: ^2.12.2
   speech_to_text: ^7.0.0
   string_similarity: ^2.2.0
+  tflite_audio: ^0.3.0
 
   flutter_map_cancellable_tile_provider: ^3.0.2
   webview_flutter: ^4.10.0
@@ -53,6 +54,7 @@ flutter:
     - assets/images/
     - assets/images/education/
     - assets/onboarding/
+    - assets/ml/
 
   fonts:
     - family: Plus Jakarta Sans

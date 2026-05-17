@@ -7,6 +7,7 @@ import '../config/theme.dart';
 import '../config/fonts.dart';
 import '../config/routes.dart';
 import '../providers/volcano_provider.dart';
+import '../providers/assistant_provider.dart';
 import '../services/localization_service.dart';
 import 'home/home_screen.dart';
 import 'map/map_screen.dart';
@@ -23,6 +24,7 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  bool _assistantInitialized = false;
 
   // Lazy-load tabs: only build when first visited
   final Set<int> _loadedTabs = {0}; // Home is always loaded
@@ -30,6 +32,30 @@ class _MainNavigationState extends State<MainNavigation> {
   // Tab yang membutuhkan auth (index: 2=Lapor, 3=Chatbot)
   // Tab 4 (Profil) tetap bisa dibuka oleh guest — isinya guest view
   static const Set<int> _authRequiredTabs = {2, 3};
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _initAssistantIfNeeded();
+  }
+
+  /// Inisialisasi Global Voice Assistant.
+  /// Dipanggil sekali saat MainNavigation pertama kali dimuat.
+  void _initAssistantIfNeeded() {
+    if (_assistantInitialized) return;
+    _assistantInitialized = true;
+
+    final volcanoProvider = context.read<VolcanoProvider>();
+    final assistantProvider = context.read<GlobalAssistantProvider>();
+
+    // Jalankan init di frame berikutnya agar context sudah fully built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      assistantProvider.initAssistant(
+        language: volcanoProvider.language,
+      );
+      debugPrint('[MainNav] 🎤 Global Voice Assistant initialized!');
+    });
+  }
 
   Widget _buildTab(int index) {
     if (!_loadedTabs.contains(index)) {
@@ -105,9 +131,91 @@ class _MainNavigationState extends State<MainNavigation> {
           },
           child: Scaffold(
             extendBody: true,
-            body: IndexedStack(
-              index: _currentIndex,
-              children: List.generate(5, _buildTab),
+            body: Stack(
+              children: [
+                // Main content
+                IndexedStack(
+                  index: _currentIndex,
+                  children: List.generate(5, _buildTab),
+                ),
+
+                // ── Voice Assistant Status Indicator ──
+                // Titik kecil di pojok kanan atas menunjukkan status asisten.
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 8,
+                  right: 12,
+                  child: Consumer<GlobalAssistantProvider>(
+                    builder: (ctx, assistant, _) {
+                      if (assistant.state == AssistantState.disabled) {
+                        return const SizedBox.shrink();
+                      }
+
+                      Color dotColor;
+                      String tooltip;
+                      switch (assistant.state) {
+                        case AssistantState.idle:
+                          dotColor = Colors.green;
+                          tooltip = 'Voice Assistant aktif — ucapkan "Halo Sigumi"';
+                          break;
+                        case AssistantState.listeningCommand:
+                          dotColor = Colors.blue;
+                          tooltip = 'Mendengarkan perintah...';
+                          break;
+                        case AssistantState.processing:
+                          dotColor = Colors.orange;
+                          tooltip = 'Memproses...';
+                          break;
+                        case AssistantState.speaking:
+                          dotColor = Colors.purple;
+                          tooltip = 'Sedang berbicara...';
+                          break;
+                        default:
+                          dotColor = Colors.grey;
+                          tooltip = 'Assistant nonaktif';
+                      }
+
+                      return Tooltip(
+                        message: tooltip,
+                        child: GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(tooltip),
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: dotColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: dotColor.withAlpha(120),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          )
+                              .animate(
+                                onPlay: (c) => c.repeat(reverse: true),
+                              )
+                              .scaleXY(
+                                begin: 1.0,
+                                end: 1.3,
+                                duration: 1500.ms,
+                                curve: Curves.easeInOut,
+                              ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
             bottomNavigationBar: _ModernBottomNav(
               currentIndex: _currentIndex,
