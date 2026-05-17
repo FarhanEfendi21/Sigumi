@@ -5,18 +5,32 @@ import '../utils/logger.dart';
 class NewsRepository {
   final _supabase = Supabase.instance.client;
 
-  /// Ambil 5 berita terbaru
-  Future<List<NewsModel>> getLatestNews({int limit = 5}) async {
+  /// Ambil 5 berita terbaru (filter by lokasi jika diberikan)
+  Future<List<NewsModel>> getLatestNews({int limit = 5, String? lokasi}) async {
     try {
-      Logger.info('Fetching latest $limit news...', tag: 'NewsRepository');
+      Logger.info(
+        'Fetching latest $limit news${lokasi != null ? ' for $lokasi' : ''}...',
+        tag: 'NewsRepository',
+      );
 
-      final response = await _supabase
-          .from('news')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(limit);
+      final response =
+          lokasi != null
+              ? await _supabase
+                  .from('news')
+                  .select()
+                  .eq('lokasi', lokasi)
+                  .order('created_at', ascending: false)
+                  .limit(limit)
+              : await _supabase
+                  .from('news')
+                  .select()
+                  .order('created_at', ascending: false)
+                  .limit(limit);
 
-      Logger.success('News fetched successfully: ${response.length} items', tag: 'NewsRepository');
+      Logger.success(
+        'News fetched successfully: ${response.length} items',
+        tag: 'NewsRepository',
+      );
       for (var i = 0; i < response.length; i++) {
         Logger.log(
           '[$i] ${response[i]['title']} - Status: ${response[i]['status']}',
@@ -47,7 +61,10 @@ class NewsRepository {
           .select()
           .order('created_at', ascending: false);
 
-      Logger.success('All news fetched: ${response.length} items', tag: 'NewsRepository');
+      Logger.success(
+        'All news fetched: ${response.length} items',
+        tag: 'NewsRepository',
+      );
 
       return (response as List)
           .map((json) => NewsModel.fromJson(json))

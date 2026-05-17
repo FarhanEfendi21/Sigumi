@@ -5,6 +5,7 @@ class NewsModel {
   final String? imageUrl;
   final String? status;
   final DateTime? createdAt;
+  final String? lokasi;
 
   NewsModel({
     required this.id,
@@ -13,6 +14,7 @@ class NewsModel {
     this.imageUrl,
     this.status,
     this.createdAt,
+    this.lokasi,
   });
 
   /// Convert dari JSON response Supabase
@@ -27,6 +29,7 @@ class NewsModel {
           json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
               : null,
+      lokasi: json['lokasi'] as String?,
     );
   }
 
@@ -39,6 +42,7 @@ class NewsModel {
       'image_url': imageUrl,
       'status': status,
       'created_at': createdAt?.toIso8601String(),
+      'lokasi': lokasi,
     };
   }
 
@@ -50,6 +54,7 @@ class NewsModel {
     String? imageUrl,
     String? status,
     DateTime? createdAt,
+    String? lokasi,
   }) {
     return NewsModel(
       id: id ?? this.id,
@@ -58,6 +63,7 @@ class NewsModel {
       imageUrl: imageUrl ?? this.imageUrl,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      lokasi: lokasi ?? this.lokasi,
     );
   }
 }

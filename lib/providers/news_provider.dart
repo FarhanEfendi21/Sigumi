@@ -15,14 +15,14 @@ class NewsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  /// Fetch berita terbaru
-  Future<void> fetchLatestNews({int limit = 5}) async {
+  /// Fetch berita terbaru (dengan filter lokasi)
+  Future<void> fetchLatestNews({int limit = 5, String? lokasi}) async {
     try {
       _isLoading = true;
       _error = null;
       notifyListeners();
 
-      _newsList = await _repository.getLatestNews(limit: limit);
+      _newsList = await _repository.getLatestNews(limit: limit, lokasi: lokasi);
       Logger.success('${_newsList.length} news loaded', tag: 'NewsProvider');
     } catch (e) {
       _error = e.toString();
@@ -64,8 +64,8 @@ class NewsProvider extends ChangeNotifier {
   }
 
   /// Refresh berita terbaru
-  Future<void> refreshLatestNews({int limit = 5}) async {
-    await fetchLatestNews(limit: limit);
+  Future<void> refreshLatestNews({int limit = 5, String? lokasi}) async {
+    await fetchLatestNews(limit: limit, lokasi: lokasi);
   }
 
   /// Clear error
