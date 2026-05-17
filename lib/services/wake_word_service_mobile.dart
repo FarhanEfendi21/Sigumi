@@ -5,11 +5,24 @@ import 'wake_word_service.dart';
 
 /// Mobile implementation — uses tflite_audio (dart:ffi).
 /// Only compiled on Android/iOS via conditional import.
+///
+/// State machine mic:
+///   tflite_audio ON  → wake word detected → tflite_audio OFF → STT ON
+///   STT done → tflite_audio ON (kembali ke loop)
+///
+/// tflite_audio dan STT TIDAK BOLEH menyala bersamaan.
 class WakeWordServiceImpl implements WakeWordService {
   bool _modelLoaded = false;
   bool _isListening = false;
   StreamSubscription<dynamic>? _subscription;
 
+  /// Jumlah inference awal yang di-skip (warm-up).
+  /// Model TFLite sering menghasilkan output tidak akurat pada
+  /// beberapa inference pertama karena buffer audio belum terisi.
+  static const int _warmUpSkipCount = 3;
+  int _inferenceCount = 0;
+
+  /// Label wake word sesuai labels.txt: "1 Halo Sigumi"
   static const String _wakeWordLabel = 'Halo Sigumi';
 
   @override
@@ -24,7 +37,7 @@ class WakeWordServiceImpl implements WakeWordService {
     debugPrint('[WakeWord] 📦 Loading TFLite audio model...');
     try {
       await TfliteAudio.loadModel(
-        model: 'assets/ml/soundclassifier_with_metadata.tflite',
+        model: 'assets/ml/voice-assistant.tflite',
         label: 'assets/ml/labels.txt',
         numThreads: 1,
         isAsset: true,
@@ -51,21 +64,33 @@ class WakeWordServiceImpl implements WakeWordService {
     }
 
     _isListening = true;
+    _inferenceCount = 0; // Reset warm-up counter
     debugPrint('[WakeWord] 🎤 Starting audio recognition stream...');
-    debugPrint('[WakeWord] 🎤 Config: sampleRate=44100, bufferSize=22016, recordingLength=44032');
+    debugPrint('[WakeWord] 🎤 Config: sampleRate=16000, bufferSize=1288, warmUpSkip=$_warmUpSkipCount');
 
     try {
+      // Model input: [1, 1287] float32
+      // sampleRate=16000 (Edge Impulse default)
+      // bufferSize=1288 (must be even for Android AudioRecord, ≈ model input 1287)
       final stream = TfliteAudio.startAudioRecognition(
         numOfInferences: 999,
-        sampleRate: 44100,
-        bufferSize: 22016,
+        sampleRate: 16000,
+        bufferSize: 1288,
       );
 
       _subscription = stream.listen(
         (event) {
           final String label =
               event['recognitionResult']?.toString().trim() ?? '';
-          debugPrint('[WakeWord] 🔍 Inference result: "$label"');
+          _inferenceCount++;
+          debugPrint('[WakeWord] 🔍 Inference #$_inferenceCount result: "$label"');
+
+          // Skip warm-up inferences — buffer audio belum terisi data valid,
+          // sehingga output model tidak bisa dipercaya.
+          if (_inferenceCount <= _warmUpSkipCount) {
+            debugPrint('[WakeWord] ⏭️ Skipping warm-up inference #$_inferenceCount/$_warmUpSkipCount');
+            return;
+          }
 
           // Defensive matching: tflite_audio bisa mengembalikan
           // "1 Halo Sigumi" atau "Halo Sigumi" tergantung versi.
