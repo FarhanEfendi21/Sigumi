@@ -28,7 +28,11 @@ class NewsDetailScreen extends StatelessWidget {
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E1E2C), size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Color(0xFF1E1E2C),
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -48,170 +52,236 @@ class NewsDetailScreen extends StatelessWidget {
                 child: Image.network(
                   newsItem.imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: const Color(0xFFF1F5F9),
-                    child: const Center(
-                      child: Icon(Icons.broken_image_rounded, color: Color(0xFF94A3B8), size: 40),
-                    ),
-                  ),
+                  errorBuilder:
+                      (context, error, stackTrace) => Container(
+                        color: const Color(0xFFF1F5F9),
+                        child: const Center(
+                          child: Icon(
+                            Icons.broken_image_rounded,
+                            color: Color(0xFF94A3B8),
+                            size: 40,
+                          ),
+                        ),
+                      ),
                 ),
               ).animate().fadeIn(duration: 400.ms),
-              
+
             Padding(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Category & Time
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: newsItem.categoryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Text(
-                          newsItem.categoryLabel.toUpperCase(),
-                          style: AppFonts.plusJakartaSans(
-                            color: newsItem.categoryColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.5,
+                  Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: newsItem.categoryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  newsItem.categoryLabel.toUpperCase(),
+                                  style: AppFonts.plusJakartaSans(
+                                    color: newsItem.categoryColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                newsItem.timeAgo,
+                                style: AppFonts.plusJakartaSans(
+                                  color: const Color(0xFF64748B),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.access_time_rounded, size: 14, color: Color(0xFF94A3B8)),
-                      const SizedBox(width: 4),
-                      Text(
-                        newsItem.timeAgo,
-                        style: AppFonts.plusJakartaSans(
-                          color: const Color(0xFF64748B),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.1, end: 0),
-                  
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                size: 13,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                _formatPublishedDate(newsItem.publishedAt),
+                                style: AppFonts.plusJakartaSans(
+                                  color: const Color(0xFF64748B),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 100.ms)
+                      .slideY(begin: 0.1, end: 0),
+
                   const SizedBox(height: 16),
-                  
+
                   // Title
                   Text(
-                    newsItem.title,
-                    style: AppFonts.plusJakartaSans(
-                      color: const Color(0xFF0F172A),
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      height: 1.3,
-                      letterSpacing: -0.5,
-                    ),
-                  ).animate().fadeIn(duration: 400.ms, delay: 150.ms).slideY(begin: 0.1, end: 0),
-                  
+                        newsItem.title,
+                        style: AppFonts.plusJakartaSans(
+                          color: const Color(0xFF0F172A),
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          height: 1.3,
+                          letterSpacing: -0.5,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 150.ms)
+                      .slideY(begin: 0.1, end: 0),
+
                   const SizedBox(height: 16),
-                  
+
                   // Source
                   Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFF1F5F9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.source_rounded, size: 14, color: Color(0xFF64748B)),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Sumber: ${newsItem.source}',
-                        style: AppFonts.plusJakartaSans(
-                          color: const Color(0xFF475569),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ).animate().fadeIn(duration: 400.ms, delay: 200.ms).slideY(begin: 0.1, end: 0),
-                  
-                  const SizedBox(height: 24),
-                  const Divider(color: Color(0xFFF1F5F9), thickness: 1.5, height: 1),
-                  const SizedBox(height: 24),
-                  
-                  // Summary Callout
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.format_quote_rounded, color: Color(0xFF94A3B8), size: 24),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            newsItem.summary,
-                            style: AppFonts.plusJakartaSans(
-                              color: const Color(0xFF334155),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              height: 1.5,
-                              fontStyle: FontStyle.italic,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF1F5F9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.source_rounded,
+                              size: 14,
+                              color: Color(0xFF64748B),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ).animate().fadeIn(duration: 400.ms, delay: 250.ms).slideY(begin: 0.1, end: 0),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Content
-                  Text(
-                    newsItem.content,
-                    style: AppFonts.plusJakartaSans(
-                      color: const Color(0xFF1E293B), // Slate 800
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      height: 1.7,
-                    ),
-                  ).animate().fadeIn(duration: 400.ms, delay: 300.ms).slideY(begin: 0.1, end: 0),
-                  
-                  const SizedBox(height: 48),
-                  
-                  // Share Action (Cupertino style)
-                  SizedBox(
-                    width: double.infinity,
-                    child: CupertinoButton(
-                      color: const Color(0xFFF1F5F9),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      borderRadius: BorderRadius.circular(12),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(CupertinoIcons.share, color: Color(0xFF0F172A), size: 20),
                           const SizedBox(width: 8),
                           Text(
-                            'Bagikan Berita',
+                            'Sumber: ${newsItem.source}',
                             style: AppFonts.plusJakartaSans(
-                              color: const Color(0xFF0F172A),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF475569),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
-                      ),
-                      onPressed: () {
-                        Share.share(
-                          '${newsItem.title}\n\nBaca selengkapnya di aplikasi SIGUMI:\nhttps://sigumi.app/news/${newsItem.id}',
-                        );
-                      },
-                    ),
-                  ).animate().fadeIn(duration: 400.ms, delay: 350.ms).slideY(begin: 0.1, end: 0),
-                  
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 200.ms)
+                      .slideY(begin: 0.1, end: 0),
+
+                  const SizedBox(height: 24),
+                  const Divider(
+                    color: Color(0xFFF1F5F9),
+                    thickness: 1.5,
+                    height: 1,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Summary Callout
+                  Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.format_quote_rounded,
+                              color: Color(0xFF94A3B8),
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                newsItem.summary,
+                                style: AppFonts.plusJakartaSans(
+                                  color: const Color(0xFF334155),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.5,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 250.ms)
+                      .slideY(begin: 0.1, end: 0),
+
+                  const SizedBox(height: 24),
+
+                  // Content
+                  Text(
+                        newsItem.content,
+                        style: AppFonts.plusJakartaSans(
+                          color: const Color(0xFF1E293B), // Slate 800
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          height: 1.7,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 300.ms)
+                      .slideY(begin: 0.1, end: 0),
+
+                  const SizedBox(height: 48),
+
+                  // Share Action (Cupertino style)
+                  SizedBox(
+                        width: double.infinity,
+                        child: CupertinoButton(
+                          color: const Color(0xFFF1F5F9),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                CupertinoIcons.share,
+                                color: Color(0xFF0F172A),
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Bagikan Berita',
+                                style: AppFonts.plusJakartaSans(
+                                  color: const Color(0xFF0F172A),
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onPressed: () {
+                            Share.share(
+                              '${newsItem.title}\n\nBaca selengkapnya di aplikasi SIGUMI:\nhttps://sigumi.app/news/${newsItem.id}',
+                            );
+                          },
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 400.ms, delay: 350.ms)
+                      .slideY(begin: 0.1, end: 0),
+
                   const SizedBox(height: 32),
                 ],
               ),
@@ -220,5 +290,31 @@ class NewsDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Format tanggal dan waktu untuk ditampilkan di detail berita
+  String _formatPublishedDate(DateTime dateTime) {
+    final months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+
+    final month = months[dateTime.month - 1];
+    final day = dateTime.day;
+    final year = dateTime.year;
+    final hour = dateTime.hour.toString().padLeft(2, '0');
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+
+    return '$day $month $year · $hour:$minute';
   }
 }

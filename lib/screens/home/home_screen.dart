@@ -22,46 +22,67 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      
+
       final volcanoProvider = context.read<VolcanoProvider>();
       await volcanoProvider.autoDetectAndSetRegion();
 
       if (!mounted) return;
-      
-      // Fetch news dari Supabase
+
+      // Fetch news dari Supabase, filtered by selected region
       final newsProvider = context.read<NewsProvider>();
-      await newsProvider.fetchLatestNews(limit: 5);
+      await newsProvider.fetchLatestNews(
+        limit: 5,
+        lokasi: volcanoProvider.selectedRegion,
+      );
+
+      // Listen to selectedRegion changes and auto-fetch news
+      volcanoProvider.addListener(() {
+        if (!mounted) return;
+        final newsProvider = context.read<NewsProvider>();
+        newsProvider.fetchLatestNews(
+          limit: 5,
+          lokasi: volcanoProvider.selectedRegion,
+        );
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final isHighContrast = context.isHighContrast;
-    
+
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
         final volcano = provider.volcano;
-        final statusColor = SigumiTheme.getStatusColor(volcano.statusLevel, highContrast: isHighContrast);
+        final statusColor = SigumiTheme.getStatusColor(
+          volcano.statusLevel,
+          highContrast: isHighContrast,
+        );
 
         return Scaffold(
           backgroundColor: context.bgSecondary,
           body: RefreshIndicator(
             onRefresh: () async {
               // Get provider before async gap
-              final newsProvider = Provider.of<NewsProvider>(context, listen: false);
-              
+              final newsProvider = Provider.of<NewsProvider>(
+                context,
+                listen: false,
+              );
+
               await provider.forceRefresh();
-              
+
               if (!mounted) return;
-              
-              // Refresh berita juga
-              await newsProvider.refreshLatestNews(limit: 5);
+
+              // Refresh berita juga, filtered by selected region
+              await newsProvider.refreshLatestNews(
+                limit: 5,
+                lokasi: provider.selectedRegion,
+              );
             },
             child: SafeArea(
               child: SingleChildScrollView(
@@ -74,25 +95,31 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                       decoration: BoxDecoration(
-                        gradient: isHighContrast ? null : const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFFF0F4FF),
-                            Color(0xFFE8EDFA),
-                            Color(0xFFFFF8E8),
-                          ],
-                          stops: [0.0, 0.55, 1.0],
-                        ),
+                        gradient:
+                            isHighContrast
+                                ? null
+                                : const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFF0F4FF),
+                                    Color(0xFFE8EDFA),
+                                    Color(0xFFFFF8E8),
+                                  ],
+                                  stops: [0.0, 0.55, 1.0],
+                                ),
                         color: isHighContrast ? context.bgSurface : null,
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(28),
                           bottomRight: Radius.circular(28),
                         ),
-                        border: isHighContrast ? Border.all(
-                          color: context.borderColor,
-                          width: context.borderWidth,
-                        ) : null,
+                        border:
+                            isHighContrast
+                                ? Border.all(
+                                  color: context.borderColor,
+                                  width: context.borderWidth,
+                                )
+                                : null,
                         boxShadow: context.cardShadow,
                       ),
                       child: Column(
@@ -136,10 +163,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: context.warningColor.withValues(alpha: 0.15),
+                                        color: context.warningColor.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: context.warningColor.withValues(alpha: 0.3),
+                                          color: context.warningColor
+                                              .withValues(alpha: 0.3),
                                         ),
                                       ),
                                       child: Row(
@@ -190,12 +220,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Container(
                                   width: cardWidth,
                                   // Tinggi dinamis: 42% lebar layar, min 180, max 240
-                                  height: (cardWidth * 0.42).clamp(180.0, 240.0),
+                                  height: (cardWidth * 0.42).clamp(
+                                    180.0,
+                                    240.0,
+                                  ),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(24),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF1B2E7B).withAlpha(40),
+                                        color: const Color(
+                                          0xFF1B2E7B,
+                                        ).withAlpha(40),
                                         blurRadius: 24,
                                         offset: const Offset(0, 10),
                                       ),
@@ -228,21 +263,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              gradient: isHighContrast ? null : LinearGradient(
-                                                begin: Alignment.topCenter,
-                                                end: Alignment.bottomCenter,
-                                                colors: [
-                                                  Colors.black.withAlpha(15),
-                                                  Colors.black.withAlpha(210),
-                                                ],
-                                                stops: const [0.25, 1.0],
-                                              ),
-                                              color: isHighContrast ? context.overlayDark(0.7) : null,
+                                              gradient:
+                                                  isHighContrast
+                                                      ? null
+                                                      : LinearGradient(
+                                                        begin:
+                                                            Alignment.topCenter,
+                                                        end:
+                                                            Alignment
+                                                                .bottomCenter,
+                                                        colors: [
+                                                          Colors.black
+                                                              .withAlpha(15),
+                                                          Colors.black
+                                                              .withAlpha(210),
+                                                        ],
+                                                        stops: const [
+                                                          0.25,
+                                                          1.0,
+                                                        ],
+                                                      ),
+                                              color:
+                                                  isHighContrast
+                                                      ? context.overlayDark(0.7)
+                                                      : null,
                                             ),
                                           ),
                                         ),
                                         // Content
-                                         Positioned.fill(
+                                        Positioned.fill(
                                           child: Padding(
                                             padding: const EdgeInsets.all(16),
                                             child: Column(
@@ -286,89 +335,155 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 // ── Baris 2: Elevasi · Status MAGMA (info sekunder) ──
                                                 // FittedBox agar bisa menyusut jika layar terlalu sempit
                                                 Padding(
-                                                  padding: const EdgeInsets.only(left: 28),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 28,
+                                                      ),
                                                   child: FittedBox(
                                                     fit: BoxFit.scaleDown,
-                                                    alignment: Alignment.centerLeft,
+                                                    alignment:
+                                                        Alignment.centerLeft,
                                                     child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
                                                       children: [
                                                         // Elevasi
                                                         Text(
                                                           '${volcano.elevation.toInt()} mdpl',
                                                           style: TextStyle(
-                                                            fontFamily: 'Plus Jakarta Sans',
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
                                                             fontSize: 12,
-                                                            fontWeight: FontWeight.w700,
-                                                            color: Colors.white.withAlpha(170),
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: Colors.white
+                                                                .withAlpha(170),
                                                           ),
                                                         ),
 
                                                         // Pemisah
                                                         Padding(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 8,
+                                                              ),
                                                           child: Text(
                                                             '·',
                                                             style: TextStyle(
                                                               fontSize: 14,
-                                                              color: Colors.white.withAlpha(110),
-                                                              fontWeight: FontWeight.w300,
+                                                              color: Colors
+                                                                  .white
+                                                                  .withAlpha(
+                                                                    110,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300,
                                                             ),
                                                           ),
                                                         ),
 
                                                         // Badge Status MAGMA
-                                                        if (provider.isLoadingVolcanoes)
+                                                        if (provider
+                                                            .isLoadingVolcanoes)
                                                           Shimmer.fromColors(
-                                                            baseColor: Colors.white24,
-                                                            highlightColor: Colors.white38,
+                                                            baseColor:
+                                                                Colors.white24,
+                                                            highlightColor:
+                                                                Colors.white38,
                                                             child: Container(
                                                               width: 64,
                                                               height: 18,
                                                               decoration: BoxDecoration(
-                                                                color: Colors.white.withAlpha(40),
-                                                                borderRadius: BorderRadius.circular(12),
+                                                                color: Colors
+                                                                    .white
+                                                                    .withAlpha(
+                                                                      40,
+                                                                    ),
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      12,
+                                                                    ),
                                                               ),
                                                             ),
                                                           )
                                                         else
                                                           Container(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 8,
+                                                                  vertical: 3,
+                                                                ),
                                                             decoration: BoxDecoration(
-                                                              color: statusColor.withAlpha(40),
-                                                              border: Border.all(color: statusColor.withAlpha(100), width: 1),
-                                                              borderRadius: BorderRadius.circular(12),
+                                                              color: statusColor
+                                                                  .withAlpha(
+                                                                    40,
+                                                                  ),
+                                                              border: Border.all(
+                                                                color: statusColor
+                                                                    .withAlpha(
+                                                                      100,
+                                                                    ),
+                                                                width: 1,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    12,
+                                                                  ),
                                                             ),
                                                             child: Row(
-                                                              mainAxisSize: MainAxisSize.min,
-                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .center,
                                                               children: [
                                                                 // Dot
                                                                 Container(
                                                                   width: 7,
                                                                   height: 7,
                                                                   decoration: BoxDecoration(
-                                                                    color: statusColor,
-                                                                    shape: BoxShape.circle,
+                                                                    color:
+                                                                        statusColor,
+                                                                    shape:
+                                                                        BoxShape
+                                                                            .circle,
                                                                     boxShadow: [
                                                                       BoxShadow(
-                                                                        color: statusColor.withAlpha(200),
-                                                                        blurRadius: 4,
-                                                                        spreadRadius: 0,
+                                                                        color: statusColor
+                                                                            .withAlpha(
+                                                                              200,
+                                                                            ),
+                                                                        blurRadius:
+                                                                            4,
+                                                                        spreadRadius:
+                                                                            0,
                                                                       ),
                                                                     ],
                                                                   ),
                                                                 ),
-                                                                const SizedBox(width: 5),
+                                                                const SizedBox(
+                                                                  width: 5,
+                                                                ),
                                                                 // Label
                                                                 Text(
-                                                                  volcano.statusLabel,
+                                                                  volcano
+                                                                      .statusLabel,
                                                                   style: const TextStyle(
-                                                                    fontFamily: 'Plus Jakarta Sans',
-                                                                    fontSize: 11,
-                                                                    fontWeight: FontWeight.w700,
-                                                                    color: Colors.white,
+                                                                    fontFamily:
+                                                                        'Plus Jakarta Sans',
+                                                                    fontSize:
+                                                                        11,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w700,
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
                                                                   ),
                                                                   maxLines: 1,
                                                                 ),
@@ -376,27 +491,53 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             ),
                                                           ),
 
-                                                        const SizedBox(width: 8),
+                                                        const SizedBox(
+                                                          width: 8,
+                                                        ),
 
                                                         // Waktu Pembaruan
-                                                        if (!provider.isLoadingVolcanoes)
+                                                        if (!provider
+                                                            .isLoadingVolcanoes)
                                                           Row(
-                                                            mainAxisSize: MainAxisSize.min,
-                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .center,
                                                             children: [
                                                               Icon(
-                                                                Icons.update_rounded,
+                                                                Icons
+                                                                    .update_rounded,
                                                                 size: 11,
-                                                                color: Colors.white.withAlpha(160),
+                                                                color: Colors
+                                                                    .white
+                                                                    .withAlpha(
+                                                                      160,
+                                                                    ),
                                                               ),
-                                                              const SizedBox(width: 3),
+                                                              const SizedBox(
+                                                                width: 3,
+                                                              ),
                                                               Text(
-                                                                DateFormat('d MMM, HH:mm').format(volcano.lastUpdate),
+                                                                DateFormat(
+                                                                  'd MMM, HH:mm',
+                                                                ).format(
+                                                                  volcano
+                                                                      .lastUpdate,
+                                                                ),
                                                                 style: TextStyle(
-                                                                  fontFamily: 'Plus Jakarta Sans',
+                                                                  fontFamily:
+                                                                      'Plus Jakarta Sans',
                                                                   fontSize: 10,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  color: Colors.white.withAlpha(160),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withAlpha(
+                                                                        160,
+                                                                      ),
                                                                 ),
                                                               ),
                                                             ],
@@ -421,10 +562,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                              ).animate().fadeIn(duration: 500.ms).slideY(
-                                begin: 0.1,
-                                end: 0,
-                              );
+                              ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
                             },
                           ),
                         ],
@@ -666,13 +804,12 @@ class _HomeScreenState extends State<HomeScreen> {
     VolcanoProvider provider,
   ) {
     final volcanoLevel = provider.volcano.statusLevel;
-    final zoneLevel   = provider.zoneLevel;
-    final zoneColor   = SigumiTheme.getStatusColor(zoneLevel);
+    final zoneLevel = provider.zoneLevel;
+    final zoneColor = SigumiTheme.getStatusColor(zoneLevel);
     final isHighAlert = volcanoLevel >= 3;
 
-    final zoneIcon = isHighAlert
-        ? Icons.warning_amber_rounded
-        : Icons.shield_rounded;
+    final zoneIcon =
+        isHighAlert ? Icons.warning_amber_rounded : Icons.shield_rounded;
 
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, AppRoutes.zoneDetail),
@@ -722,8 +859,7 @@ class _HomeScreenState extends State<HomeScreen> {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: zoneColor,
                 borderRadius: BorderRadius.circular(20),
@@ -731,21 +867,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white.withAlpha(isHighAlert ? 140 : 70),
                   width: isHighAlert ? 1.5 : 1.0,
                 ),
-                boxShadow: isHighAlert
-                    ? [
-                        BoxShadow(
-                          color: zoneColor.withAlpha(180),
-                          blurRadius: 10,
-                          spreadRadius: 0,
-                        ),
-                      ]
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(35),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                boxShadow:
+                    isHighAlert
+                        ? [
+                          BoxShadow(
+                            color: zoneColor.withAlpha(180),
+                            blurRadius: 10,
+                            spreadRadius: 0,
+                          ),
+                        ]
+                        : [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(35),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -771,8 +908,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-
 
   // ────────────────────────────────────────────────
   // REGION SELECTOR — Header badge dengan deteksi GPS
@@ -958,8 +1093,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              subtitle ??
-                                  context.tr('monitor_volcano'),
+                              subtitle ?? context.tr('monitor_volcano'),
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: SigumiTheme.textSecondary,
@@ -1142,9 +1276,14 @@ class _ShadMenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isHighContrast = context.isHighContrast;
     final bgColor = isHighContrast ? context.bgSurface : color.withAlpha(15);
-    final iconBgColor = isHighContrast ? context.accentSecondary.withValues(alpha: 0.3) : color.withAlpha(30);
-    final iconColor = isHighContrast ? context.textPrimary : color.withAlpha(220);
-    final borderColor = isHighContrast ? context.borderColor : color.withAlpha(40);
+    final iconBgColor =
+        isHighContrast
+            ? context.accentSecondary.withValues(alpha: 0.3)
+            : color.withAlpha(30);
+    final iconColor =
+        isHighContrast ? context.textPrimary : color.withAlpha(220);
+    final borderColor =
+        isHighContrast ? context.borderColor : color.withAlpha(40);
 
     return ShadCard(
       padding: EdgeInsets.zero,
@@ -1228,166 +1367,167 @@ class _GuestLoginBannerState extends State<_GuestLoginBanner> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     // Modern Color Palette
-    final bgColor = isHighContrast 
-        ? context.bgSurface 
-        : (isDark ? const Color(0xFF1E293B) : Colors.white);
-    
-    final borderColor = isHighContrast
-        ? context.borderColor
-        : (isDark 
-            ? const Color(0xFF334155).withValues(alpha: 0.4)
-            : const Color(0xFFE5E7EB).withValues(alpha: 0.6));
-    
-    final textPrimary = isHighContrast
-        ? context.textPrimary
-        : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A));
-    
-    final textSecondary = isHighContrast
-        ? context.textSecondary
-        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
-    
-    final accentStart = isHighContrast
-        ? context.accentPrimary
-        : SigumiTheme.primaryBlue;
-    
-    final accentEnd = isHighContrast
-        ? context.accentPrimary
-        : const Color(0xFF2A3E9A);
+    final bgColor =
+        isHighContrast
+            ? context.bgSurface
+            : (isDark ? const Color(0xFF1E293B) : Colors.white);
+
+    final borderColor =
+        isHighContrast
+            ? context.borderColor
+            : (isDark
+                ? const Color(0xFF334155).withValues(alpha: 0.4)
+                : const Color(0xFFE5E7EB).withValues(alpha: 0.6));
+
+    final textPrimary =
+        isHighContrast
+            ? context.textPrimary
+            : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A));
+
+    final textSecondary =
+        isHighContrast
+            ? context.textSecondary
+            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+
+    final accentStart =
+        isHighContrast ? context.accentPrimary : SigumiTheme.primaryBlue;
+
+    final accentEnd =
+        isHighContrast ? context.accentPrimary : const Color(0xFF2A3E9A);
 
     return Transform.scale(
-      scale: _isPressed ? 0.98 : 1.0,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: borderColor,
-            width: 1,
-          ),
-          boxShadow: isHighContrast ? [] : [
-            BoxShadow(
-              color: isDark 
-                  ? Colors.black.withValues(alpha: 0.2)
-                  : Colors.black.withValues(alpha: 0.04),
-              blurRadius: 16,
-              offset: const Offset(0, 4),
-              spreadRadius: 0,
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.pushNamed(context, AppRoutes.login);
-            },
-            onTapDown: (_) => setState(() => _isPressed = true),
-            onTapUp: (_) => setState(() => _isPressed = false),
-            onTapCancel: () => setState(() => _isPressed = false),
-            borderRadius: BorderRadius.circular(20),
-            splashColor: accentStart.withValues(alpha: 0.05),
-            highlightColor: accentStart.withValues(alpha: 0.03),
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  // Accent Line (Vertical)
-                  TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOutCubic,
-                    tween: Tween(begin: 0.0, end: 1.0),
-                    builder: (context, value, child) {
-                      return Container(
-                        width: 3,
-                        height: 52 * value,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              accentStart,
-                              accentEnd,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      );
-                    },
-                  ),
-                  
-                  const SizedBox(width: 16),
-                  
-                  // Icon (Subtle)
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: accentStart.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 20,
-                      color: accentStart,
-                    ),
-                  ),
-                  
-                  const SizedBox(width: 16),
-                  
-                  // Text Content
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Title
-                        Text(
-                          'Masuk ke Akun',
-                          style: AppFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: textPrimary,
-                            letterSpacing: -0.3,
-                            height: 1.3,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        // Description
-                        Text(
-                          'Akses laporan, chatbot AI, dan fitur premium lainnya',
-                          style: AppFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: textSecondary,
-                            height: 1.4,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+          scale: _isPressed ? 0.98 : 1.0,
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor, width: 1),
+              boxShadow:
+                  isHighContrast
+                      ? []
+                      : [
+                        BoxShadow(
+                          color:
+                              isDark
+                                  ? Colors.black.withValues(alpha: 0.2)
+                                  : Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                          spreadRadius: 0,
                         ),
                       ],
-                    ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  Navigator.pushNamed(context, AppRoutes.login);
+                },
+                onTapDown: (_) => setState(() => _isPressed = true),
+                onTapUp: (_) => setState(() => _isPressed = false),
+                onTapCancel: () => setState(() => _isPressed = false),
+                borderRadius: BorderRadius.circular(20),
+                splashColor: accentStart.withValues(alpha: 0.05),
+                highlightColor: accentStart.withValues(alpha: 0.03),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      // Accent Line (Vertical)
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOutCubic,
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        builder: (context, value, child) {
+                          return Container(
+                            width: 3,
+                            height: 52 * value,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [accentStart, accentEnd],
+                              ),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          );
+                        },
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      // Icon (Subtle)
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: accentStart.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 20,
+                          color: accentStart,
+                        ),
+                      ),
+
+                      const SizedBox(width: 16),
+
+                      // Text Content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Title
+                            Text(
+                              'Masuk ke Akun',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: textPrimary,
+                                letterSpacing: -0.3,
+                                height: 1.3,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            // Description
+                            Text(
+                              'Akses laporan, chatbot AI, dan fitur premium lainnya',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: textSecondary,
+                                height: 1.4,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // CTA Button (Premium Style)
+                      _PremiumButton(
+                        label: 'Masuk',
+                        accentStart: accentStart,
+                        accentEnd: accentEnd,
+                        isDark: isDark,
+                        isHighContrast: isHighContrast,
+                      ),
+                    ],
                   ),
-                  
-                  const SizedBox(width: 12),
-                  
-                  // CTA Button (Premium Style)
-                  _PremiumButton(
-                    label: 'Masuk',
-                    accentStart: accentStart,
-                    accentEnd: accentEnd,
-                    isDark: isDark,
-                    isHighContrast: isHighContrast,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
-    ).animate()
-      .fadeIn(duration: 500.ms, curve: Curves.easeOut)
-      .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
+        )
+        .animate()
+        .fadeIn(duration: 500.ms, curve: Curves.easeOut)
+        .slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
   }
 }
 
@@ -1436,59 +1576,63 @@ class _PremiumButtonState extends State<_PremiumButton> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 12,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
-            gradient: widget.isHighContrast ? null : LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                widget.accentStart,
-                widget.accentEnd,
+              gradient:
+                  widget.isHighContrast
+                      ? null
+                      : LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [widget.accentStart, widget.accentEnd],
+                      ),
+              color: widget.isHighContrast ? widget.accentStart : null,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow:
+                  widget.isHighContrast
+                      ? []
+                      : [
+                        BoxShadow(
+                          color: widget.accentStart.withValues(
+                            alpha: _isPressed ? 0.2 : (_isHovered ? 0.3 : 0.25),
+                          ),
+                          blurRadius: _isPressed ? 8 : (_isHovered ? 16 : 12),
+                          offset: Offset(
+                            0,
+                            _isPressed ? 2 : (_isHovered ? 6 : 4),
+                          ),
+                        ),
+                      ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  widget.label,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: _isHovered ? 20 : 0,
+                  child:
+                      _isHovered
+                          ? const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 16,
+                            color: Colors.white,
+                          )
+                          : const SizedBox.shrink(),
+                ),
               ],
             ),
-            color: widget.isHighContrast ? widget.accentStart : null,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: widget.isHighContrast ? [] : [
-              BoxShadow(
-                color: widget.accentStart.withValues(alpha:
-                  _isPressed ? 0.2 : (_isHovered ? 0.3 : 0.25),
-                ),
-                blurRadius: _isPressed ? 8 : (_isHovered ? 16 : 12),
-                offset: Offset(0, _isPressed ? 2 : (_isHovered ? 6 : 4)),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.label,
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: _isHovered ? 20 : 0,
-                child: _isHovered
-                    ? const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 16,
-                        color: Colors.white,
-                      )
-                    : const SizedBox.shrink(),
-              ),
-            ],
           ),
         ),
       ),
-    ),
     );
   }
 }
@@ -1518,24 +1662,33 @@ class _TourismBannerCard extends StatelessWidget {
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 110),
       decoration: BoxDecoration(
-        gradient: isHighContrast ? null : LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [bgColor, bgColor.withAlpha(200)],
-        ),
+        gradient:
+            isHighContrast
+                ? null
+                : LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [bgColor, bgColor.withAlpha(200)],
+                ),
         color: isHighContrast ? context.accentPrimary : null,
         borderRadius: BorderRadius.circular(16),
-        border: isHighContrast ? Border.all(
-          color: context.borderColor,
-          width: context.borderWidth,
-        ) : null,
-        boxShadow: isHighContrast ? [] : [
-          BoxShadow(
-            color: bgColor.withAlpha(50),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border:
+            isHighContrast
+                ? Border.all(
+                  color: context.borderColor,
+                  width: context.borderWidth,
+                )
+                : null,
+        boxShadow:
+            isHighContrast
+                ? []
+                : [
+                  BoxShadow(
+                    color: bgColor.withAlpha(50),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -1567,9 +1720,9 @@ class _TourismBannerCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Title Typography Hierarchy
-                      Text(
-                        '${context.tr('explore_tourism')} $region',
-                        style: const TextStyle(
+                    Text(
+                      '${context.tr('explore_tourism')} $region',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
