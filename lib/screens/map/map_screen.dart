@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../config/volcano_data.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
@@ -129,7 +130,7 @@ class _MapScreenState extends State<MapScreen>
           children: [
             Icon(
               isError ? Icons.gps_off_rounded : Icons.gps_fixed_rounded,
-              color: Colors.white,
+              color: context.bgPrimary,
               size: 18,
             ),
             const SizedBox(width: 10),
@@ -137,7 +138,7 @@ class _MapScreenState extends State<MapScreen>
               child: Text(
                 message,
                 style: AppFonts.plusJakartaSans(
-                  color: Colors.white,
+                  color: context.bgPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -146,7 +147,7 @@ class _MapScreenState extends State<MapScreen>
           ],
         ),
         backgroundColor:
-            isError ? Colors.orange.shade700 : SigumiTheme.statusNormal,
+            isError ? context.warningColor : context.successColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.only(
@@ -159,7 +160,7 @@ class _MapScreenState extends State<MapScreen>
             showRetry
                 ? SnackBarAction(
                   label: 'Coba Lagi',
-                  textColor: Colors.white,
+                  textColor: context.bgPrimary,
                   onPressed: () {
                     final ls = context.read<LocationService>();
                     ls.retryTracking();
@@ -577,7 +578,7 @@ class _MapScreenState extends State<MapScreen>
       context: context,
       barrierColor: Colors.black26,
       barrierDismissible: true,
-      builder: (context) {
+      builder: (dialogContext) {
         final statusColor = _getStatusColor(volcano.statusLevel);
 
         return Dialog(
@@ -586,15 +587,9 @@ class _MapScreenState extends State<MapScreen>
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: dialogContext.bgSurface,
                   borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(85),
-                      blurRadius: 24,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
+                  boxShadow: dialogContext.cardShadow,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -613,7 +608,7 @@ class _MapScreenState extends State<MapScreen>
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF1A1A2E),
+                                  color: dialogContext.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -633,10 +628,11 @@ class _MapScreenState extends State<MapScreen>
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: SigumiTheme.primaryBlue.withAlpha(15),
+                                  color: dialogContext.accentPrimary.withAlpha(15),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
-                                    color: SigumiTheme.primaryBlue.withAlpha(55),
+                                    color: dialogContext.accentPrimary.withAlpha(55),
+                                    width: dialogContext.borderWidth,
                                   ),
                                 ),
                                 child: Row(
@@ -645,7 +641,7 @@ class _MapScreenState extends State<MapScreen>
                                     Icon(
                                       Icons.verified_rounded,
                                       size: 12,
-                                      color: SigumiTheme.primaryBlue,
+                                      color: dialogContext.accentPrimary,
                                     ),
                                     const SizedBox(width: 5),
                                     Text(
@@ -653,7 +649,7 @@ class _MapScreenState extends State<MapScreen>
                                       style: AppFonts.plusJakartaSans(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w700,
-                                        color: SigumiTheme.primaryBlue,
+                                        color: dialogContext.accentPrimary,
                                         letterSpacing: 0.2,
                                       ),
                                     ),
@@ -665,16 +661,16 @@ class _MapScreenState extends State<MapScreen>
                         ),
                         // Close button
                         GestureDetector(
-                          onTap: () => Navigator.pop(context),
+                          onTap: () => Navigator.pop(dialogContext),
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.grey.shade100,
+                              color: dialogContext.bgSecondary,
                             ),
                             child: Icon(
                               Icons.close_rounded,
-                              color: Colors.grey.shade500,
+                              color: dialogContext.textTertiary,
                               size: 18,
                             ),
                           ),
@@ -688,6 +684,7 @@ class _MapScreenState extends State<MapScreen>
                       children: [
                         Expanded(
                           child: _buildInfoCard(
+                            dialogContext,
                             icon: Icons.height_rounded,
                             label: 'Ketinggian',
                             value: '${volcano.elevation.toInt()} m',
@@ -697,6 +694,7 @@ class _MapScreenState extends State<MapScreen>
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildInfoCard(
+                            dialogContext,
                             icon: Icons.location_on_rounded,
                             label: 'Koordinat',
                             value:
@@ -714,7 +712,7 @@ class _MapScreenState extends State<MapScreen>
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          Navigator.pop(context);
+                          Navigator.pop(dialogContext);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -726,7 +724,7 @@ class _MapScreenState extends State<MapScreen>
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: statusColor,
-                          foregroundColor: Colors.white,
+                          foregroundColor: dialogContext.bgPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 11),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -774,7 +772,7 @@ class _MapScreenState extends State<MapScreen>
       context: context,
       barrierColor: Colors.black26,
       barrierDismissible: true,
-      builder: (context) {
+      builder: (dialogContext) {
         return Dialog(
               backgroundColor: Colors.transparent,
               insetPadding: const EdgeInsets.symmetric(
@@ -783,15 +781,9 @@ class _MapScreenState extends State<MapScreen>
               ),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: dialogContext.bgSurface,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(75),
-                      blurRadius: 28,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
+                  boxShadow: dialogContext.cardShadow,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -807,6 +799,7 @@ class _MapScreenState extends State<MapScreen>
                         border: Border(
                           bottom: BorderSide(
                             color: statusColor.withAlpha(35),
+                            width: dialogContext.borderWidth,
                           ),
                         ),
                       ),
@@ -832,7 +825,7 @@ class _MapScreenState extends State<MapScreen>
                               volcano.statusLevel >= 2
                                   ? Icons.volcano_rounded
                                   : Icons.landscape_rounded,
-                              color: Colors.white,
+                              color: dialogContext.bgPrimary,
                               size: 22,
                             ),
                           ),
@@ -848,7 +841,7 @@ class _MapScreenState extends State<MapScreen>
                                   style: AppFonts.plusJakartaSans(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF1A1A2E),
+                                    color: dialogContext.textPrimary,
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
@@ -860,7 +853,7 @@ class _MapScreenState extends State<MapScreen>
                                       Icon(
                                         Icons.place_rounded,
                                         size: 11,
-                                        color: Colors.grey.shade500,
+                                        color: dialogContext.textTertiary,
                                       ),
                                       const SizedBox(width: 3),
                                       Flexible(
@@ -868,7 +861,7 @@ class _MapScreenState extends State<MapScreen>
                                           volcano.province,
                                           style: AppFonts.plusJakartaSans(
                                             fontSize: 11.5,
-                                            color: Colors.grey.shade500,
+                                            color: dialogContext.textTertiary,
                                             fontWeight: FontWeight.w500,
                                           ),
                                           maxLines: 1,
@@ -884,16 +877,16 @@ class _MapScreenState extends State<MapScreen>
 
                           // Close button
                           GestureDetector(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => Navigator.pop(dialogContext),
                             child: Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.grey.shade100,
+                                color: dialogContext.bgSecondary,
                               ),
                               child: Icon(
                                 Icons.close_rounded,
-                                color: Colors.grey.shade400,
+                                color: dialogContext.textTertiary,
                                 size: 16,
                               ),
                             ),
@@ -912,6 +905,7 @@ class _MapScreenState extends State<MapScreen>
                             children: [
                               Expanded(
                                 child: _buildInfoCard(
+                                  dialogContext,
                                   icon: Icons.height_rounded,
                                   label: 'Ketinggian',
                                   value: '${volcano.elevation.toInt()} m dpl',
@@ -920,7 +914,7 @@ class _MapScreenState extends State<MapScreen>
                               ),
                               const SizedBox(width: 10),
                               Expanded(
-                                child: _buildStatusCard(volcano, statusColor),
+                                child: _buildStatusCard(dialogContext, volcano, statusColor),
                               ),
                             ],
                           ),
@@ -934,10 +928,11 @@ class _MapScreenState extends State<MapScreen>
                               vertical: 11,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.amber.shade50,
+                              color: dialogContext.warningColor.withAlpha(15),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.amber.shade200,
+                                color: dialogContext.warningColor.withAlpha(50),
+                                width: dialogContext.borderWidth,
                               ),
                             ),
                             child: Row(
@@ -948,7 +943,7 @@ class _MapScreenState extends State<MapScreen>
                                   child: Icon(
                                     Icons.info_outline_rounded,
                                     size: 15,
-                                    color: Colors.amber.shade700,
+                                    color: dialogContext.warningColor,
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -957,7 +952,7 @@ class _MapScreenState extends State<MapScreen>
                                     'Gunung ini belum masuk dalam pemantauan aktif Sigumi.',
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 12,
-                                      color: Colors.amber.shade800,
+                                      color: dialogContext.warningColor,
                                       fontWeight: FontWeight.w500,
                                       height: 1.5,
                                     ),
@@ -993,7 +988,7 @@ class _MapScreenState extends State<MapScreen>
   // ───────────────────────────────────────────────────────
 
   /// Card status untuk popup secondary volcano
-  Widget _buildStatusCard(VolcanoModel volcano, Color statusColor) {
+  Widget _buildStatusCard(BuildContext ctx, VolcanoModel volcano, Color statusColor) {
     // Ambil label pendek: "Normal", "Waspada", "Siaga", "Awas"
     final shortLabel =
         volcano.statusLabel.contains('•')
@@ -1005,7 +1000,10 @@ class _MapScreenState extends State<MapScreen>
       decoration: BoxDecoration(
         color: statusColor.withAlpha(15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withAlpha(55), width: 1),
+        border: Border.all(
+          color: statusColor.withAlpha(55), 
+          width: ctx.borderWidth
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1023,7 +1021,7 @@ class _MapScreenState extends State<MapScreen>
                 style: AppFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
+                  color: ctx.textTertiary,
                 ),
               ),
             ],
@@ -1045,7 +1043,8 @@ class _MapScreenState extends State<MapScreen>
   }
 
   /// Build info card kecil dua kolom
-  Widget _buildInfoCard({
+  Widget _buildInfoCard(
+    BuildContext ctx, {
     required IconData icon,
     required String label,
     required String value,
@@ -1056,7 +1055,10 @@ class _MapScreenState extends State<MapScreen>
       decoration: BoxDecoration(
         color: color.withAlpha(15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(50), width: 1),
+        border: Border.all(
+          color: color.withAlpha(50), 
+          width: ctx.borderWidth
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1070,7 +1072,7 @@ class _MapScreenState extends State<MapScreen>
                 style: AppFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
+                  color: ctx.textTertiary,
                 ),
               ),
             ],
@@ -1081,7 +1083,7 @@ class _MapScreenState extends State<MapScreen>
             style: AppFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: ctx.textPrimary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -1130,7 +1132,7 @@ class _MapScreenState extends State<MapScreen>
         );
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: context.bgPrimary,
           extendBodyBehindAppBar: true,
           body: Stack(
             children: [
@@ -1402,27 +1404,27 @@ class _MapScreenState extends State<MapScreen>
     switch (status) {
       case GpsStatus.unstable:
         icon = Icons.gps_not_fixed_rounded;
-        bgColor = Colors.orange.shade50;
-        iconColor = Colors.orange.shade600;
+        bgColor = context.warningColor.withAlpha(25);
+        iconColor = context.warningColor;
         label = 'GPS Tidak Stabil';
         break;
       case GpsStatus.error:
         icon = Icons.gps_off_rounded;
-        bgColor = Colors.red.shade50;
-        iconColor = Colors.red.shade500;
+        bgColor = context.errorColor.withAlpha(25);
+        iconColor = context.errorColor;
         label = 'GPS Error';
         showRetry = true;
         break;
       case GpsStatus.disabled:
         icon = Icons.location_disabled_rounded;
-        bgColor = Colors.grey.shade100;
-        iconColor = Colors.grey.shade600;
+        bgColor = context.bgSecondary;
+        iconColor = context.textTertiary;
         label = 'GPS Nonaktif';
         break;
       case GpsStatus.denied:
         icon = Icons.block_rounded;
-        bgColor = Colors.red.shade50;
-        iconColor = Colors.red.shade400;
+        bgColor = context.errorColor.withAlpha(25);
+        iconColor = context.errorColor;
         label = 'Izin Ditolak';
         showRetry = true;
         break;
@@ -1444,14 +1446,11 @@ class _MapScreenState extends State<MapScreen>
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: iconColor.withAlpha(40)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(10),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          border: Border.all(
+            color: iconColor.withAlpha(40),
+            width: context.borderWidth,
+          ),
+          boxShadow: context.cardShadow,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

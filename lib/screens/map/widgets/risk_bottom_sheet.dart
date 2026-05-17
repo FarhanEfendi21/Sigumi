@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:sigumi/config/theme.dart';
+import 'package:sigumi/config/theme_extensions.dart';
 import '../../../config/routes.dart';
 
 // Semantic Colors for Status
@@ -41,19 +42,12 @@ class RiskBottomSheet extends StatelessWidget {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.bgSurface,
             borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withAlpha(20),
-                blurRadius: 24,
-                spreadRadius: 2,
-                offset: const Offset(0, -4),
-              ),
-            ],
+            boxShadow: context.cardShadow,
           ),
           child: SingleChildScrollView(
             controller: scrollController,
@@ -71,7 +65,7 @@ class RiskBottomSheet extends StatelessWidget {
                       width: 48,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: context.dividerColor,
                         borderRadius: BorderRadius.circular(3),
                       ),
                     ),
@@ -87,7 +81,7 @@ class RiskBottomSheet extends StatelessWidget {
                         style: AppFonts.plusJakartaSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
-                          color: Colors.grey.shade900,
+                          color: context.textPrimary,
                         ),
                       ),
                       Text(
@@ -108,7 +102,7 @@ class RiskBottomSheet extends StatelessWidget {
                       Container(
                         height: 12,
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          color: context.bgSecondary,
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
@@ -136,15 +130,18 @@ class RiskBottomSheet extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _kmLabel('0 km (Pusat)'),
-                      _kmLabel('10 km'),
-                      _kmLabel('20+ km (Aman)'),
+                      _kmLabel(context, '0 km (Pusat)'),
+                      _kmLabel(context, '10 km'),
+                      _kmLabel(context, '20+ km (Aman)'),
                     ],
                   ),
                   
                   // Spacing antara summary dan CTA (baru terlihat saat expand)
                   const SizedBox(height: 32),
-                  const Divider(),
+                  Container(
+                    height: context.borderWidth,
+                    color: context.dividerColor,
+                  ),
                   const SizedBox(height: 24),
                   
                   // ── CTA Buttons ──
@@ -154,8 +151,8 @@ class RiskBottomSheet extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () => Navigator.pushNamed(context, AppRoutes.evacuation),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: SigumiTheme.primaryBlue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: context.accentPrimary,
+                        foregroundColor: context.bgPrimary,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -179,7 +176,10 @@ class RiskBottomSheet extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pushNamed(context, AppRoutes.postDisaster),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+                        side: BorderSide(
+                          color: context.borderColor, 
+                          width: context.borderWidth
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -189,7 +189,7 @@ class RiskBottomSheet extends StatelessWidget {
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: Colors.grey.shade800,
+                          color: context.textSecondary,
                         ),
                       ),
                     ),
@@ -203,12 +203,12 @@ class RiskBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _kmLabel(String text) {
+  Widget _kmLabel(BuildContext context, String text) {
     return Text(
       text,
       style: AppFonts.plusJakartaSans(
         fontSize: 11,
-        color: Colors.grey.shade500,
+        color: context.textTertiary,
         fontWeight: FontWeight.w600,
       ),
     );
