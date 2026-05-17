@@ -6,7 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../config/theme_extensions.dart';
+import '../../config/theme.dart';
 import '../../config/constants.dart';
 import '../../services/ai_service.dart';
 import '../../services/location_service.dart';
@@ -228,13 +228,15 @@ class _ReportScreenState extends State<ReportScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: context.bgPrimary,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: context.borderColor,
-                    width: context.borderWidth,
-                  ),
-                  boxShadow: context.cardShadow,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -243,12 +245,12 @@ class _ReportScreenState extends State<ReportScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: context.successColor.withValues(alpha: 0.15),
+                        color: Colors.teal.shade50,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.check_circle_rounded,
-                        color: context.successColor,
+                        color: Colors.teal.shade500,
                         size: 48,
                       ),
                     ),
@@ -259,7 +261,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: context.textPrimary,
+                        color: const Color(0xFF1E1E2C),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -268,7 +270,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       textAlign: TextAlign.center,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 14,
-                        color: context.textSecondary,
+                        color: const Color(0xFF6B6B78),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -279,8 +281,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           Navigator.pop(dialogContext);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: context.successColor,
-                          foregroundColor: context.isHighContrast ? context.bgPrimary : Colors.white,
+                          backgroundColor: Colors.teal.shade500,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -291,6 +292,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -349,7 +351,7 @@ class _ReportScreenState extends State<ReportScreen> {
           style: AppFonts.plusJakartaSans(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: context.textPrimary,
+            color: const Color(0xFF1E1E2C),
           ),
         ),
         if (subtitle != null) ...[
@@ -358,7 +360,7 @@ class _ReportScreenState extends State<ReportScreen> {
             subtitle,
             style: AppFonts.plusJakartaSans(
               fontSize: 12,
-              color: context.textSecondary,
+              color: const Color(0xFF6B6B78),
             ),
           ),
         ],
@@ -377,19 +379,19 @@ class _ReportScreenState extends State<ReportScreen> {
     );
 
     return Scaffold(
-      backgroundColor: context.bgSecondary,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'Lapor Kejadian',
           style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
             fontSize: 18,
-            color: context.textPrimary,
+            color: const Color(0xFF1E1E2C),
           ),
         ),
-        backgroundColor: context.bgPrimary,
+        backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: context.textPrimary),
+        iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -403,15 +405,14 @@ class _ReportScreenState extends State<ReportScreen> {
               decoration: BoxDecoration(
                 color:
                     isWithinRadius
-                        ? context.successColor.withValues(alpha: 0.1)
-                        : context.errorColor.withValues(alpha: 0.1),
+                        ? Colors.teal.withValues(alpha: 0.05)
+                        : Colors.red.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color:
                       isWithinRadius
-                          ? context.successColor
-                          : context.errorColor,
-                  width: context.borderWidth,
+                          ? Colors.teal.withValues(alpha: 0.2)
+                          : Colors.red.withValues(alpha: 0.2),
                 ),
               ),
               child: Row(
@@ -421,15 +422,15 @@ class _ReportScreenState extends State<ReportScreen> {
                     decoration: BoxDecoration(
                       color:
                           isWithinRadius
-                              ? context.successColor.withValues(alpha: 0.2)
-                              : context.errorColor.withValues(alpha: 0.2),
+                              ? Colors.teal.withValues(alpha: 0.1)
+                              : Colors.red.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       isWithinRadius
                           ? Icons.my_location_rounded
                           : Icons.location_off_rounded,
-                      color: isWithinRadius ? context.successColor : context.errorColor,
+                      color: isWithinRadius ? Colors.teal : Colors.red,
                       size: 20,
                     ),
                   ),
@@ -445,7 +446,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           style: AppFonts.plusJakartaSans(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
-                            color: context.textPrimary,
+                            color: const Color(0xFF1E1E2C),
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -453,7 +454,7 @@ class _ReportScreenState extends State<ReportScreen> {
                           'Jarak Anda: ${userDistance.toStringAsFixed(1)} km dari ${loc.nearestVolcanoName}',
                           style: AppFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: context.textSecondary,
+                            color: const Color(0xFF6B6B78),
                           ),
                         ),
                       ],
@@ -503,15 +504,14 @@ class _ReportScreenState extends State<ReportScreen> {
                                 decoration: BoxDecoration(
                                   color:
                                       isSelected
-                                          ? context.accentPrimary
-                                          : context.bgSurface,
+                                          ? SigumiTheme.primaryBlue
+                                          : const Color(0xFFF3F4F6),
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
                                     color:
                                         isSelected
-                                            ? context.accentPrimary
-                                            : context.borderColor,
-                                    width: context.borderWidth,
+                                            ? SigumiTheme.primaryBlue
+                                            : const Color(0xFFE5E7EB),
                                   ),
                                 ),
                                 child: Text(
@@ -524,8 +524,8 @@ class _ReportScreenState extends State<ReportScreen> {
                                             : FontWeight.w500,
                                     color:
                                         isSelected
-                                            ? (context.isHighContrast ? context.bgPrimary : Colors.white)
-                                            : context.textSecondary,
+                                            ? Colors.white
+                                            : const Color(0xFF4B4B5C),
                                   ),
                                 ),
                               ),
@@ -557,14 +557,14 @@ class _ReportScreenState extends State<ReportScreen> {
                         width: double.infinity,
                         height: 180,
                         decoration: BoxDecoration(
-                          color: context.bgSurface,
+                          color: const Color(0xFFF8F9FA),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color:
                                 _selectedImage != null
                                     ? Colors.transparent
-                                    : context.borderColor,
-                            width: context.borderWidth,
+                                    : const Color(0xFFE5E7EB),
+                            width: 1.5,
                           ),
                         ),
                         child:
@@ -623,16 +623,15 @@ class _ReportScreenState extends State<ReportScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
-                                        color: context.bgPrimary,
+                                        color: Colors.white,
                                         shape: BoxShape.circle,
                                         border: Border.all(
-                                          color: context.borderColor,
-                                          width: context.borderWidth,
+                                          color: const Color(0xFFE5E7EB),
                                         ),
                                       ),
-                                      child: Icon(
+                                      child: const Icon(
                                         Icons.add_a_photo_rounded,
-                                        color: context.textTertiary,
+                                        color: Color(0xFF9E9EAE),
                                         size: 32,
                                       ),
                                     ),
@@ -640,7 +639,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     Text(
                                       'Ambil foto dari kamera',
                                       style: AppFonts.plusJakartaSans(
-                                        color: context.textPrimary,
+                                        color: const Color(0xFF1E1E2C),
                                         fontWeight: FontWeight.w600,
                                         fontSize: 14,
                                       ),
@@ -649,7 +648,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     Text(
                                       'Foto langsung dari kamera untuk verifikasi',
                                       style: AppFonts.plusJakartaSans(
-                                        color: context.textTertiary,
+                                        color: const Color(0xFF9E9EAE),
                                         fontSize: 12,
                                       ),
                                     ),
@@ -677,12 +676,9 @@ class _ReportScreenState extends State<ReportScreen> {
                     ignoring: !isWithinRadius,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: context.bgSurface,
+                        color: const Color(0xFFF9FAFB),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: context.borderColor,
-                          width: context.borderWidth,
-                        ),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
                       ),
                       child: TextField(
                         enabled: isWithinRadius,
@@ -690,13 +686,13 @@ class _ReportScreenState extends State<ReportScreen> {
                         maxLines: 5,
                         style: AppFonts.plusJakartaSans(
                           fontSize: 14,
-                          color: context.textPrimary,
+                          color: const Color(0xFF1E1E2C),
                         ),
                         decoration: InputDecoration(
                           hintText:
                               'Misal: Terdapat hujan abu tipis di desa...',
                           hintStyle: AppFonts.plusJakartaSans(
-                            color: context.textTertiary,
+                            color: const Color(0xFF9E9EAE),
                           ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.all(16),
@@ -719,18 +715,14 @@ class _ReportScreenState extends State<ReportScreen> {
                     onPressed:
                         isWithinRadius && !_isSubmitting ? _submitReport : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: context.accentPrimary,
-                      foregroundColor: context.isHighContrast ? context.bgPrimary : Colors.white,
-                      disabledBackgroundColor: context.bgSurface,
-                      disabledForegroundColor: context.textTertiary,
+                      backgroundColor: SigumiTheme.primaryBlue,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: const Color(0xFFE5E7EB),
+                      disabledForegroundColor: const Color(0xFF9E9EAE),
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(
-                          color: context.borderColor,
-                          width: context.borderWidth,
-                        ),
                       ),
                     ),
                     child:

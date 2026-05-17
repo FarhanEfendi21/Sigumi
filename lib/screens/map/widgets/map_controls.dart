@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sigumi/config/theme_extensions.dart';
 
 class ShadcnMapButton extends StatefulWidget {
   final IconData icon;
@@ -37,18 +36,24 @@ class _ShadcnMapButtonState extends State<ShadcnMapButton> {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: context.bgPrimary.withAlpha(240),
+              color: Colors.white.withAlpha(240),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: context.borderColor,
-                width: context.borderWidth,
+                color: Colors.black.withAlpha(15), // Sangat soft separator
+                width: 0.5,
               ),
-              boxShadow: context.cardShadow,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withAlpha(20), // 0.08
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Icon(
               widget.icon,
               size: 22,
-              color: context.textPrimary,
+              color: const Color(0xFF1E1E2C),
             ),
           ),
         ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
-import 'package:sigumi/config/theme_extensions.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 // Semantic Colors for Status
@@ -48,13 +47,16 @@ class PrimaryInfoCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: context.bgSurface,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: context.borderColor, 
-          width: context.borderWidth
-        ),
-        boxShadow: context.cardShadow,
+        border: Border.all(color: Colors.grey.shade100, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(15), // subtle shadow
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -97,7 +99,7 @@ class PrimaryInfoCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: context.bgSecondary,
+                        color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -105,7 +107,7 @@ class PrimaryInfoCard extends StatelessWidget {
                         style: AppFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: context.textSecondary,
+                          color: Colors.grey.shade700,
                         ),
                       ),
                     ),
@@ -116,10 +118,7 @@ class PrimaryInfoCard extends StatelessWidget {
           ),
           
           const SizedBox(height: 20),
-          Container(
-            height: context.borderWidth,
-            color: context.dividerColor,
-          ),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 16),
           
           // ── Body: Jarak & Deskripsi (Subtle) ──
@@ -127,18 +126,14 @@ class PrimaryInfoCard extends StatelessWidget {
           // Jarak
           Row(
             children: [
-              Icon(
-                Icons.location_on_outlined, 
-                size: 18, 
-                color: context.textTertiary
-              ),
+              Icon(Icons.location_on_outlined, size: 18, color: Colors.grey.shade400),
               const SizedBox(width: 10),
               Text(
                 'Jarak ke gunung:',
                 style: AppFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: context.textTertiary,
+                  color: Colors.grey.shade500,
                 ),
               ),
               const Spacer(),
@@ -148,7 +143,7 @@ class PrimaryInfoCard extends StatelessWidget {
                 style: AppFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: context.textSecondary,
+                  color: Colors.grey.shade800,
                 ),
               ).animate().fade(),
             ],
@@ -160,11 +155,7 @@ class PrimaryInfoCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(
-                Icons.info_outline_rounded, 
-                size: 18, 
-                color: context.textTertiary
-              ),
+              Icon(Icons.info_outline_rounded, size: 18, color: Colors.grey.shade400),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -172,7 +163,7 @@ class PrimaryInfoCard extends StatelessWidget {
                   key: ValueKey<String>(_descriptionText),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
-                    color: context.textTertiary,
+                    color: Colors.grey.shade600,
                     height: 1.5,
                     fontWeight: FontWeight.w500,
                   ),

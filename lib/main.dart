@@ -57,9 +57,7 @@ class SigumiApp extends StatelessWidget {
           title: 'SIGUMI',
           debugShowCheckedModeBanner: false,
           materialThemeBuilder: (context, theme) {
-            return provider.highContrast 
-                ? SigumiTheme.highContrastTheme 
-                : SigumiTheme.lightTheme;
+            return SigumiTheme.lightTheme;
           },
           initialRoute: AppRoutes.splash,
           routes: AppRoutes.routes,
