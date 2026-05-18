@@ -212,9 +212,10 @@ class _MapScreenState extends State<MapScreen>
     return name.split(' ').first;
   }
 
-  /// Build daftar marker untuk semua gunung berapi
-  List<Marker> _buildVolcanoMarkers() {
-    return _allVolcanoes.map((volcano) {
+  /// Build daftar marker — status diambil dari VolcanoProvider (MAGMA realtime)
+  List<Marker> _buildVolcanoMarkers([List<VolcanoModel>? volcanoes]) {
+    final list = volcanoes ?? _allVolcanoes;
+    return list.map((volcano) {
       final pos = LatLng(volcano.latitude, volcano.longitude);
       final isMonitored = _monitoredVolcanoes.contains(volcano.id);
       final isSelected = _selectedVolcano?.id == volcano.id;
@@ -247,6 +248,51 @@ class _MapScreenState extends State<MapScreen>
     }).toList();
   }
 
+  /// Merge status MAGMA realtime dari VolcanoProvider ke daftar marker statis.
+  /// Pakai magmaAllStatuses (semua gunung dari MAGMA Supabase) — bukan allVolcanoes (hanya 3).
+  /// Direct lookup dulu, fallback ke partial match.
+  List<VolcanoModel> _mergeWithProviderStatus(VolcanoProvider provider) {
+    final statusMap = provider.magmaAllStatuses;
+
+    // Fallback ke allVolcanoes jika MAGMA belum load
+    if (statusMap.isEmpty) {
+      final providerVolcanoes = provider.allVolcanoes;
+      if (providerVolcanoes.isEmpty) return _allVolcanoes;
+      final fallbackMap = <String, int>{};
+      for (final pv in providerVolcanoes) {
+        final key = pv.name.toLowerCase().replaceAll('gunung ', '').trim();
+        fallbackMap[key] = pv.statusLevel;
+      }
+      return _applyStatusMap(_allVolcanoes, fallbackMap);
+    }
+
+    return _applyStatusMap(_allVolcanoes, statusMap);
+  }
+
+  /// Terapkan statusMap ke list volcano — direct lookup + partial match fallback.
+  List<VolcanoModel> _applyStatusMap(
+    List<VolcanoModel> locals,
+    Map<String, int> statusMap,
+  ) {
+    return locals.map((local) {
+      final localKey = local.name.toLowerCase().replaceAll('gunung ', '').trim();
+
+      // 1. Direct lookup
+      if (statusMap.containsKey(localKey)) {
+        return local.copyWith(statusLevel: statusMap[localKey]!);
+      }
+
+      // 2. Partial match
+      final match = statusMap.entries
+          .where((e) => localKey.contains(e.key) || e.key.contains(localKey))
+          .map((e) => e.value)
+          .firstOrNull;
+      if (match != null) return local.copyWith(statusLevel: match);
+
+      return local;
+    }).toList();
+  }
+
   /// Build widget marker berdasarkan 3 tier visual:
   ///  Tier 1 — Primary SELECTED   : besar, glow kuat, badge dot, animasi scale
   ///  Tier 2 — Primary UNSELECTED : sedang, status color, badge dot
@@ -259,7 +305,12 @@ class _MapScreenState extends State<MapScreen>
     bool isMonitored,
     bool isSelected,
   ) {
-    final statusColor = _getStatusColor(volcano.statusLevel);
+    final provider = context.read<VolcanoProvider>();
+    final statusColor = SigumiTheme.getStatusColor(
+      volcano.statusLevel,
+      highContrast: provider.highContrast,
+      colorBlindMode: provider.colorBlindMode,
+    );
 
     if (isSelected && isMonitored) {
       // ── Tier 1: Primary SELECTED ──
@@ -579,7 +630,12 @@ class _MapScreenState extends State<MapScreen>
       barrierColor: Colors.black26,
       barrierDismissible: true,
       builder: (dialogContext) {
-        final statusColor = _getStatusColor(volcano.statusLevel);
+        final prov = dialogContext.read<VolcanoProvider>();
+        final statusColor = SigumiTheme.getStatusColor(
+          volcano.statusLevel,
+          highContrast: prov.highContrast,
+          colorBlindMode: prov.colorBlindMode,
+        );
 
         return Dialog(
               backgroundColor: Colors.transparent,
@@ -766,7 +822,12 @@ class _MapScreenState extends State<MapScreen>
 
   /// Tampilkan info ringkas gunung yang belum dipantau Sigumi
   void _showSecondaryVolcanoDetail(VolcanoModel volcano) {
-    final statusColor = _getStatusColor(volcano.statusLevel);
+    final prov = context.read<VolcanoProvider>();
+    final statusColor = SigumiTheme.getStatusColor(
+      volcano.statusLevel,
+      highContrast: prov.highContrast,
+      colorBlindMode: prov.colorBlindMode,
+    );
 
     showDialog(
       context: context,
@@ -1093,21 +1154,6 @@ class _MapScreenState extends State<MapScreen>
     );
   }
 
-  /// Get status color berdasarkan level
-  Color _getStatusColor(int statusLevel) {
-    switch (statusLevel) {
-      case 1:
-        return SigumiTheme.statusNormal;
-      case 2:
-        return SigumiTheme.statusWaspada;
-      case 3:
-        return SigumiTheme.statusSiaga;
-      case 4:
-        return SigumiTheme.statusAwas;
-      default:
-        return Colors.grey;
-    }
-  }
 
   // ───────────────────────────────────────────────────────
   // BUILD
@@ -1221,8 +1267,8 @@ class _MapScreenState extends State<MapScreen>
                   // ── Map Markers ──
                   MarkerLayer(
                     markers: [
-                      // Semua volcano markers (primary + secondary, semua bisa diklik)
-                      ..._buildVolcanoMarkers(),
+                      // Semua volcano markers — status dari MAGMA realtime via provider
+                      ..._buildVolcanoMarkers(_mergeWithProviderStatus(provider)),
 
                       // User Marker — posisi dari GPS real-time
                       Marker(

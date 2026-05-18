@@ -59,9 +59,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
         final volcano = provider.volcano;
+        final cbMode = provider.colorBlindMode;
         final statusColor = SigumiTheme.getStatusColor(
           volcano.statusLevel,
           highContrast: isHighContrast,
+          colorBlindMode: cbMode,
         );
 
         return Scaffold(
@@ -805,7 +807,9 @@ class _HomeScreenState extends State<HomeScreen> {
   ) {
     final volcanoLevel = provider.volcano.statusLevel;
     final zoneLevel = provider.zoneLevel;
-    final zoneColor = SigumiTheme.getStatusColor(zoneLevel);
+    final isHC = provider.highContrast;
+    final cbMode = provider.colorBlindMode;
+    final zoneColor = SigumiTheme.getStatusColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
     final isHighAlert = volcanoLevel >= 3;
 
     final zoneIcon =

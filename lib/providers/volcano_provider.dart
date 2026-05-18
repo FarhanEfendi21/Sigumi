@@ -60,6 +60,8 @@ class VolcanoProvider extends ChangeNotifier {
   bool _audioGuidance = false;
   bool _isOffline = false;
   String _selectedRegion = 'Yogyakarta';
+  /// Mode simulasi buta warna: 'normal' | 'deuteranopia' | 'protanopia' | 'tritanopia'
+  String _colorBlindMode = 'normal';
 
   // ── Deteksi lokasi otomatis ──
   bool _isRegionAutoDetected = false;
@@ -78,9 +80,15 @@ class VolcanoProvider extends ChangeNotifier {
   SupabaseClient? _magmaClient;
   RealtimeChannel? _magmaChannel;
 
+  // ── Status semua gunung dari MAGMA Supabase (key: nama pendek lowercase) ──
+  // Dipakai map_screen untuk update warna marker semua gunung, bukan hanya 3.
+  final Map<String, int> _magmaAllStatuses = {};
+
   // ── Getters ──
   VolcanoModel get volcano => _volcano;
   List<VolcanoModel> get allVolcanoes => _allVolcanoes;
+  /// Status semua gunung dari MAGMA (nama pendek lowercase → level 1-4)
+  Map<String, int> get magmaAllStatuses => Map.unmodifiable(_magmaAllStatuses);
   List<NewsItem> get newsItems => _newsItems;
   UserModel? get currentUser => _currentUser;
   bool get isAuthenticated => _isAuthenticated;
@@ -93,6 +101,7 @@ class VolcanoProvider extends ChangeNotifier {
   bool get audioGuidance => _audioGuidance;
   bool get isOffline => _isOffline;
   String get selectedRegion => _selectedRegion;
+  String get colorBlindMode => _colorBlindMode;
   bool get isRegionAutoDetected => _isRegionAutoDetected;
   bool get locationInitialized => _locationInitialized;
   bool get isFirstTime => _isFirstTime;
@@ -140,6 +149,7 @@ class VolcanoProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _isFirstTime = prefs.getBool('is_first_time') ?? true;
     _language = prefs.getString('language') ?? 'id';
+    _colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
     notifyListeners();
   }
 
@@ -158,8 +168,9 @@ class VolcanoProvider extends ChangeNotifier {
           SupabaseConfig.magmaAnonKey,
         );
 
-        // 1. Test Fetch Manual (Pastikan RLS & Key OK)
+        // 1. Test Fetch Manual + Load semua status awal
         await _testMagmaConnection();
+        await _fetchAllMagmaStatuses();
 
         // 2. Setup Realtime Channel dengan nama unik agar tidak bentrok di Web
         _magmaChannel = _magmaClient!.channel('sigumi_magma_sync');
@@ -241,6 +252,9 @@ class VolcanoProvider extends ChangeNotifier {
         s.toLowerCase().replaceAll('gunung', '').trim();
     final normalizedInput = normalize(volcanoName);
 
+    // Update global status map
+    _magmaAllStatuses[normalizedInput] = newStatusLevel;
+
     // 1. Update di list allVolcanoes agar tidak tertimpa saat ganti region/fetch ulang
     bool foundInList = false;
     for (int i = 0; i < _allVolcanoes.length; i++) {
@@ -258,7 +272,7 @@ class VolcanoProvider extends ChangeNotifier {
     if (normalize(_volcano.name).contains(normalizedInput)) {
       if (_volcano.statusLevel != newStatusLevel) {
         debugPrint(
-          '[MAGMA] âœ… Perubahan Terdeteksi! $volcanoName: Level $newStatusLevel',
+          '[MAGMA] ✅ Perubahan Terdeteksi! $volcanoName: Level $newStatusLevel',
         );
 
         // Gunakan microtask agar tidak bentrok dengan siklus render UI Web
@@ -288,7 +302,7 @@ class VolcanoProvider extends ChangeNotifier {
           .limit(1);
       if (data.isNotEmpty) {
         debugPrint(
-          '[MAGMA] âœ… TEST READ SUKSES! Ditemukan ${data.length} baris. Database MAGMA dapat diakses.',
+          '[MAGMA] ✅ TEST READ SUKSES! Ditemukan ${data.length} baris. Database MAGMA dapat diakses.',
         );
         debugPrint('[MAGMA] Contoh data: ${data.first}');
       } else {
@@ -301,6 +315,32 @@ class VolcanoProvider extends ChangeNotifier {
       debugPrint(
         '[MAGMA] Saran: Periksa kembali RLS Policy di Dashboard Supabase.',
       );
+    }
+  }
+
+  /// Fetch status SEMUA gunung dari MAGMA Supabase sekali saat init.
+  /// Hasilnya disimpan di _magmaAllStatuses untuk update semua marker di peta.
+  Future<void> _fetchAllMagmaStatuses() async {
+    try {
+      final data = await _magmaClient!
+          .from('volcanoes')
+          .select('name, alert_level');
+
+      String normalize(String s) =>
+          s.toLowerCase().replaceAll('gunung', '').trim();
+
+      _magmaAllStatuses.clear();
+      for (final row in data) {
+        final name = row['name']?.toString();
+        final level = _mapAlertLevelToInt(row['alert_level']?.toString());
+        if (name != null) {
+          _magmaAllStatuses[normalize(name)] = level;
+        }
+      }
+      debugPrint('[MAGMA] ✅ Loaded ${_magmaAllStatuses.length} volcano statuses from MAGMA.');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[MAGMA] ❌ Fetch all statuses error: $e');
     }
   }
 
@@ -754,6 +794,15 @@ class VolcanoProvider extends ChangeNotifier {
         );
       }
     }
+    notifyListeners();
+  }
+
+  /// Set mode simulasi buta warna. Tersimpan di SharedPreferences.
+  /// [mode]: 'normal' | 'deuteranopia' | 'protanopia' | 'tritanopia'
+  void setColorBlindMode(String mode) async {
+    _colorBlindMode = mode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('color_blind_mode', mode);
     notifyListeners();
   }
 
