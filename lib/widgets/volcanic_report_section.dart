@@ -26,39 +26,29 @@ class VolcanicReportSection extends StatelessWidget {
         // ── Section Header ──
         Row(
           children: [
-            Container(
-              width: 3,
-              height: 20,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE53935),
-                borderRadius: BorderRadius.circular(2),
+            Text(
+              'Laporan Harian MAGMA',
+              style: AppFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1E1E2C),
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Laporan Harian MAGMA',
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E1E2C),
-                ),
-              ),
-            ),
+            const SizedBox(width: 8),
             // Badge sumber data
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFFE3F2FD),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF90CAF9)),
+                color: Colors.redAccent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
               ),
               child: Text(
                 'PVMBG',
                 style: AppFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1565C0),
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.redAccent.shade700,
                 ),
               ),
             ),

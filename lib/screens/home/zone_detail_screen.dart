@@ -20,6 +20,35 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
   // State collapse/expand untuk section KRB (level 1–2)
   bool _isKrbExpanded = false;
 
+  // ── Deskripsi KRB per Gunung ─────────────────────────────
+  static const Map<String, Map<int, String>> _krbDescriptions = {
+    'merapi': {
+      3: 'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.',
+      2: 'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.',
+      1: 'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.',
+    },
+    'agung': {
+      3: 'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.',
+      2: 'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.',
+      1: 'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.',
+    },
+    'rinjani': {
+      3: 'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.',
+      2: 'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.',
+      1: 'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).',
+    },
+  };
+
+  String _getKrbDesc(String volcanoKey, int krbLevel) {
+    final fallback = {
+      3: 'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.',
+      2: 'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.',
+      1: 'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.',
+    };
+    return _krbDescriptions[volcanoKey]?[krbLevel] ?? fallback[krbLevel] ?? '-';
+  }
+
+
   // Warna background halaman berdasarkan JARAK user ke gunung (zoneLevel)
   Color _getPageBgColor(int zoneLevel) {
     switch (zoneLevel) {
@@ -35,8 +64,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
   }
 
   // Warna header AppBar berdasarkan JARAK user ke gunung (zoneLevel)
-  Color _getHeaderColor(int zoneLevel) {
-    return SigumiTheme.getStatusColor(zoneLevel);
+  Color _getHeaderColor(int zoneLevel, {bool highContrast = false, String colorBlindMode = 'normal'}) {
+    return SigumiTheme.getStatusColor(zoneLevel, highContrast: highContrast, colorBlindMode: colorBlindMode);
   }
 
   @override
@@ -45,13 +74,15 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
       builder: (context, provider, _) {
         final distance = provider.distanceFromMerapi;
         final zoneLevel = provider.zoneLevel;
-        final zoneColor = SigumiTheme.getStatusColor(zoneLevel);
+        final isHC = provider.highContrast;
+        final cbMode = provider.colorBlindMode;
+        final zoneColor = SigumiTheme.getStatusColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
         final volcano = provider.volcano;
         final volcanoLevel = volcano.statusLevel;
         final isHighAlert = volcanoLevel >= 3;
 
         // Warna dari JARAK user (zoneLevel), bukan status gunung
-        final headerColor = _getHeaderColor(zoneLevel);
+        final headerColor = _getHeaderColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
         final pageBg = _getPageBgColor(zoneLevel);
 
         final mq = MediaQuery.of(context);
@@ -214,6 +245,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                               Icons.landscape_rounded,
                               valueColor: SigumiTheme.getStatusColor(
                                 volcanoLevel,
+                                highContrast: isHC,
+                                colorBlindMode: cbMode,
                               ),
                             ),
                             const Divider(height: 20),
@@ -228,43 +261,19 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
 
                       const SizedBox(height: 14),
 
-                      // ── Aktivitas Terkini ──
-                      _buildSectionCard(
-                        icon: Icons.history_rounded,
-                        iconColor: Colors.deepPurple,
-                        title: 'Aktivitas Terkini',
-                        child: volcano.recentActivities.isEmpty
-                            ? Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Text(
-                                  'Belum ada data aktivitas terkini untuk saat ini.',
-                                  style: AppFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    color: const Color(0xFF9E9EAE),
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                              )
-                            : Column(
-                                children: List.generate(
-                                  volcano.recentActivities.length,
-                                  (i) => _buildActivityItem(
-                                    volcano.recentActivities[i],
-                                    i,
-                                    volcano.recentActivities.length,
-                                    SigumiTheme.getStatusColor(
-                                        volcanoLevel),
-                                  ),
-                                ),
-                              ),
-                      ),
 
-                      const SizedBox(height: 20),
 
                       // ── Pembagian Zona KRB — Kondisional dengan dropdown ──
                       _buildKrbSection(
-                          context, zoneLevel, isHighAlert, hPad),
+                          context, zoneLevel, isHighAlert, hPad,
+                          volcanoKey: volcano.name.toLowerCase().contains('merapi')
+                              ? 'merapi'
+                              : volcano.name.toLowerCase().contains('agung')
+                                  ? 'agung'
+                                  : 'rinjani',
+                          isHC: isHC,
+                          cbMode: cbMode),
+
 
                       Center(
                         child: Text(
@@ -294,8 +303,12 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     BuildContext context,
     int zoneLevel,
     bool isHighAlert,
-    double hPad,
-  ) {
+    double hPad, {
+    required String volcanoKey,
+    bool isHC = false,
+    String cbMode = 'normal',
+  }) {
+
     final showExpand = true;
     final isExpanded = _isKrbExpanded;
 
@@ -319,7 +332,10 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                         fontWeight: FontWeight.w700,
                         color: isHighAlert
                             ? SigumiTheme.getStatusColor(
-                                zoneLevel > 2 ? zoneLevel : 3)
+                                zoneLevel > 2 ? zoneLevel : 3,
+                                highContrast: isHC,
+                                colorBlindMode: cbMode,
+                              )
                             : const Color(0xFF1A1A2E),
                       ),
                     ),
@@ -371,34 +387,34 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 level: 4,
                 title: 'Zona Bahaya',
                 subtitle: 'KRB III — Radius ≤ 5 km',
-                description:
-                    'Area terlarang untuk aktivitas apapun. Rawan awan panas, '
-                    'lontaran material vulkanik, dan aliran lava.',
+                description: _getKrbDesc(volcanoKey, 3),
                 isActive: zoneLevel == 4,
                 isHighAlert: isHighAlert,
                 delay: 0,
+                isHC: isHC,
+                cbMode: cbMode,
               ),
               _buildZoneCard(
                 level: 3,
                 title: 'Zona Waspada',
                 subtitle: 'KRB II — Radius 5–10 km',
-                description:
-                    'Rawan lahar hujan, hujan abu vulkanik, dan potensi awan '
-                    'panas pada erupsi besar.',
+                description: _getKrbDesc(volcanoKey, 2),
                 isActive: zoneLevel == 3,
                 isHighAlert: isHighAlert,
                 delay: 80,
+                isHC: isHC,
+                cbMode: cbMode,
               ),
               _buildZoneCard(
                 level: 2,
                 title: 'Zona Perhatian',
                 subtitle: 'KRB I — Radius 10–15 km',
-                description:
-                    'Berpotensi terkena hujan abu dan lahar hujan melalui '
-                    'aliran sungai.',
+                description: _getKrbDesc(volcanoKey, 1),
                 isActive: zoneLevel == 2,
                 isHighAlert: isHighAlert,
                 delay: 160,
+                isHC: isHC,
+                cbMode: cbMode,
               ),
               _buildZoneCard(
                 level: 1,
@@ -410,6 +426,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 isActive: zoneLevel == 1,
                 isHighAlert: isHighAlert,
                 delay: 240,
+                isHC: isHC,
+                cbMode: cbMode,
               ),
               const SizedBox(height: 16),
             ],
@@ -452,8 +470,11 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     required bool isActive,
     required bool isHighAlert,
     required int delay,
+    bool isHC = false,
+    String cbMode = 'normal',
   }) {
-    final color = SigumiTheme.getStatusColor(level);
+    final color = SigumiTheme.getStatusColor(level, highContrast: isHC, colorBlindMode: cbMode);
+    final shapeIcon = SigumiTheme.getStatusShape(level);
 
     // Saat gunung level tinggi, font judul zona lebih bold dan warna lebih intens
     final titleFontWeight =
@@ -496,10 +517,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: Text(
-              _zoneEmoji(level),
-              style: const TextStyle(fontSize: 18),
-            ),
+            child: Icon(shapeIcon, color: color, size: 20),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -655,109 +673,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     );
   }
 
-  Widget _buildActivityItem(
-    String activity,
-    int index,
-    int total,
-    Color statusColor,
-  ) {
-    final isLast = index == total - 1;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 24,
-          child: Column(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                margin: const EdgeInsets.only(top: 4),
-                decoration: BoxDecoration(
-                  color: index == 0 ? statusColor : statusColor.withAlpha(50),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: statusColor.withAlpha(100),
-                    width: 1.5,
-                  ),
-                ),
-              ),
-              if (!isLast)
-                Container(
-                    width: 2,
-                    height: 40,
-                    color: const Color(0xFFE0E0E8)),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activity,
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: const Color(0xFF3A3A4A),
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _fakeTimestamp(index),
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 10,
-                    color: const Color(0xFF9E9EAE),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
-  String _fakeTimestamp(int index) {
-    final now = DateTime.now();
-    final offset = Duration(hours: index * 6 + 2);
-    final dt = now.subtract(offset);
-    final months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'Mei',
-      'Jun',
-      'Jul',
-      'Agu',
-      'Sep',
-      'Okt',
-      'Nov',
-      'Des',
-    ];
-    return '${dt.day} ${months[dt.month]}, '
-        '${dt.hour.toString().padLeft(2, '0')}:'
-        '${dt.minute.toString().padLeft(2, '0')} WIB';
-  }
-
-  String _zoneEmoji(int level) {
-    switch (level) {
-      case 4:
-        return '🔴';
-      case 3:
-        return '🟠';
-      case 2:
-        return '🟡';
-      default:
-        return '🟢';
-    }
-  }
+  // _zoneEmoji tidak lagi digunakan — diganti ikon Material shape-coded
 
   String _formatTime(DateTime dt) {
     final months = [

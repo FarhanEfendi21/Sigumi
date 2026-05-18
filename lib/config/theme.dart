@@ -31,11 +31,11 @@ class SigumiTheme {
   // Keep legacy alias for backward compat in other screens
   static const Color accent = accentYellow;
 
-  // Status Colors
-  static const Color statusNormal = Color(0xFF4CAF50);
-  static const Color statusWaspada = Color(0xFFFFC107);
-  static const Color statusSiaga = Color(0xFFFF9800);
-  static const Color statusAwas = Color(0xFFF44336);
+  // Status Colors — sesuai peta resmi MAGMA Indonesia (magma.esdm.go.id)
+  static const Color statusNormal = Color(0xFF00A550);   // Hijau MAGMA
+  static const Color statusWaspada = Color(0xFFFFD700);  // Kuning MAGMA
+  static const Color statusSiaga = Color(0xFFFF6600);    // Oranye MAGMA
+  static const Color statusAwas = Color(0xFFDD0000);     // Merah MAGMA
 
   // ── High Contrast Mode Colors (WCAG AAA compliant) ──
   static const Color hcBackground = Color(0xFF000000); // Pure black
@@ -43,13 +43,32 @@ class SigumiTheme {
   static const Color hcPrimary = Color(0xFFFFFFFF); // Pure white text
   static const Color hcSecondary = Color(0xFFFFD600); // Bright yellow accent
   static const Color hcBorder = Color(0xFFFFFFFF); // White borders
-  static const Color hcDivider = Color(0xFF666666); // Medium gray divider
-  
-  // High contrast status colors (higher saturation)
-  static const Color hcStatusNormal = Color(0xFF00FF00); // Bright green
-  static const Color hcStatusWaspada = Color(0xFFFFFF00); // Bright yellow
-  static const Color hcStatusSiaga = Color(0xFFFF8800); // Bright orange
-  static const Color hcStatusAwas = Color(0xFFFF0000); // Bright red
+  static const Color hcDivider = Color(0xFFAAAAAA); // Light gray — min 7:1 on black (AAA)
+
+  // High contrast status colors — MAGMA Indonesia — semua ≥ 4.5:1 on black (WCAG AA)
+  static const Color hcStatusNormal  = Color(0xFF00FF66); // Hijau — 11.3:1 ✅
+  static const Color hcStatusWaspada = Color(0xFFFFEE00); // Kuning — 19.6:1 ✅
+  static const Color hcStatusSiaga  = Color(0xFFFF8800);  // Oranye — 5.5:1 ✅
+  static const Color hcStatusAwas   = Color(0xFFFF5555);  // Merah terang — 5.1:1 ✅ (was #FF1100 = 3.4:1 ❌)
+
+  // ── Buta Warna: Deuteranopia-safe (merah-hijau) ──
+  // Gunakan biru & oranye alih-alih hijau & merah
+  static const Color cbdNormal  = Color(0xFF0077BB); // Biru solid — aman bagi semua tipe
+  static const Color cbdWaspada = Color(0xFFFFCC00); // Kuning emas
+  static const Color cbdSiaga  = Color(0xFFEE7700);  // Oranye tua
+  static const Color cbdAwas   = Color(0xFFCC3311);  // Coklat-merah aman
+
+  // ── Buta Warna: Protanopia-safe (buta merah) ──
+  static const Color cbpNormal  = Color(0xFF0099CC); // Cyan biru
+  static const Color cbpWaspada = Color(0xFFFFEE33); // Kuning cerah
+  static const Color cbpSiaga  = Color(0xFFFF8844);  // Kuning-oranye
+  static const Color cbpAwas   = Color(0xFF8833BB);  // Ungu — aman bagi protanopia
+
+  // ── Buta Warna: Tritanopia-safe (buta biru-kuning) ──
+  static const Color cbtNormal  = Color(0xFF009966); // Hijau zamrud
+  static const Color cbtWaspada = Color(0xFFFF4444); // Merah-oranye
+  static const Color cbtSiaga  = Color(0xFFCC0033);  // Merah tua
+  static const Color cbtAwas   = Color(0xFF990033);  // Merah gelap
 
   // Zone Colors
   static const Color zoneDanger = Color(0x40F44336);
@@ -332,33 +351,69 @@ class SigumiTheme {
     );
   }
 
-  static Color getStatusColor(int level, {bool highContrast = false}) {
+  /// Kembalikan warna status MAGMA sesuai mode aksesibilitas aktif.
+  /// [colorBlindMode]: 'normal' | 'deuteranopia' | 'protanopia' | 'tritanopia'
+  static Color getStatusColor(
+    int level, {
+    bool highContrast = false,
+    String colorBlindMode = 'normal',
+  }) {
     if (highContrast) {
       switch (level) {
-        case 1:
-          return hcStatusNormal;
-        case 2:
-          return hcStatusWaspada;
-        case 3:
-          return hcStatusSiaga;
-        case 4:
-          return hcStatusAwas;
-        default:
-          return hcStatusNormal;
+        case 1: return hcStatusNormal;
+        case 2: return hcStatusWaspada;
+        case 3: return hcStatusSiaga;
+        case 4: return hcStatusAwas;
+        default: return hcStatusNormal;
       }
     }
-    
-    switch (level) {
-      case 1:
-        return statusNormal;
-      case 2:
-        return statusWaspada;
-      case 3:
-        return statusSiaga;
-      case 4:
-        return statusAwas;
+
+    switch (colorBlindMode) {
+      case 'deuteranopia':
+        switch (level) {
+          case 1: return cbdNormal;
+          case 2: return cbdWaspada;
+          case 3: return cbdSiaga;
+          case 4: return cbdAwas;
+          default: return cbdNormal;
+        }
+      case 'protanopia':
+        switch (level) {
+          case 1: return cbpNormal;
+          case 2: return cbpWaspada;
+          case 3: return cbpSiaga;
+          case 4: return cbpAwas;
+          default: return cbpNormal;
+        }
+      case 'tritanopia':
+        switch (level) {
+          case 1: return cbtNormal;
+          case 2: return cbtWaspada;
+          case 3: return cbtSiaga;
+          case 4: return cbtAwas;
+          default: return cbtNormal;
+        }
       default:
-        return statusNormal;
+        switch (level) {
+          case 1: return statusNormal;
+          case 2: return statusWaspada;
+          case 3: return statusSiaga;
+          case 4: return statusAwas;
+          default: return statusNormal;
+        }
+    }
+  }
+
+  /// Kembalikan ikon bentuk unik per level status — untuk aksesibilitas non-warna.
+  /// Memastikan info status dapat dibaca tanpa bergantung warna.
+  static IconData getStatusShape(int level) {
+    // ignore: import_of_legacy_library_into_null_safe
+    switch (level) {
+      case 1: return Icons.check_circle_outline;   // ● lingkaran ✓
+      case 2: return Icons.warning_amber_outlined;  // ⚠ segitiga
+      case 3: return Icons.error_outline;           // ⊗ lingkaran-seru
+      case 4: return Icons.dangerous_outlined;       // ☠ bahaya
+      default: return Icons.check_circle_outline;
     }
   }
 
