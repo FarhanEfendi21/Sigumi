@@ -1273,8 +1273,8 @@ class _MapScreenState extends State<MapScreen>
                       // User Marker — posisi dari GPS real-time
                       Marker(
                         point: userPos,
-                        width: 48,
-                        height: 48,
+                        width: 80,
+                        height: 75,
                         child: _buildUserMarker(locationService),
                       ),
                     ],
@@ -1389,48 +1389,80 @@ class _MapScreenState extends State<MapScreen>
     final isActive = locationService.gpsStatus == GpsStatus.active;
     final color = isRealGps ? const Color(0xFF2563EB) : Colors.grey.shade500;
 
-    return Stack(
-      alignment: Alignment.center,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Pulse ring — hanya saat GPS aktif & tracking
-        if (isActive)
-          Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withAlpha(30),
-                ),
-              )
-              .animate(onPlay: (c) => c.repeat())
-              .scale(
-                begin: const Offset(0.6, 0.6),
-                end: const Offset(1.2, 1.2),
-                duration: 2000.ms,
-                curve: Curves.easeOut,
-              )
-              .fadeOut(begin: 0.6, duration: 2000.ms),
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // Pulse ring — hanya saat GPS aktif & tracking
+            if (isActive)
+              Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color.withAlpha(30),
+                    ),
+                  )
+                  .animate(onPlay: (c) => c.repeat())
+                  .scale(
+                    begin: const Offset(0.6, 0.6),
+                    end: const Offset(1.2, 1.2),
+                    duration: 2000.ms,
+                    curve: Curves.easeOut,
+                  )
+                  .fadeOut(begin: 0.6, duration: 2000.ms),
 
-        // Marker utama
+            // Marker utama
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withAlpha(100),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Icon(
+                isRealGps ? Icons.person_rounded : Icons.person_outline_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
         Container(
-          width: 32,
-          height: 32,
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
           decoration: BoxDecoration(
             color: color,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 3),
+            borderRadius: BorderRadius.circular(5),
             boxShadow: [
               BoxShadow(
-                color: color.withAlpha(100),
-                blurRadius: 10,
-                spreadRadius: 2,
+                color: Colors.black.withAlpha(40),
+                blurRadius: 3,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
-          child: Icon(
-            isRealGps ? Icons.my_location : Icons.location_searching,
-            color: Colors.white,
-            size: 16,
+          child: Text(
+            'Lokasi Anda',
+            style: AppFonts.plusJakartaSans(
+              fontSize: 9,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: -0.1,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

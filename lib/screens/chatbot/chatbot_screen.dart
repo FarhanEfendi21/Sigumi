@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/theme_extensions.dart';
 import '../../models/chat_message.dart';
@@ -13,7 +11,12 @@ import '../../services/nlp_knowledge_base.dart';
 import '../../providers/volcano_provider.dart';
 
 class ChatbotScreen extends StatefulWidget {
-  const ChatbotScreen({super.key});
+  final bool showBackButton;
+
+  const ChatbotScreen({
+    super.key,
+    this.showBackButton = false,
+  });
 
   @override
   State<ChatbotScreen> createState() => _ChatbotScreenState();
@@ -294,8 +297,14 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     final user = provider.currentUser;
     final currentAppLanguage = provider.language;
     setState(() {
+      _messages.add(ChatMessage(
+        content: AiService.getWelcomeMessage(currentAppLanguage, user: user),
+        isUser: false,
+        timestamp: DateTime.now(),
+        language: currentAppLanguage,
+      ));
       _messages.add(ChatMessage.system(
-        '${AiService.getWelcomeMessage(currentAppLanguage, user: user)}\n\nℹ️ Chatbot merespons menggunakan bahasa aplikasi yang Anda pilih di menu Pengaturan.',
+        'Chatbot merespons menggunakan bahasa aplikasi yang Anda pilih di menu Pengaturan.',
       ));
     });
   }
@@ -512,6 +521,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     return Scaffold(
       backgroundColor: context.bgSecondary,
       appBar: AppBar(
+        automaticallyImplyLeading: widget.showBackButton,
         backgroundColor: context.bgPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -886,26 +896,18 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: context.bgSurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: context.borderColor,
-                width: context.borderWidth,
-              ),
-              boxShadow: context.cardShadow,
+              color: context.accentPrimary.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: context.accentPrimary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
                   child: Icon(
                     Icons.info_outline_rounded,
-                    size: 14, 
+                    size: 16, 
                     color: context.accentPrimary
                   ),
                 ),
@@ -935,36 +937,32 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       child: Row(
         mainAxisAlignment:
             isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Bot Avatar
           if (!isUser) ...[
             Container(
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.only(top: 4),
               decoration: BoxDecoration(
-                color: context.bgSurface,
+                color: context.accentPrimary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: context.borderColor,
-                  width: context.borderWidth,
-                ),
-                boxShadow: context.cardShadow,
               ),
               child: ClipOval(
                 child: Padding(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(4),
                   child: Image.asset(
                     'assets/images/SIGUMI-logo.png',
                     errorBuilder: (ctx, err, stack) => Icon(
                         Icons.smart_toy_rounded,
-                        size: 20,
+                        size: 18,
                         color: context.accentPrimary),
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 8),
           ],
 
           // Bubble
@@ -978,18 +976,11 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               decoration: BoxDecoration(
                 color: isUser ? context.accentPrimary : context.bgSurface,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isUser ? 16 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 16),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isUser ? 20 : 4),
+                  bottomRight: Radius.circular(isUser ? 4 : 20),
                 ),
-                border: isUser
-                    ? null
-                    : Border.all(
-                        color: context.borderColor,
-                        width: context.borderWidth,
-                      ),
-                boxShadow: context.cardShadow,
               ),
               child: Column(
                 crossAxisAlignment:
@@ -1032,11 +1023,6 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     ),
                   ),
                   if (!isUser) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      height: context.borderWidth,
-                      color: context.dividerColor,
-                    ),
                     const SizedBox(height: 6),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -1050,23 +1036,23 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                // Manual tts
                                await _voiceService.speak(displayContent, language: message.language);
                             },
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(12),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.volume_up_rounded, 
-                                    size: 16, 
-                                    color: context.accentPrimary
+                                    size: 14, 
+                                    color: context.textTertiary
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Dengarkan',
                                     style: AppFonts.plusJakartaSans(
-                                      fontSize: 12,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: context.accentPrimary,
+                                      color: context.textTertiary,
                                     ),
                                   ),
                                 ],
@@ -1075,19 +1061,19 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                           ),
                         ),
                         if (message.language != 'id') ...[
-                           const SizedBox(width: 12),
+                           const SizedBox(width: 8),
                            Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: context.accentPrimary.withValues(alpha: 0.1),
+                                color: context.dividerColor.withValues(alpha: 0.5),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
                                 message.language.toUpperCase(),
                                 style: AppFonts.plusJakartaSans(
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   fontWeight: FontWeight.w700,
-                                  color: context.accentPrimary,
+                                  color: context.textTertiary,
                                 ),
                               ),
                            ),

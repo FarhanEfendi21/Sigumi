@@ -146,25 +146,20 @@ class NlpKnowledgeBase {
   static const Map<String, Map<String, String>> responses = {
     'salam': {
       'id':
-          'Halo! Saya Si Gumi, instruktur pelatihan mitigasi bencana. '
-          'Saya siap membantu Anda mempelajari SOP evakuasi, jadwal simulasi, '
-          'persiapan tas siaga, dan edukasi kesiapsiagaan. Ada yang bisa saya bantu?',
+          'Halo! Saya Si Gumi. '
+          'Ada yang bisa saya bantu terkait edukasi bencana, evakuasi, atau jadwal simulasi?',
       'en':
-          'Hello! I am Si Gumi, your disaster mitigation training instructor. '
-          'I can help you learn evacuation SOPs, simulation schedules, '
-          'emergency bag preparation, and preparedness education. How can I assist you?',
+          'Hello! I am Si Gumi. '
+          'How can I help you with disaster education, evacuation, or simulation schedules?',
       'jv':
-          'Halo! Kula Si Gumi, instruktur pelatihan mitigasi bencana. '
-          'Kula siap mbantu panjenengan sinau SOP evakuasi, jadwal simulasi, '
-          'lan persiapan tanggap bencana. Wonten ingkang saged kula bantu?',
+          'Halo! Kula Si Gumi. '
+          'Wonten ingkang saged kula bantu babagan edukasi, evakuasi, utawa jadwal simulasi?',
       'ba':
-          'Om Swastiastu! Tiang Si Gumi, instruktur pelatihan mitigasi bencana. '
-          'Tiang siap nulungin ragane malajah SOP evakuasi, jadwal simulasi, '
-          'miwah persiapan tanggap bencana. Napi sane presida tiang bantu?',
+          'Om Swastiastu! Tiang Si Gumi. '
+          'Napi sane presida tiang bantu indik edukasi, evakuasi, utawi jadwal simulasi?',
       'sas':
-          'Tabe! Tyang Si Gumi, instruktur pelatihan mitigasi bencana. '
-          'Tyang siap bantu side belajaraq SOP evakuasi, jadwal simulasi, '
-          'dait persiapan bencana. Napi saq bau tyang bantu?',
+          'Tabe! Tyang Si Gumi. '
+          'Napi saq bau tyang bantu terkait edukasi, evakuasi, atau jadwal simulasi?',
     },
 
     'sop_evakuasi': {

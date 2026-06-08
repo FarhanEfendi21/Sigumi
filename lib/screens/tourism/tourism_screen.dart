@@ -41,6 +41,13 @@ class _TourismScreenState extends State<TourismScreen> {
 
         return Scaffold(
           backgroundColor: SigumiTheme.background,
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {},
+            backgroundColor: SigumiTheme.primaryBlue,
+            icon: const Icon(Icons.map_rounded, color: Colors.white, size: 20),
+            label: const Text('Peta Wisata', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+            elevation: 4,
+          ),
           body: RefreshIndicator(
             color: SigumiTheme.primaryBlue,
             onRefresh: () async {
@@ -87,30 +94,48 @@ class _TourismScreenState extends State<TourismScreen> {
                   ),
                 ),
 
-                // ── Destinasi List ────────────────────────────
+                // ── Destinasi Grid ────────────────────────────
                 tourismProvider.isLoadingDestinations
-                    ? SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, __) => const _DestinationShimmer(),
-                          childCount: 4,
+                    ? SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.65,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (_, __) => const _DestinationShimmer(),
+                            childCount: 4,
+                          ),
                         ),
                       )
                     : tourismProvider.filteredDestinations.isEmpty
                     ? SliverToBoxAdapter(child: _EmptyState())
-                    : SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final dest =
-                                tourismProvider.filteredDestinations[index];
-                            return _DestinationCard(
-                              destination: dest,
-                              index: index,
-                              onTap:
-                                  () => _openDetail(context, dest, region),
-                            );
-                          },
-                          childCount:
-                              tourismProvider.filteredDestinations.length,
+                    : SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        sliver: SliverGrid(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.65,
+                            crossAxisSpacing: 16,
+                            mainAxisSpacing: 16,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final dest =
+                                  tourismProvider.filteredDestinations[index];
+                              return _DestinationCard(
+                                destination: dest,
+                                index: index,
+                                onTap:
+                                    () => _openDetail(context, dest, region),
+                              );
+                            },
+                            childCount:
+                                tourismProvider.filteredDestinations.length,
+                          ),
                         ),
                       ),
 
@@ -199,15 +224,27 @@ class _SliverHeader extends StatelessWidget {
                   colors: style.gradient,
                 ),
               ),
-              child: Opacity(
-                opacity: opacity,
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
+              child: Stack(
+                children: [
+                  // Pattern / Watermark
+                  Positioned(
+                    right: -40,
+                    bottom: -20,
+                    child: Icon(
+                      Icons.terrain_rounded,
+                      size: 240,
+                      color: Colors.white.withAlpha(20),
+                    ),
+                  ),
+                  Opacity(
+                    opacity: opacity,
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 10,
@@ -273,7 +310,9 @@ class _SliverHeader extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
             centerTitle: false,
             title: Opacity(
               opacity: (1.0 - opacity).clamp(0.0, 1.0),
@@ -314,6 +353,14 @@ class _CategoryFilter extends StatelessWidget {
 
   const _CategoryFilter({required this.selected, required this.onChanged});
 
+  static const Map<String, IconData> _catIcons = {
+    'Semua': Icons.apps_rounded,
+    'Alam': Icons.forest_rounded,
+    'Budaya': Icons.account_balance_rounded,
+    'Pantai': Icons.beach_access_rounded,
+    'Kuliner': Icons.restaurant_rounded,
+  };
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -322,19 +369,16 @@ class _CategoryFilter extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label section
           const Text(
-            'Kategori',
+            'Kategori Pilihan',
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: SigumiTheme.textSecondary,
-              letterSpacing: 0.5,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: SigumiTheme.textPrimary,
+              letterSpacing: -0.2,
             ),
           ),
-          const SizedBox(height: 10),
-
-          // Filter chips horizontal
+          const SizedBox(height: 12),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             clipBehavior: Clip.none,
@@ -342,51 +386,58 @@ class _CategoryFilter extends StatelessWidget {
               children:
                   TourismProvider.categories.map((cat) {
                     final isSelected = selected == cat;
+                    final icon = _catIcons[cat] ?? Icons.place_rounded;
+                    
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.only(right: 12),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         curve: Curves.easeInOut,
+                        width: 80,
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: () => onChanged(cat),
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(14),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              curve: Curves.easeInOut,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 8,
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color:
-                                    isSelected
+                                color: isSelected
                                         ? SigumiTheme.primaryBlue
                                         : SigumiTheme.surface,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                  color:
-                                      isSelected
+                                  color: isSelected
                                           ? SigumiTheme.primaryBlue
                                           : SigumiTheme.divider,
                                   width: 1.2,
                                 ),
+                                boxShadow: isSelected ? [
+                                  BoxShadow(
+                                    color: SigumiTheme.primaryBlue.withAlpha(50),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  )
+                                ] : [],
                               ),
-                              child: Text(
-                                cat,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight:
-                                      isSelected
-                                          ? FontWeight.w600
-                                          : FontWeight.w500,
-                                  color:
-                                      isSelected
-                                          ? Colors.white
-                                          : SigumiTheme.textBody,
-                                  letterSpacing: 0.1,
-                                ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    icon,
+                                    color: isSelected ? Colors.white : SigumiTheme.textSecondary,
+                                    size: 24,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    cat,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                      color: isSelected ? Colors.white : SigumiTheme.textBody,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -757,257 +808,134 @@ class _DestinationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final catColor =
-        _categoryColors[destination.category] ?? SigumiTheme.primaryBlue;
+    final catColor = _categoryColors[destination.category] ?? SigumiTheme.primaryBlue;
     final catIcon = _categoryIcons[destination.category] ?? Icons.place_rounded;
 
-    return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(18),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: SigumiTheme.surface,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: SigumiTheme.divider.withAlpha(180),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(6),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // ── Foto / Placeholder ──
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(18),
-                      ),
-                      child: Container(
-                        height: 140,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              catColor.withAlpha(200),
-                              catColor.withAlpha(140),
-                            ],
-                          ),
-                        ),
-                        child: Stack(
-                          children: [
-                            // Icon dekoratif
-                            Positioned(
-                              right: -12,
-                              bottom: -12,
-                              child: Icon(
-                                catIcon,
-                                size: 100,
-                                color: Colors.white.withAlpha(25),
-                              ),
-                            ),
-                            // Label kategori
-                            Positioned(
-                              top: 12,
-                              left: 14,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 9,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withAlpha(30),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.white.withAlpha(60),
-                                  ),
-                                ),
-                                child: Text(
-                                  destination.category,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    letterSpacing: 0.2,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // Rating badge
-                            Positioned(
-                              top: 12,
-                              right: 14,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withAlpha(50),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.star_rounded,
-                                      color: Color(0xFFFFD623),
-                                      size: 13,
-                                    ),
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      destination.rating.toStringAsFixed(1),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Nama di atas gradient
-                            Positioned(
-                              left: 14,
-                              right: 14,
-                              bottom: 14,
-                              child: Text(
-                                destination.name,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: -0.3,
-                                  height: 1.15,
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // ── Info Row ──
-                    Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Deskripsi singkat
-                          Text(
-                            destination.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 12.5,
-                              color: SigumiTheme.textBody,
-                              height: 1.5,
-                            ),
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // Row: Jam + Tiket + Tombol Detail
-                          Row(
-                            children: [
-                              // Jam buka
-                              const Icon(
-                                Icons.schedule_rounded,
-                                size: 13,
-                                color: SigumiTheme.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                destination.openHours,
-                                style: const TextStyle(
-                                  fontSize: 11.5,
-                                  color: SigumiTheme.textSecondary,
-                                ),
-                              ),
-
-                              const SizedBox(width: 14),
-
-                              // Harga tiket
-                              Icon(
-                                Icons.confirmation_number_outlined,
-                                size: 13,
-                                color:
-                                    destination.entryFee == 0
-                                        ? SigumiTheme.statusNormal
-                                        : SigumiTheme.textSecondary,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                destination.formattedFee,
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      destination.entryFee == 0
-                                          ? SigumiTheme.statusNormal
-                                          : SigumiTheme.textSecondary,
-                                ),
-                              ),
-
-                              const Spacer(),
-
-                              // Tombol detail
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: SigumiTheme.primaryBlue,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Detail',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    SizedBox(width: 3),
-                                    Icon(
-                                      Icons.arrow_forward_rounded,
-                                      color: Colors.white,
-                                      size: 13,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: SigumiTheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: SigumiTheme.divider.withAlpha(150)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(6),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Foto / Placeholder ──
+              Expanded(
+                flex: 5,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          catColor.withAlpha(200),
+                          catColor.withAlpha(140),
                         ],
                       ),
                     ),
-                  ],
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: -10,
+                          bottom: -10,
+                          child: Icon(catIcon, size: 70, color: Colors.white.withAlpha(30)),
+                        ),
+                        // Rating Badge
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(60),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.star_rounded, color: Color(0xFFFFD623), size: 12),
+                                const SizedBox(width: 2),
+                                Text(
+                                  destination.rating.toStringAsFixed(1),
+                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+              // ── Info Bawah ──
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        destination.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: SigumiTheme.textPrimary,
+                          height: 1.2,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(Icons.schedule_rounded, size: 10, color: SigumiTheme.textSecondary),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              destination.openHours,
+                              style: const TextStyle(fontSize: 10, color: SigumiTheme.textSecondary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      Text(
+                        destination.formattedFee,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: destination.entryFee == 0 ? SigumiTheme.statusNormal : SigumiTheme.primaryBlue,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
-        )
-        .animate(delay: (index * 80).ms)
-        .fadeIn(duration: 400.ms)
-        .slideY(begin: 0.06, end: 0, duration: 400.ms, curve: Curves.easeOut);
+        ),
+      ),
+    ).animate(delay: (index * 60).ms).fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0, duration: 400.ms, curve: Curves.easeOut);
   }
 }
 
@@ -1020,17 +948,13 @@ class _DestinationShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Shimmer.fromColors(
-        baseColor: Colors.grey.shade200,
-        highlightColor: Colors.grey.shade100,
-        child: Container(
-          height: 260,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-          ),
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade200,
+      highlightColor: Colors.grey.shade100,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );

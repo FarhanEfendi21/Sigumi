@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
-import 'package:sigumi/config/theme.dart';
 import 'package:sigumi/config/theme_extensions.dart';
 import '../../../config/routes.dart';
 

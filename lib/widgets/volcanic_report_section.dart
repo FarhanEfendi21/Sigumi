@@ -187,12 +187,12 @@ class _VolcanicReportCardState extends State<_VolcanicReportCard> {
 
   Color get _levelBgColor {
     final base = _levelColor;
-    return Color.fromRGBO(base.red, base.green, base.blue, 0.08);
+    return Color.fromRGBO((base.r * 255.0).round().clamp(0, 255), (base.g * 255.0).round().clamp(0, 255), (base.b * 255.0).round().clamp(0, 255), 0.08);
   }
 
   Color get _levelBorderColor {
     final base = _levelColor;
-    return Color.fromRGBO(base.red, base.green, base.blue, 0.25);
+    return Color.fromRGBO((base.r * 255.0).round().clamp(0, 255), (base.g * 255.0).round().clamp(0, 255), (base.b * 255.0).round().clamp(0, 255), 0.25);
   }
 
   Future<void> _openDetailUrl(BuildContext context) async {
