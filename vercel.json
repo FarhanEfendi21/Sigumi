@@ -1,8 +1,9 @@
 {
-  "cleanUrls": true,
+  "buildCommand": "flutter build web --release",
+  "outputDirectory": "build/web",
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\.).*)",
       "destination": "/index.html"
     }
   ],
