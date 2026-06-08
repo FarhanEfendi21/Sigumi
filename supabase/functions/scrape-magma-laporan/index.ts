@@ -10,7 +10,10 @@ const VOLCANO_TARGETS = [
   { key: "rinjani", nameVariants: ["rinjani"], displayName: "Rinjani" },
 ];
 
-const MAGMA_URL = "https://magma.esdm.go.id/v1/gunung-api/laporan-harian";
+const MAGMA_BASE_URL = "https://magma.esdm.go.id/v1/gunung-api/laporan-harian";
+
+// Maks berapa hari ke belakang untuk fallback (Agung/Rinjani mungkin 3-7 hari lama)
+const MAX_FALLBACK_DAYS = 7;
 
 interface VolcanicReport {
   report_date: string;
@@ -25,15 +28,28 @@ interface VolcanicReport {
   detail_url: string | null;
   author: string | null;
   // ── Klimatologi terstruktur ──
-  weather: string | null;          // "Cerah hingga mendung"
-  wind_direction: string | null;   // "Timur"
-  wind_speed_text: string | null;  // "Tenang" / "Lemah" / "Sedang"
-  temp_min: number | null;         // 19.5
-  temp_max: number | null;         // 22.4
-  humidity_min: number | null;     // 73.0
-  humidity_max: number | null;     // 79.1
-  pressure_min: number | null;     // 871.8
-  pressure_max: number | null;     // 914.44
+  weather: string | null;
+  wind_direction: string | null;
+  wind_speed_text: string | null;
+  temp_min: number | null;
+  temp_max: number | null;
+  humidity_min: number | null;
+  humidity_max: number | null;
+  pressure_min: number | null;
+  pressure_max: number | null;
+}
+
+// ──────────────────────────────────────────────
+// Date helpers
+// ──────────────────────────────────────────────
+function toIsoDate(d: Date): string {
+  return d.toISOString().substring(0, 10);
+}
+
+function subtractDays(d: Date, n: number): Date {
+  const result = new Date(d);
+  result.setDate(result.getDate() - n);
+  return result;
 }
 
 // ──────────────────────────────────────────────
@@ -83,18 +99,15 @@ function matchVolcano(name: string): typeof VOLCANO_TARGETS[0] | null {
 }
 
 // ──────────────────────────────────────────────
-// Parse range angka dari teks, e.g. "19.5-22.4" → [19.5, 22.4]
-// Juga handle "sekitar 19.5" → [19.5, 19.5]
+// Parse range angka dari teks
 // ──────────────────────────────────────────────
 function parseRange(text: string): [number, number] | null {
-  // Coba range dulu: "19.5-22.4" atau "19.5 - 22.4"
   const rangeMatch = text.match(/([\d]+(?:[.,][\d]+)?)\s*[-–]\s*([\d]+(?:[.,][\d]+)?)/);
   if (rangeMatch) {
     const a = parseFloat(rangeMatch[1].replace(",", "."));
     const b = parseFloat(rangeMatch[2].replace(",", "."));
     if (!isNaN(a) && !isNaN(b)) return [a, b];
   }
-  // Single value: "sekitar 19.5"
   const singleMatch = text.match(/([\d]+(?:[.,][\d]+)?)/);
   if (singleMatch) {
     const v = parseFloat(singleMatch[1].replace(",", "."));
@@ -104,11 +117,7 @@ function parseRange(text: string): [number, number] | null {
 }
 
 // ──────────────────────────────────────────────
-// Parse klimatologi dari teks summary MAGMA
-// Input contoh:
-//   "Cuaca cerah hingga mendung, angin tenang ke arah timur.
-//    Suhu udara sekitar 19.5-22.4°C. Kelembaban 73-79.1%.
-//    Tekanan udara 871.8-914.44 mmHg."
+// Parse klimatologi dari teks summary
 // ──────────────────────────────────────────────
 interface Climatology {
   weather: string | null;
@@ -123,37 +132,23 @@ interface Climatology {
 }
 
 function parseClimatology(summary: string): Climatology {
-  const lower = summary.toLowerCase();
   const result: Climatology = {
-    weather: null,
-    windDirection: null,
-    windSpeedText: null,
-    tempMin: null,
-    tempMax: null,
-    humidityMin: null,
-    humidityMax: null,
-    pressureMin: null,
-    pressureMax: null,
+    weather: null, windDirection: null, windSpeedText: null,
+    tempMin: null, tempMax: null, humidityMin: null, humidityMax: null,
+    pressureMin: null, pressureMax: null,
   };
 
-  // ── Cuaca (kondisi langit) ──
-  // Cari kalimat yang mengandung "cuaca" atau kondisi langit
+  // Cuaca
   const cuacaMatch = summary.match(/[Cc]uaca\s+([^,.\n]+)/);
   if (cuacaMatch) {
-    // Ambil sampai koma/titik, trim
     result.weather = cuacaMatch[1].trim();
-    // Kapitalisasi huruf pertama
     result.weather = result.weather.charAt(0).toUpperCase() + result.weather.slice(1);
   }
 
-  // ── Angin ──
-  // Cari pola: "angin [kecepatan] ke arah [arah]"
-  // atau "angin [arah]" atau "angin [kecepatan]"
+  // Angin
   const anginMatch = summary.match(/[Aa]ngin\s+([^.]+)/);
   if (anginMatch) {
     const anginText = anginMatch[1].toLowerCase();
-
-    // Speed kata kunci
     const speedWords = ["tenang", "lemah", "sedang", "kencang", "sangat kencang"];
     for (const sw of speedWords) {
       if (anginText.includes(sw)) {
@@ -161,14 +156,11 @@ function parseClimatology(summary: string): Climatology {
         break;
       }
     }
-
-    // Arah: cari setelah "ke arah" atau "menuju"
     const arahMatch = anginText.match(/(?:ke arah|menuju|dari arah)\s+([a-z\s]+?)(?:\s*[,.\d]|$)/);
     if (arahMatch) {
       const arah = arahMatch[1].trim();
       result.windDirection = arah.charAt(0).toUpperCase() + arah.slice(1);
     } else {
-      // Coba langsung setelah kata angin + speed
       const compassWords = [
         "utara", "selatan", "timur", "barat",
         "timur laut", "tenggara", "barat daya", "barat laut",
@@ -182,60 +174,61 @@ function parseClimatology(summary: string): Climatology {
     }
   }
 
-  // ── Suhu udara ──
-  // Format MAGMA bervariasi:
-  //   "Suhu udara sekitar 19.5-22.4°C"
-  //   "Suhu udara 20-28°C"
-  //   "Suhu 20-28 °C"
-  //   "suhu udara sekitar 19.5 - 22.4 derajat"
+  // Suhu
   const suhuMatch = summary.match(
     /[Ss]uhu(?:\s+udara)?\s+(?:sekitar\s+)?([\d.,\s\-–]+)\s*(?:°|&deg;|derajat)?\s*[Cc]/
   );
   if (suhuMatch) {
     const range = parseRange(suhuMatch[1]);
-    if (range) {
-      result.tempMin = range[0];
-      result.tempMax = range[1];
-    }
+    if (range) { result.tempMin = range[0]; result.tempMax = range[1]; }
   }
 
-  // ── Kelembaban ──
-  // Pola: "Kelembaban 73-79.1%" atau "kelembaban udara 80%"
+  // Kelembaban
   const lembaMatch = summary.match(/[Kk]elembaban\s+(?:udara\s+)?([\d.,\s\-–]+)\s*%/);
   if (lembaMatch) {
     const range = parseRange(lembaMatch[1]);
-    if (range) {
-      result.humidityMin = range[0];
-      result.humidityMax = range[1];
-    }
+    if (range) { result.humidityMin = range[0]; result.humidityMax = range[1]; }
   }
 
-  // ── Tekanan udara ──
-  // Pola: "Tekanan udara 871.8-914.44 mmHg"
+  // Tekanan
   const tekananMatch = summary.match(/[Tt]ekanan\s+udara\s+([\d.,\s\-–]+)\s*mm[Hh]g/);
   if (tekananMatch) {
     const range = parseRange(tekananMatch[1]);
-    if (range) {
-      result.pressureMin = range[0];
-      result.pressureMax = range[1];
-    }
+    if (range) { result.pressureMin = range[0]; result.pressureMax = range[1]; }
   }
 
   return result;
 }
 
 // ──────────────────────────────────────────────
-// Parse HTML halaman laporan-harian MAGMA
+// Fetch HTML dari MAGMA untuk tanggal tertentu
 // ──────────────────────────────────────────────
-function parseHtml(html: string): VolcanicReport[] {
+async function fetchMagmaHtml(date: string): Promise<string> {
+  const url = `${MAGMA_BASE_URL}/${date}`;
+  console.log(`[scrape-magma] Fetching: ${url}`);
+  const res = await fetch(url, {
+    headers: {
+      "User-Agent": "Sigumi-App/1.0 (educational research, volcanic monitoring)",
+      "Accept": "text/html,application/xhtml+xml",
+    },
+  });
+  if (!res.ok) throw new Error(`MAGMA fetch failed for ${date}: ${res.status} ${res.statusText}`);
+  return res.text();
+}
+
+// ──────────────────────────────────────────────
+// Parse HTML laporan-harian MAGMA
+// Returns: reports found in this HTML (any target volcano)
+// ──────────────────────────────────────────────
+function parseHtml(html: string, explicitDate?: string): VolcanicReport[] {
   const reports: VolcanicReport[] = [];
 
-  // Extract tanggal: "Laporan Harian - Sabtu, 16 Mei 2026"
+  // Extract tanggal dari header HTML
   const dateHeaderRegex = /Laporan Harian\s*-\s*([A-Z]+,\s+)?(\d{1,2}\s+\w+\s+\d{4})/i;
   const dateMatch = dateHeaderRegex.exec(html);
-  const todayDate = dateMatch ? parseIndonesianDate(dateMatch[2]) : new Date().toISOString().substring(0, 10);
+  const todayDate = explicitDate ?? (dateMatch ? parseIndonesianDate(dateMatch[2]) : new Date().toISOString().substring(0, 10));
 
-  // Split per block level
+  // Split per level card-header
   const levelBlocks = html.split('<div class="card-header">');
 
   for (let i = 1; i < levelBlocks.length; i++) {
@@ -250,20 +243,14 @@ function parseHtml(html: string): VolcanicReport[] {
     const rows = block.split(/<tr[^>]*>/i);
     for (let j = 1; j < rows.length; j++) {
       const row = rows[j];
-
       const tdMatches = [...row.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)];
-
       if (tdMatches.length < 5) continue;
 
       const rawName = tdMatches[1][1].replace(/<[^>]+>/g, "").trim();
       const target = matchVolcano(rawName);
-
       if (!target) continue;
 
-      // Ambil full teks kolom Visual (kolom ke-3) — gabungkan semua teks
       const rawSummary = tdMatches[2][1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-
-      // Parse klimatologi dari summary
       const clim = parseClimatology(rawSummary);
 
       reports.push({
@@ -278,7 +265,6 @@ function parseHtml(html: string): VolcanicReport[] {
         summary: rawSummary,
         detail_url: null,
         author: "PVMBG",
-        // Klimatologi terstruktur
         weather: clim.weather,
         wind_direction: clim.windDirection,
         wind_speed_text: clim.windSpeedText,
@@ -305,42 +291,71 @@ Deno.serve(async (_req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    console.log("[scrape-magma] Fetching MAGMA laporan-harian...");
-    const res = await fetch(MAGMA_URL, {
-      headers: {
-        "User-Agent": "Sigumi-App/1.0 (educational research, volcanic monitoring)",
-        "Accept": "text/html,application/xhtml+xml",
-      },
-    });
+    const today = new Date();
+    const allReports: VolcanicReport[] = [];
 
-    if (!res.ok) {
-      throw new Error(`MAGMA fetch failed: ${res.status} ${res.statusText}`);
+    // Track gunung mana yang sudah ditemukan
+    const foundKeys = new Set<string>();
+
+    // ─── Step 1: Fetch hari ini ───
+    const todayStr = toIsoDate(today);
+    try {
+      const html = await fetchMagmaHtml(todayStr);
+      console.log(`[scrape-magma] HTML ${todayStr} fetched, size: ${html.length} chars`);
+      const reports = parseHtml(html, todayStr);
+      for (const r of reports) {
+        allReports.push(r);
+        foundKeys.add(r.volcano_key);
+      }
+      console.log(`[scrape-magma] Found today (${todayStr}): ${reports.map(r => r.volcano_name).join(", ") || "none"}`);
+    } catch (e) {
+      console.warn(`[scrape-magma] Failed to fetch today ${todayStr}: ${e}`);
     }
 
-    const html = await res.text();
-    console.log(`[scrape-magma] HTML fetched, size: ${html.length} chars`);
+    // ─── Step 2: Fallback hari sebelumnya untuk gunung yang belum ditemukan ───
+    const missingTargets = VOLCANO_TARGETS.filter(t => !foundKeys.has(t.key));
 
-    const reports = parseHtml(html);
-    console.log(`[scrape-magma] Parsed ${reports.length} reports`);
+    if (missingTargets.length > 0) {
+      console.log(`[scrape-magma] Missing volcanoes: ${missingTargets.map(t => t.displayName).join(", ")}. Fetching fallback days...`);
 
-    // Log sample klimatologi untuk debug
-    if (reports.length > 0) {
-      const r = reports[0];
-      console.log(`[scrape-magma] Sample klimatologi ${r.volcano_name}:`, {
-        weather: r.weather,
-        wind_direction: r.wind_direction,
-        wind_speed_text: r.wind_speed_text,
-        temp: `${r.temp_min}–${r.temp_max}°C`,
-        humidity: `${r.humidity_min}–${r.humidity_max}%`,
-        pressure: `${r.pressure_min}–${r.pressure_max} mmHg`,
-      });
+      for (let dayOffset = 1; dayOffset <= MAX_FALLBACK_DAYS; dayOffset++) {
+        // Cek apakah semua target sudah ditemukan
+        const stillMissing = VOLCANO_TARGETS.filter(t => !foundKeys.has(t.key));
+        if (stillMissing.length === 0) break;
+
+        const fallbackDate = toIsoDate(subtractDays(today, dayOffset));
+        console.log(`[scrape-magma] Fallback day -${dayOffset}: ${fallbackDate}, still need: ${stillMissing.map(t => t.displayName).join(", ")}`);
+
+        try {
+          const html = await fetchMagmaHtml(fallbackDate);
+          const reports = parseHtml(html, fallbackDate);
+
+          for (const r of reports) {
+            // Hanya tambah jika gunung ini belum ditemukan dari hari yang lebih baru
+            if (!foundKeys.has(r.volcano_key)) {
+              allReports.push(r);
+              foundKeys.add(r.volcano_key);
+              console.log(`[scrape-magma] Found ${r.volcano_name} from fallback ${fallbackDate} (${r.level_name})`);
+            }
+          }
+        } catch (e) {
+          console.warn(`[scrape-magma] Failed to fetch fallback ${fallbackDate}: ${e}`);
+        }
+      }
     }
 
-    if (reports.length === 0) {
+    console.log(`[scrape-magma] Total parsed: ${allReports.length} reports`);
+
+    // Log summary
+    for (const r of allReports) {
+      console.log(`[scrape-magma] → ${r.volcano_name} (${r.level_name}) date=${r.report_date} weather=${r.weather} temp=${r.temp_min}–${r.temp_max}°C`);
+    }
+
+    if (allReports.length === 0) {
       return new Response(
         JSON.stringify({
           success: true,
-          message: "No matching reports found in MAGMA page",
+          message: "No matching reports found in MAGMA page (all days checked)",
           scraped_at: new Date().toISOString(),
           count: 0,
         }),
@@ -350,7 +365,7 @@ Deno.serve(async (_req: Request) => {
 
     const { error, count } = await supabase
       .from("volcanic_daily_reports")
-      .upsert(reports, {
+      .upsert(allReports, {
         onConflict: "volcano_key,report_date,period_start",
         ignoreDuplicates: false,
       })
@@ -364,16 +379,17 @@ Deno.serve(async (_req: Request) => {
       JSON.stringify({
         success: true,
         scraped_at: new Date().toISOString(),
-        count: reports.length,
-        volcanoes: reports.map((r) => `${r.volcano_name} (${r.level_name})`),
-        sample_climatology: reports[0] ? {
-          volcano: reports[0].volcano_name,
-          weather: reports[0].weather,
-          wind_direction: reports[0].wind_direction,
-          wind_speed: reports[0].wind_speed_text,
-          temp_range: `${reports[0].temp_min}–${reports[0].temp_max}°C`,
-          humidity_range: `${reports[0].humidity_min}–${reports[0].humidity_max}%`,
-          pressure_range: `${reports[0].pressure_min}–${reports[0].pressure_max} mmHg`,
+        count: allReports.length,
+        volcanoes: allReports.map((r) => `${r.volcano_name} @ ${r.report_date} (${r.level_name})`),
+        sample_climatology: allReports[0] ? {
+          volcano: allReports[0].volcano_name,
+          report_date: allReports[0].report_date,
+          weather: allReports[0].weather,
+          wind_direction: allReports[0].wind_direction,
+          wind_speed: allReports[0].wind_speed_text,
+          temp_range: `${allReports[0].temp_min}–${allReports[0].temp_max}°C`,
+          humidity_range: `${allReports[0].humidity_min}–${allReports[0].humidity_max}%`,
+          pressure_range: `${allReports[0].pressure_min}–${allReports[0].pressure_max} mmHg`,
         } : null,
       }),
       { headers: { "Content-Type": "application/json" } },

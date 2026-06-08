@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_map/flutter_map.dart';
+
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -38,6 +39,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
 
   List<ShelterModel> _shelters = [];
   bool _isLoading = true;
+  bool _isRefreshing = false; // Refresh indikator nearest shelter
   String? _error;
   String _lastLoadedRegion = '';
   LatLngBounds? _currentBounds;
@@ -131,6 +133,38 @@ class _EvacuationScreenState extends State<EvacuationScreen>
     }
   }
 
+  // ── NEAREST SHELTER ───────────────────────────────────────────
+  /// Shelter terdekat berdasarkan distanceFromUser yang sudah dihitung Supabase.
+  /// Fallback ke haversine lokal jika distanceFromUser null.
+  ShelterModel? get _nearestShelter {
+    if (_shelters.isEmpty) return null;
+    final loc = context.read<LocationService>();
+    return _shelters.reduce((a, b) {
+      final distA = a.distanceFromUser ??
+          _haversineLocal(
+            loc.userLat, loc.userLng,
+            a.latitude, a.longitude,
+          );
+      final distB = b.distanceFromUser ??
+          _haversineLocal(
+            loc.userLat, loc.userLng,
+            b.latitude, b.longitude,
+          );
+      return distA <= distB ? a : b;
+    });
+  }
+
+  /// Haversine lokal sebagai fallback saat distanceFromUser null
+  double _haversineLocal(double lat1, double lng1, double lat2, double lng2) {
+    const r = 6371.0;
+    final dLat = (lat2 - lat1) * pi / 180;
+    final dLng = (lng2 - lng1) * pi / 180;
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(lat1 * pi / 180) * cos(lat2 * pi / 180) *
+            sin(dLng / 2) * sin(dLng / 2);
+    return r * 2 * atan2(sqrt(a), sqrt(1 - a));
+  }
+
   // ── FILTERED + PAGED LIST ─────────────────────────────────────
   List<ShelterModel> get _filteredList {
     var items = _shelters;
@@ -164,6 +198,24 @@ class _EvacuationScreenState extends State<EvacuationScreen>
   }
 
   // ── MAP CONTROLS ──────────────────────────────────────────────
+  // ── REFRESH NEAREST SHELTER ─────────────────────────────────────
+  /// Update posisi GPS → re-fetch shelter → _nearestShelter otomatis terupdate.
+  Future<void> _refreshNearestShelter() async {
+    if (_isRefreshing) return;
+    HapticFeedback.mediumImpact();
+    setState(() => _isRefreshing = true);
+
+    try {
+      final locService = context.read<LocationService>();
+      await locService.refreshLocation();
+      if (mounted) {
+        await _loadShelters(forceReload: true);
+      }
+    } finally {
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
+
   void _recenterMap() {
     final loc = context.read<LocationService>();
     final pos = LatLng(loc.userLat, loc.userLng);
@@ -234,6 +286,27 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                     ],
                   ),
 
+                  // ── Polyline: User → Shelter Terdekat ──
+                  if (_nearestShelter != null && !_isLoading)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: [
+                            userPos,
+                            LatLng(
+                              _nearestShelter!.latitude,
+                              _nearestShelter!.longitude,
+                            ),
+                          ],
+                          strokeWidth: 3.0,
+                          color: SigumiTheme.primaryBlue.withAlpha(178),
+                          pattern: StrokePattern.dashed(
+                            segments: const [14, 7],
+                          ),
+                        ),
+                      ],
+                    ),
+
                   // Marker Layer: User & Shelters
                   MarkerLayer(
                     markers: [
@@ -246,13 +319,20 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                       ),
                       
                       // Shelters Markers
-                      ..._filteredList.map((shelter) => Marker(
-                            point: LatLng(shelter.latitude, shelter.longitude),
-                            width: 100, // Diperlebar untuk memuat teks
-                            height: 60, // Dipertinggi untuk ikon dan teks
-                            alignment: Alignment.topCenter,
-                            child: _buildShelterMarker(shelter),
-                          )),
+                      ..._filteredList.map((shelter) {
+                            final isNearest =
+                                _nearestShelter?.id == shelter.id;
+                            return Marker(
+                              point: LatLng(shelter.latitude, shelter.longitude),
+                              width: 110,
+                              height: isNearest ? 80 : 60,
+                              alignment: Alignment.topCenter,
+                              child: _buildShelterMarker(
+                                shelter,
+                                isNearest: isNearest,
+                              ),
+                            );
+                          }),
                     ],
                   ),
                 ],
@@ -293,6 +373,42 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                           _recenterMap();
                         },
                       ),
+                      const SizedBox(height: 8),
+                      // Tombol Refresh Indikator Nearest Shelter
+                      _isRefreshing
+                          ? Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withAlpha(15),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: const Padding(
+                                padding: EdgeInsets.all(10),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF16A34A),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : ShadcnMapButton(
+                              icon: Icons.refresh_rounded,
+                              tooltip: 'Perbarui Titik Terdekat',
+                              onTap: _refreshNearestShelter,
+                            ),
                     ],
                   ),
                 ),
@@ -429,6 +545,25 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                                 ),
                               ),
                             ),
+
+                            // ── NEAREST SHELTER BANNER ──
+                            if (!_isLoading && _nearestShelter != null)
+                              SliverToBoxAdapter(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                                  child: _NearestShelterBanner(
+                                    shelter: _nearestShelter!,
+                                    onTap: () => _focusOnShelter(_nearestShelter!),
+                                  )
+                                      .animate()
+                                      .fadeIn(duration: 400.ms)
+                                      .slideY(
+                                        begin: 0.08,
+                                        end: 0,
+                                        curve: Curves.easeOutCubic,
+                                      ),
+                                ),
+                              ),
 
                             // STATE: LOADING
                             if (_isLoading) ...[
@@ -575,40 +710,101 @@ class _EvacuationScreenState extends State<EvacuationScreen>
     );
   }
 
-  Widget _buildShelterMarker(ShelterModel shelter) {
+  Widget _buildShelterMarker(ShelterModel shelter, {bool isNearest = false}) {
     final style = _ShelterStyle.of(shelter.type);
-    
+    final markerColor = isNearest ? const Color(0xFF16A34A) : style.color;
+    final markerSize = isNearest ? 22.0 : 18.0;
+    final borderWidth = isNearest ? 2.5 : 2.0;
+
     return GestureDetector(
       onTap: () => _focusOnShelter(shelter),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Ikon Floating
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: style.color,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(40),
-                  blurRadius: 6,
-                  offset: const Offset(0, 3),
+          // Glow ring untuk nearest shelter
+          if (isNearest)
+            SizedBox(
+              width: 52,
+              height: 52,
+              child: ClipRect(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Animated glow ring
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFF16A34A).withAlpha(40),
+                      ),
+                    )
+                        .animate(onPlay: (c) => c.repeat())
+                        .scale(
+                          begin: const Offset(0.7, 0.7),
+                          end: const Offset(1.1, 1.1),
+                          duration: 1800.ms,
+                          curve: Curves.easeOut,
+                        )
+                        .fadeOut(begin: 0.9, duration: 1800.ms),
+                    // Ikon
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: markerColor,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: borderWidth),
+                        boxShadow: [
+                          BoxShadow(
+                            color: markerColor.withAlpha(120),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.emergency_rounded,
+                        color: Colors.white,
+                        size: markerSize,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Icon(style.icon, color: Colors.white, size: 18),
-          ).animate().slideY(begin: -0.2, duration: 400.ms).fadeIn(),
-          
-          // Tooltip/Label yang disetujui User
+              ),
+            )
+          else
+            // Marker biasa
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: markerColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: borderWidth),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(40),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Icon(style.icon, color: Colors.white, size: markerSize),
+            ).animate().slideY(begin: -0.2, duration: 400.ms).fadeIn(),
+
+          // Label
           const SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isNearest ? const Color(0xFF16A34A) : Colors.white,
               borderRadius: BorderRadius.circular(6),
-              border: Border.all(color: Colors.black.withAlpha(10), width: 0.5),
+              border: Border.all(
+                color: isNearest
+                    ? Colors.transparent
+                    : Colors.black.withAlpha(10),
+                width: 0.5,
+              ),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withAlpha(15),
@@ -618,11 +814,11 @@ class _EvacuationScreenState extends State<EvacuationScreen>
               ],
             ),
             child: Text(
-              shelter.name,
+              isNearest ? '⚡ ${shelter.name}' : shelter.name,
               style: AppFonts.plusJakartaSans(
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1E1E2C),
+                color: isNearest ? Colors.white : const Color(0xFF1E1E2C),
                 letterSpacing: 0.2,
               ),
               maxLines: 1,
@@ -1628,6 +1824,159 @@ class _ErrorState extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// NEAREST SHELTER BANNER
+// ══════════════════════════════════════════════════════════════════
+
+class _NearestShelterBanner extends StatelessWidget {
+  final ShelterModel shelter;
+  final VoidCallback onTap;
+  const _NearestShelterBanner({required this.shelter, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    const green = Color(0xFF16A34A);
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF166534), Color(0xFF15803D)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: green.withAlpha(60),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Ikon pulse
+            SizedBox(
+              width: 46,
+              height: 46,
+              child: ClipRect(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withAlpha(20),
+                      ),
+                    )
+                        .animate(onPlay: (c) => c.repeat())
+                        .scale(
+                          begin: const Offset(0.8, 0.8),
+                          end: const Offset(1.1, 1.1),
+                          duration: 1400.ms,
+                          curve: Curves.easeOut,
+                        )
+                        .fadeOut(begin: 0.7, duration: 1400.ms),
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withAlpha(30),
+                      ),
+                      child: const Icon(
+                        Icons.emergency_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 12),
+
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(30),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'TERDEKAT',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white.withAlpha(220),
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        shelter.distanceLabel,
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withAlpha(200),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    shelter.name,
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+
+            // Arrow button
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(25),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.my_location_rounded,
+                color: Colors.white,
+                size: 16,
               ),
             ),
           ],

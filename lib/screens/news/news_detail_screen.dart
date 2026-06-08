@@ -272,8 +272,8 @@ class NewsDetailScreen extends StatelessWidget {
                             ],
                           ),
                           onPressed: () {
-                            Share.share(
-                              '${newsItem.title}\n\nBaca selengkapnya di aplikasi SIGUMI:\nhttps://sigumi.app/news/${newsItem.id}',
+                            SharePlus.instance.share(
+                              ShareParams(text: '${newsItem.title}\n\nBaca selengkapnya di aplikasi SIGUMI:\nhttps://sigumi.app/news/${newsItem.id}'),
                             );
                           },
                         ),

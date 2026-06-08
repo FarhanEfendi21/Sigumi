@@ -186,9 +186,9 @@ class VolcanicDailyReport {
     return _climateKeywords.any((kw) => lower.contains(kw));
   }
 
-  _SummaryParts get _parsedParts {
+  SummaryParts get _parsedParts {
     if (summary == null || summary!.isEmpty) {
-      return const _SummaryParts(visual: [], climate: []);
+      return const SummaryParts(visual: [], climate: []);
     }
 
     final sentences = summary!
@@ -208,7 +208,7 @@ class VolcanicDailyReport {
       }
     }
 
-    return _SummaryParts(visual: visual, climate: climate);
+    return SummaryParts(visual: visual, climate: climate);
   }
 
   /// Teks pengamatan visual (kondisi gunung, asap kawah, guguran, dsb)
@@ -226,15 +226,15 @@ class VolcanicDailyReport {
   }
 
   /// Warna level untuk UI (sesuai standar PVMBG)
-  static Map<int, _LevelStyle> get levelStyles => const {
-        1: _LevelStyle(colorHex: 0xFF4CAF50, label: 'Normal'),
-        2: _LevelStyle(colorHex: 0xFFFFEB3B, label: 'Waspada'),
-        3: _LevelStyle(colorHex: 0xFFFF9800, label: 'Siaga'),
-        4: _LevelStyle(colorHex: 0xFFF44336, label: 'Awas'),
+  static Map<int, LevelStyle> get levelStyles => const {
+        1: LevelStyle(colorHex: 0xFF4CAF50, label: 'Normal'),
+        2: LevelStyle(colorHex: 0xFFFFEB3B, label: 'Waspada'),
+        3: LevelStyle(colorHex: 0xFFFF9800, label: 'Siaga'),
+        4: LevelStyle(colorHex: 0xFFF44336, label: 'Awas'),
       };
 
-  _LevelStyle get style =>
-      levelStyles[levelCode] ?? const _LevelStyle(colorHex: 0xFF9E9E9E, label: 'N/A');
+  LevelStyle get style =>
+      levelStyles[levelCode] ?? const LevelStyle(colorHex: 0xFF9E9E9E, label: 'N/A');
 
   /// Format angka: hilangkan desimal jika bulat, max 1 desimal
   static String _fmt(double? v) {
@@ -244,15 +244,15 @@ class VolcanicDailyReport {
   }
 }
 
-class _SummaryParts {
+class SummaryParts {
   final List<String> visual;
   final List<String> climate;
-  const _SummaryParts({required this.visual, required this.climate});
+  const SummaryParts({required this.visual, required this.climate});
 }
 
 /// Style data untuk badge level aktivitas
-class _LevelStyle {
+class LevelStyle {
   final int colorHex;
   final String label;
-  const _LevelStyle({required this.colorHex, required this.label});
+  const LevelStyle({required this.colorHex, required this.label});
 }

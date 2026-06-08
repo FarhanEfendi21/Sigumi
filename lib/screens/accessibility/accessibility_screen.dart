@@ -42,7 +42,7 @@ class AccessibilityScreen extends StatelessWidget {
             centerTitle: true,
             iconTheme: IconThemeData(color: primaryText),
             title: Text(
-              'Aksesibilitas',
+              'Aksesibilitas Inklusif',
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,

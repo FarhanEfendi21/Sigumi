@@ -15,7 +15,12 @@ import '../../repositories/report_repository.dart';
 import '../../utils/logger.dart';
 
 class ReportScreen extends StatefulWidget {
-  const ReportScreen({super.key});
+  final bool showBackButton;
+
+  const ReportScreen({
+    super.key,
+    this.showBackButton = false,
+  });
 
   @override
   State<ReportScreen> createState() => _ReportScreenState();
@@ -379,6 +384,7 @@ class _ReportScreenState extends State<ReportScreen> {
     return Scaffold(
       backgroundColor: context.bgSecondary,
       appBar: AppBar(
+        automaticallyImplyLeading: widget.showBackButton,
         title: Text(
           'Lapor Kejadian',
           style: AppFonts.plusJakartaSans(

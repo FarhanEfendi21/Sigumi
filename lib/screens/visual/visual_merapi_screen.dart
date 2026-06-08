@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:latlong2/latlong.dart' hide Path;
 import '../../models/eruption_history.dart';
-import '../../models/volcanic_daily_report.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/volcanic_report_section.dart';
@@ -712,70 +711,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
 
 
 
-  Widget _buildInfoGridCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 16),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF6B6B78),
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const Spacer(),
-          Text(
-            value,
-            style: AppFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: const Color(0xFF1E1E2C),
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
 
   // ── Seksi Informasi Klimatologi dari MAGMA ──────────────────────
   Widget _buildClimatologySection(VolcanoProvider provider, VolcanoModel volcano) {
@@ -811,15 +746,15 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     final hasReport = report != null && report.hasClimatologyData;
 
     final weather = hasReport
-        ? (report!.weather ?? '-')
+        ? (report.weather ?? '-')
         : 'Data belum tersedia';
     final windVal = hasReport
-        ? report!.windLabel
+        ? report.windLabel
         : (volcano.windDirection != null
             ? '${volcano.windDirection}'
             : '-');
-    final humidityVal = hasReport ? report!.humidityLabel : '-';
-    final pressureVal = hasReport ? report!.pressureLabel : '-';
+    final humidityVal = hasReport ? report.humidityLabel : '-';
+    final pressureVal = hasReport ? report.pressureLabel : '-';
     final elevationVal = '${volcano.elevation.toInt()} mdpl';
 
     return Column(
@@ -882,7 +817,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                   size: 12, color: Colors.grey.shade500),
               const SizedBox(width: 4),
               Text(
-                'Data per ${_formatReportDate(report!.reportDate)}',
+                'Data per ${_formatReportDate(report.reportDate)}',
                 style: AppFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
@@ -1090,20 +1025,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
         .slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────

@@ -111,7 +111,7 @@ class VolcanoRepository {
       }
 
       return response
-          .map((json) => VolcanicDailyReport.fromJson(json as Map<String, dynamic>))
+          .map((json) => VolcanicDailyReport.fromJson(json))
           .toList();
     } catch (e) {
       // debugPrint('[VolcanoRepository] getDailyReports: $e');
