@@ -10,8 +10,9 @@ import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
 import '../../services/voice_service.dart';
 import '../../services/location_service.dart';
-import '../../services/nlp_knowledge_base.dart';
+import '../../services/rule_based_fallback.dart';
 import '../../providers/volcano_provider.dart';
+import '../../providers/assistant_provider.dart';
 
 class ChatbotScreen extends StatefulWidget {
   const ChatbotScreen({super.key});
@@ -371,6 +372,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           user: user,
           userLat: locationService.userLat,
           userLng: locationService.userLng,
+          conversationHistory: _messages,
         );
         setState(() {
           _messages.add(response);
@@ -389,14 +391,17 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           await _voiceService.speak(
             displayContent,
             language: currentAppLanguage,
-            onCompletion: () {
-              if (mounted) {
-                setState(() {
-                  _isBotSpeaking = false;
-                });
-              }
-            },
           );
+          if (mounted) {
+            setState(() {
+              _isBotSpeaking = false;
+            });
+            // Resume wake word setelah TTS selesai
+            context.read<GlobalAssistantProvider>().resumeWakeWord();
+          }
+        } else if (mounted) {
+          // Text input (bukan voice) → juga resume wake word
+          context.read<GlobalAssistantProvider>().resumeWakeWord();
         }
       }
     });
@@ -408,6 +413,10 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       // Berhenti mendengarkan
       await _voiceService.stopListening();
       _stopListeningUI();
+      // Resume wake word karena chatbot STT selesai
+      if (mounted) {
+        context.read<GlobalAssistantProvider>().resumeWakeWord();
+      }
     } else {
       // Mulai Voice Assistant Loop
       await _startVoiceAssistantLoop();
@@ -422,6 +431,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     // Cek & minta permission dulu (hanya pertama kali)
     final hasPermission = await _initSpeechWithPermission();
     if (!hasPermission) return;
+
+    // Pause wake word agar mic dilepas dari tflite_audio
+    await context.read<GlobalAssistantProvider>().pauseWakeWord();
 
     // Stop ongoing TTS when user starts speaking
     await _voiceService.stopSpeaking();
@@ -532,39 +544,50 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     }
   }
 
+  /// Cloud LLM responses → show content directly. No intent-based lookups.
   String _getDisplayContent(ChatMessage message, String currentLang) {
-    if (message.intentId != null) {
-      final responses = NlpKnowledgeBase.responses[message.intentId];
-      if (responses != null) {
-        // Khusus untuk intent evakuasi dinamis yang dikalkulasi AiService, kita biarkan text aslinya.
-        // Namun, respons dinamis ini dirender sekali. Untuk reactivity penuh pada respons dinamis, 
-        // lebih baik logic format berada di tingkat widget state jika memungkinkan.
-        // Di sini kita proteksi agar tidak tertimpa teks statis:
-        if (message.intentId == 'evakuasi' && message.content.contains('km')) {
-          return message.content; 
-        }
-
-        String baseContent = message.content;
-        if (responses.containsKey(currentLang)) {
-          baseContent = responses[currentLang]!;
-        } else if (responses.containsKey('id')) {
-          baseContent = responses['id']!;
-        }
-        
-        if (message.messageType == MessageType.system && message.intentId == 'salam') {
-          return '$baseContent\n\nℹ️ Chatbot merespons menggunakan bahasa aplikasi yang Anda pilih di menu Pengaturan.';
-        }
-        return baseContent;
-      }
-    }
     return message.content;
+  }
+
+  /// Helper to render basic markdown bold (**text**)
+  Widget _buildRichText(String text, TextStyle baseStyle, {Color? boldColor, TextAlign textAlign = TextAlign.start}) {
+    final parts = text.split('**');
+    if (parts.length <= 1) {
+      return Text(
+        text,
+        style: baseStyle,
+        textAlign: textAlign,
+      );
+    }
+    final List<TextSpan> spans = [];
+    for (int i = 0; i < parts.length; i++) {
+      final isBold = i % 2 == 1;
+      spans.add(
+        TextSpan(
+          text: parts[i],
+          style: isBold
+              ? baseStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: boldColor ?? baseStyle.color,
+                )
+              : baseStyle,
+        ),
+      );
+    }
+    return RichText(
+      textAlign: textAlign,
+      text: TextSpan(
+        children: spans,
+        style: baseStyle,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final currentAppLanguage = context.watch<VolcanoProvider>().language;
-    final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
-                         NlpKnowledgeBase.quickActionLabels['id']!;
+    final quickActions = RuleBasedFallback.quickActionLabels[currentAppLanguage] ?? 
+                         RuleBasedFallback.quickActionLabels['id']!;
 
     return Scaffold(
       backgroundColor: context.bgSecondary,
@@ -1105,9 +1128,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 ),
                 const SizedBox(width: 10),
                 Flexible(
-                  child: Text(
+                  child: _buildRichText(
                     displayContent,
-                    style: AppFonts.plusJakartaSans(
+                    AppFonts.plusJakartaSans(
                       fontSize: 12,
                       color: context.textTertiary,
                       height: 1.4,
@@ -1216,14 +1239,15 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                         ],
                       ),
                     ),
-                  Text(
+                  _buildRichText(
                     displayContent,
-                    style: AppFonts.plusJakartaSans(
+                    AppFonts.plusJakartaSans(
                       color: isUser ? context.bgPrimary : context.textPrimary,
                       fontSize: 14,
                       height: 1.5,
                       fontWeight: FontWeight.w500,
                     ),
+                    boldColor: isUser ? context.bgPrimary : context.textPrimary,
                   ),
                   if (!isUser) ...[
                     const SizedBox(height: 8),
@@ -1285,7 +1309,30 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                 ),
                               ),
                            ),
-                        ]
+                        ],
+                        // Badge sumber respons (Cloud / Offline)
+                        if (message.responseSource != null) ...[
+                           const SizedBox(width: 8),
+                           Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: message.responseSource == ResponseSource.cloud
+                                    ? const Color(0xFF4285F4).withValues(alpha: 0.1)
+                                    : context.successColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                message.sourceLabel,
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: message.responseSource == ResponseSource.cloud
+                                      ? const Color(0xFF4285F4)
+                                      : context.successColor,
+                                ),
+                              ),
+                           ),
+                        ],
                       ],
                     ),
                   ],
