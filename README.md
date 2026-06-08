@@ -1,4 +1,4 @@
 # SIGUMI
 
-SIGUMI - Sistem Informasi Gunung Berapi Mitigasi
+SIGUMI - Sistem Informasi Gunung Berapi Mitigasi Inklusif
 
