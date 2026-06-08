@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -7,8 +8,9 @@ import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
 import '../../services/voice_service.dart';
 import '../../services/location_service.dart';
-import '../../services/nlp_knowledge_base.dart';
+import '../../services/rule_based_fallback.dart';
 import '../../providers/volcano_provider.dart';
+import '../../providers/assistant_provider.dart';
 
 class ChatbotScreen extends StatefulWidget {
   final bool showBackButton;
@@ -34,6 +36,10 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   bool _isListening = false;
   bool _permissionChecked = false;
 
+  // State untuk Voice Assistant Loop
+  bool _isBotSpeaking = false;
+  StreamSubscription<TtsState>? _ttsSubscription;
+
   // Animasi pulse untuk mic aktif
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
@@ -45,6 +51,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   void initState() {
     super.initState();
     _initTts();
+    _subscribeTtsState();
 
     // Setup animasi pulse mic
     _pulseController = AnimationController(
@@ -70,6 +77,16 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   /// Init TTS saja dulu (tidak butuh permission khusus)
   Future<void> _initTts() async {
     await _voiceService.initTts();
+  }
+
+  /// Subscribe ke stream TTS state agar UI reaktif terhadap status bicara bot
+  void _subscribeTtsState() {
+    _ttsSubscription = _voiceService.ttsStateStream.listen((state) {
+      if (!mounted) return;
+      setState(() {
+        _isBotSpeaking = state == TtsState.speaking;
+      });
+    });
   }
 
   /// Init speech recognition dengan handling permission yang proper
@@ -311,8 +328,10 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
   @override
   void dispose() {
+    _ttsSubscription?.cancel();
     _voiceService.stopListening();
     _voiceService.stopSpeaking();
+    _voiceService.dispose();
     _messageController.dispose();
     _scrollController.dispose();
     _pulseController.dispose();
@@ -333,6 +352,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
         timestamp: DateTime.now(),
         language: currentAppLanguage,
         isVoice: isVoice,
+        isVoiceInput: isVoice,
       ));
       _isTyping = true;
     });
@@ -361,12 +381,37 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           user: user,
           userLat: locationService.userLat,
           userLng: locationService.userLng,
+          conversationHistory: _messages,
         );
         setState(() {
           _messages.add(response);
           _isTyping = false;
         });
         _scrollToBottom();
+
+        // ══════════════════════════════════════════════════
+        // VOICE ASSISTANT LOOP — Auto-TTS untuk voice input
+        // ══════════════════════════════════════════════════
+        // Jika pesan user sebelumnya berasal dari suara (isVoiceInput == true),
+        // otomatis bacakan respons bot via TTS.
+        // Jika user mengetik (isVoiceInput == false), TTS TIDAK otomatis.
+        if (isVoice && mounted) {
+          final displayContent = _getDisplayContent(response, currentAppLanguage);
+          await _voiceService.speak(
+            displayContent,
+            language: currentAppLanguage,
+          );
+          if (mounted) {
+            setState(() {
+              _isBotSpeaking = false;
+            });
+            // Resume wake word setelah TTS selesai
+            context.read<GlobalAssistantProvider>().resumeWakeWord();
+          }
+        } else if (mounted) {
+          // Text input (bukan voice) → juga resume wake word
+          context.read<GlobalAssistantProvider>().resumeWakeWord();
+        }
       }
     });
   }
@@ -377,34 +422,58 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       // Berhenti mendengarkan
       await _voiceService.stopListening();
       _stopListeningUI();
+      // Resume wake word karena chatbot STT selesai
+      if (mounted) {
+        context.read<GlobalAssistantProvider>().resumeWakeWord();
+      }
     } else {
-      // Cek & minta permission dulu (hanya pertama kali)
-      final hasPermission = await _initSpeechWithPermission();
-      if (!hasPermission) return;
+      // Mulai Voice Assistant Loop
+      await _startVoiceAssistantLoop();
+    }
+  }
 
-      // Stop ongoing TTS when user starts speaking
-      await _voiceService.stopSpeaking();
+  /// Voice Assistant Loop — Alur lengkap:
+  /// 1. Cek permission → 2. Stop TTS jika sedang bicara →
+  /// 3. Mulai STT → 4. Saat final result → kirim pesan (isVoice: true) →
+  /// 5. _sendMessage() akan auto-trigger TTS untuk respons bot.
+  Future<void> _startVoiceAssistantLoop() async {
+    // Cek & minta permission dulu (hanya pertama kali)
+    final hasPermission = await _initSpeechWithPermission();
+    if (!hasPermission) return;
 
-      // Default id_ID, tapi the language detection doesn't have a direct impact on speech-to-text since we can't switch it dynamically while listening easily.
-      // So default STT to id_ID.
-      String localeId = 'id_ID';
+    // Pause wake word agar mic dilepas dari tflite_audio
+    await context.read<GlobalAssistantProvider>().pauseWakeWord();
 
-      _startListeningUI();
+    // Stop ongoing TTS when user starts speaking
+    await _voiceService.stopSpeaking();
 
-      await _voiceService.startListening(
-        (recognizedText) {
+    // Gunakan locale sesuai bahasa aplikasi
+    final currentLang = context.read<VolcanoProvider>().language;
+    String localeId = 'id_ID';
+    if (currentLang == 'en') localeId = 'en_US';
+    // Regional languages (jv, ba, sas) tetap gunakan id_ID karena 
+    // STT engine umumnya tidak support bahasa daerah
+
+    _startListeningUI();
+
+    await _voiceService.startListening(
+      // Callback partial results — update text field secara real-time
+      (recognizedText) {
+        if (mounted) {
           setState(() {
             _messageController.text = recognizedText;
           });
-          // Send immediately if the user stops speaking
-          if (!_voiceService.isListening && recognizedText.isNotEmpty) {
-            _stopListeningUI();
-            _sendMessage(isVoice: true);
-          }
-        },
-        localeId: localeId,
-      );
-    }
+        }
+      },
+      localeId: localeId,
+      // Callback final result — STT selesai, kirim pesan
+      onFinalResult: (finalText) {
+        if (mounted && finalText.isNotEmpty) {
+          _stopListeningUI();
+          _sendMessage(isVoice: true);
+        }
+      },
+    );
   }
 
   /// Aktifkan animasi dan state saat mulai mendengarkan
@@ -484,39 +553,50 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     }
   }
 
+  /// Cloud LLM responses → show content directly. No intent-based lookups.
   String _getDisplayContent(ChatMessage message, String currentLang) {
-    if (message.intentId != null) {
-      final responses = NlpKnowledgeBase.responses[message.intentId];
-      if (responses != null) {
-        // Khusus untuk intent evakuasi dinamis yang dikalkulasi AiService, kita biarkan text aslinya.
-        // Namun, respons dinamis ini dirender sekali. Untuk reactivity penuh pada respons dinamis, 
-        // lebih baik logic format berada di tingkat widget state jika memungkinkan.
-        // Di sini kita proteksi agar tidak tertimpa teks statis:
-        if (message.intentId == 'evakuasi' && message.content.contains('km')) {
-          return message.content; 
-        }
-
-        String baseContent = message.content;
-        if (responses.containsKey(currentLang)) {
-          baseContent = responses[currentLang]!;
-        } else if (responses.containsKey('id')) {
-          baseContent = responses['id']!;
-        }
-        
-        if (message.messageType == MessageType.system && message.intentId == 'salam') {
-          return '$baseContent\n\nℹ️ Chatbot merespons menggunakan bahasa aplikasi yang Anda pilih di menu Pengaturan.';
-        }
-        return baseContent;
-      }
-    }
     return message.content;
+  }
+
+  /// Helper to render basic markdown bold (**text**)
+  Widget _buildRichText(String text, TextStyle baseStyle, {Color? boldColor, TextAlign textAlign = TextAlign.start}) {
+    final parts = text.split('**');
+    if (parts.length <= 1) {
+      return Text(
+        text,
+        style: baseStyle,
+        textAlign: textAlign,
+      );
+    }
+    final List<TextSpan> spans = [];
+    for (int i = 0; i < parts.length; i++) {
+      final isBold = i % 2 == 1;
+      spans.add(
+        TextSpan(
+          text: parts[i],
+          style: isBold
+              ? baseStyle.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: boldColor ?? baseStyle.color,
+                )
+              : baseStyle,
+        ),
+      );
+    }
+    return RichText(
+      textAlign: textAlign,
+      text: TextSpan(
+        children: spans,
+        style: baseStyle,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final currentAppLanguage = context.watch<VolcanoProvider>().language;
-    final quickActions = NlpKnowledgeBase.quickActionLabels[currentAppLanguage] ?? 
-                         NlpKnowledgeBase.quickActionLabels['id']!;
+    final quickActions = RuleBasedFallback.quickActionLabels[currentAppLanguage] ?? 
+                         RuleBasedFallback.quickActionLabels['id']!;
 
     return Scaffold(
       backgroundColor: context.bgSecondary,
@@ -607,6 +687,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
           // Listening Overlay — Tampil saat mic aktif
           if (_isListening) _buildListeningOverlay(currentAppLanguage),
+
+          // Bot Speaking Overlay — Tampil saat TTS sedang membacakan respons
+          if (_isBotSpeaking) _buildBotSpeakingOverlay(currentAppLanguage),
 
           // Quick Actions (Horizontal Scroll)
           Container(
@@ -751,6 +834,140 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               child: Icon(
                 Icons.stop_rounded,
                 color: context.bgPrimary,
+                size: 20,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 200.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  /// Widget overlay saat bot sedang membacakan respons via TTS
+  Widget _buildBotSpeakingOverlay(String appLanguage) {
+    final speakingText = appLanguage == 'en' ? 'Si Gumi is speaking...' : 'Si Gumi sedang berbicara...';
+    final tapToStopText = appLanguage == 'en' ? 'Tap to stop' : 'Ketuk untuk berhenti';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            SigumiTheme.primaryBlue.withValues(alpha: 0.06),
+            Colors.purple.withValues(alpha: 0.04),
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        border: const Border(
+          top: BorderSide(color: Color(0xFFE5E7EB), width: 0.5),
+          bottom: BorderSide(color: Color(0xFFE5E7EB), width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Animated speaker icon
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.volume_up_rounded,
+              color: SigumiTheme.primaryBlue,
+              size: 20,
+            ),
+          )
+              .animate(onPlay: (c) => c.repeat(reverse: true))
+              .scale(
+                begin: const Offset(0.9, 0.9),
+                end: const Offset(1.1, 1.1),
+                duration: 600.ms,
+              ),
+
+          const SizedBox(width: 12),
+
+          // "Bot is Speaking" text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  speakingText,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: SigumiTheme.primaryBlue,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  tapToStopText,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: const Color(0xFF9CA3AF),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Wave bars animasi untuk TTS
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: List.generate(5, (i) {
+              return Container(
+                margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                width: 3,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: SigumiTheme.primaryBlue.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              )
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scaleY(
+                    begin: 0.4,
+                    end: 1.0,
+                    duration: Duration(milliseconds: 400 + i * 100),
+                    curve: Curves.easeInOut,
+                  );
+            }),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Tombol stop TTS
+          GestureDetector(
+            onTap: () async {
+              await _voiceService.stopSpeaking();
+              if (mounted) {
+                setState(() {
+                  _isBotSpeaking = false;
+                });
+              }
+            },
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: SigumiTheme.primaryBlue,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: SigumiTheme.primaryBlue.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.stop_rounded,
+                color: Colors.white,
                 size: 20,
               ),
             ),
@@ -913,9 +1130,9 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 ),
                 const SizedBox(width: 10),
                 Flexible(
-                  child: Text(
+                  child: _buildRichText(
                     displayContent,
-                    style: AppFonts.plusJakartaSans(
+                    AppFonts.plusJakartaSans(
                       fontSize: 12,
                       color: context.textTertiary,
                       height: 1.4,
@@ -1013,14 +1230,15 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                         ],
                       ),
                     ),
-                  Text(
+                  _buildRichText(
                     displayContent,
-                    style: AppFonts.plusJakartaSans(
+                    AppFonts.plusJakartaSans(
                       color: isUser ? context.bgPrimary : context.textPrimary,
                       fontSize: 14,
                       height: 1.5,
                       fontWeight: FontWeight.w500,
                     ),
+                    boldColor: isUser ? context.bgPrimary : context.textPrimary,
                   ),
                   if (!isUser) ...[
                     const SizedBox(height: 6),
@@ -1077,7 +1295,30 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                 ),
                               ),
                            ),
-                        ]
+                        ],
+                        // Badge sumber respons (Cloud / Offline)
+                        if (message.responseSource != null) ...[
+                           const SizedBox(width: 8),
+                           Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: message.responseSource == ResponseSource.cloud
+                                    ? const Color(0xFF4285F4).withValues(alpha: 0.1)
+                                    : context.successColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                message.sourceLabel,
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: message.responseSource == ResponseSource.cloud
+                                      ? const Color(0xFF4285F4)
+                                      : context.successColor,
+                                ),
+                              ),
+                           ),
+                        ],
                       ],
                     ),
                   ],
