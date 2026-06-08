@@ -22,8 +22,6 @@ class WakeWordServiceImpl implements WakeWordService {
   static const int _warmUpSkipCount = 3;
   int _inferenceCount = 0;
 
-  /// Label wake word sesuai labels.txt: "1 Halo Sigumi"
-  static const String _wakeWordLabel = 'Halo Sigumi';
 
   @override
   bool get isModelLoaded => _modelLoaded;
@@ -37,11 +35,12 @@ class WakeWordServiceImpl implements WakeWordService {
     debugPrint('[WakeWord] 📦 Loading TFLite audio model...');
     try {
       await TfliteAudio.loadModel(
-        model: 'assets/ml/voice-assistant.tflite',
+        model: 'assets/ml/soundclassifier_with_metadata.tflite',
         label: 'assets/ml/labels.txt',
         numThreads: 1,
         isAsset: true,
-        inputType: 'rawAudio',
+        inputType: 'decodedWav',
+        outputRawScores: true,
       );
       _modelLoaded = true;
       debugPrint('[WakeWord] ✅ Model loaded successfully!');
@@ -66,16 +65,14 @@ class WakeWordServiceImpl implements WakeWordService {
     _isListening = true;
     _inferenceCount = 0; // Reset warm-up counter
     debugPrint('[WakeWord] 🎤 Starting audio recognition stream...');
-    debugPrint('[WakeWord] 🎤 Config: sampleRate=16000, bufferSize=1288, warmUpSkip=$_warmUpSkipCount');
+    debugPrint('[WakeWord] 🎤 Config: sampleRate=44100, bufferSize=22016, warmUpSkip=$_warmUpSkipCount');
 
     try {
-      // Model input: [1, 1287] float32
-      // sampleRate=16000 (Edge Impulse default)
-      // bufferSize=1288 (must be even for Android AudioRecord, ≈ model input 1287)
+      // Teachable Machine audio model configuration
       final stream = TfliteAudio.startAudioRecognition(
         numOfInferences: 999,
-        sampleRate: 16000,
-        bufferSize: 1288,
+        sampleRate: 44100,
+        bufferSize: 22016,
       );
 
       _subscription = stream.listen(
@@ -92,10 +89,24 @@ class WakeWordServiceImpl implements WakeWordService {
             return;
           }
 
-          // Defensive matching: tflite_audio bisa mengembalikan
-          // "1 Halo Sigumi" atau "Halo Sigumi" tergantung versi.
-          if (label.contains(_wakeWordLabel) && !label.contains('Background')) {
-            debugPrint('[WakeWord] 🔥🔥🔥 WAKE WORD DETECTED! Raw: "$label"');
+          // Parse raw scores: "[score_noise, score_wakeword]"
+          double wakeWordScore = 0.0;
+          try {
+            final clean = label.replaceAll('[', '').replaceAll(']', '');
+            final parts = clean.split(',');
+            if (parts.length >= 2) {
+              // Index 0: 0 Background Noise
+              // Index 1: 1 Halo Sigumi
+              wakeWordScore = double.tryParse(parts[1].trim()) ?? 0.0;
+            }
+          } catch (e) {
+            debugPrint('[WakeWord] ❌ Error parsing scores: $e');
+          }
+
+          // Threshold 0.85 to avoid false triggers from noise
+          const double threshold = 0.85;
+          if (wakeWordScore >= threshold) {
+            debugPrint('[WakeWord] 🔥🔥🔥 WAKE WORD DETECTED! Score: $wakeWordScore >= $threshold');
             stopListening();
             onDetected();
           }

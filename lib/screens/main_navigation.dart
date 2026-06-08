@@ -53,6 +53,7 @@ class _MainNavigationState extends State<MainNavigation> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       assistantProvider.initAssistant(
         language: volcanoProvider.language,
+        isAudioGuidanceEnabled: volcanoProvider.audioGuidance,
       );
       debugPrint('[MainNav] 🎤 Global Voice Assistant initialized!');
     });
@@ -119,6 +120,15 @@ class _MainNavigationState extends State<MainNavigation> {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
         final isGuest = provider.isGuest;
+
+        // Ensure AssistantProvider context is updated when VolcanoProvider changes
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            context.read<GlobalAssistantProvider>().updateContext(
+              isAudioGuidanceEnabled: provider.audioGuidance,
+            );
+          }
+        });
 
         return PopScope(
           canPop: false,

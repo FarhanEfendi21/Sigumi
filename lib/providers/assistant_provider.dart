@@ -65,6 +65,9 @@ class GlobalAssistantProvider extends ChangeNotifier {
   String _language = 'id';
   String get language => _language;
 
+  bool _isAudioGuidanceEnabled = false;
+  bool get isAudioGuidanceEnabled => _isAudioGuidanceEnabled;
+
   // ── User & Location (di-inject untuk personalisasi) ──
   UserModel? _currentUser;
   double? _userLat;
@@ -78,6 +81,7 @@ class GlobalAssistantProvider extends ChangeNotifier {
   /// Panggil dari widget top-level (misal di MainNavigation atau Home).
   Future<void> initAssistant({
     required String language,
+    required bool isAudioGuidanceEnabled,
     UserModel? user,
     double? userLat,
     double? userLng,
@@ -88,6 +92,7 @@ class GlobalAssistantProvider extends ChangeNotifier {
     debugPrint('╚══════════════════════════════════════════╝');
 
     _language = language;
+    _isAudioGuidanceEnabled = isAudioGuidanceEnabled;
     _currentUser = user;
     _userLat = userLat;
     _userLng = userLng;
@@ -111,9 +116,15 @@ class GlobalAssistantProvider extends ChangeNotifier {
     _voiceService.onSttError = _onSttError;
 
     if (_voiceService.isWakeWordModelLoaded) {
-      _isEnabled = true;
-      debugPrint('[Assistant] 🟢 Wake word model READY — starting listener...');
-      await _startWakeWordListening();
+      if (_isAudioGuidanceEnabled) {
+        _isEnabled = true;
+        debugPrint('[Assistant] 🟢 Wake word model READY — starting listener...');
+        await _startWakeWordListening();
+      } else {
+        _isEnabled = false;
+        _state = AssistantState.disabled;
+        debugPrint('[Assistant] 🟡 Wake word model READY, but Audio Guidance is OFF.');
+      }
     } else {
       _state = AssistantState.disabled;
       debugPrint('[Assistant] 🔴 Wake word model NOT loaded — assistant DISABLED');
@@ -143,6 +154,7 @@ class GlobalAssistantProvider extends ChangeNotifier {
   /// Update konteks bahasa dan user tanpa re-init model.
   void updateContext({
     String? language,
+    bool? isAudioGuidanceEnabled,
     UserModel? user,
     double? userLat,
     double? userLng,
@@ -151,6 +163,19 @@ class GlobalAssistantProvider extends ChangeNotifier {
     if (user != null) _currentUser = user;
     if (userLat != null) _userLat = userLat;
     if (userLng != null) _userLng = userLng;
+
+    if (isAudioGuidanceEnabled != null && _isAudioGuidanceEnabled != isAudioGuidanceEnabled) {
+      _isAudioGuidanceEnabled = isAudioGuidanceEnabled;
+      if (_isAudioGuidanceEnabled) {
+        if (_voiceService.isWakeWordModelLoaded && !_isEnabled) {
+          enable();
+        }
+      } else {
+        if (_isEnabled) {
+          disable();
+        }
+      }
+    }
   }
 
   // ══════════════════════════════════════════════════════════════
