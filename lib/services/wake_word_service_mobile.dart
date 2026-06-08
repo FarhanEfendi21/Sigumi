@@ -39,7 +39,7 @@ class WakeWordServiceImpl implements WakeWordService {
         label: 'assets/ml/labels.txt',
         numThreads: 1,
         isAsset: true,
-        inputType: 'decodedWav',
+        inputType: 'rawAudio',
         outputRawScores: true,
       );
       _modelLoaded = true;

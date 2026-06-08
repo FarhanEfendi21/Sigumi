@@ -854,7 +854,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SigumiTheme.primaryBlue.withValues(alpha: 0.06),
+            context.accentPrimary.withValues(alpha: 0.06),
             Colors.purple.withValues(alpha: 0.04),
           ],
           begin: Alignment.centerLeft,
@@ -872,12 +872,12 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+              color: context.accentPrimary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.volume_up_rounded,
-              color: SigumiTheme.primaryBlue,
+              color: context.accentPrimary,
               size: 20,
             ),
           )
@@ -900,7 +900,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   style: AppFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: SigumiTheme.primaryBlue,
+                    color: context.accentPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -925,7 +925,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 width: 3,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: SigumiTheme.primaryBlue.withValues(alpha: 0.6),
+                  color: context.accentPrimary.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(2),
                 ),
               )
@@ -955,11 +955,11 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: SigumiTheme.primaryBlue,
+                color: context.accentPrimary,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: SigumiTheme.primaryBlue.withValues(alpha: 0.3),
+                    color: context.accentPrimary.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
