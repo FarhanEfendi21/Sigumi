@@ -20,23 +20,19 @@ class SigumiAssistantOverlay extends StatelessWidget {
 
         String statusText = '';
         IconData icon = Icons.mic;
-        List<Color> glowColors = [];
 
         switch (provider.state) {
           case AssistantState.listeningCommand:
             statusText = 'Mendengarkan...';
             icon = Icons.mic;
-            glowColors = [Colors.blue, Colors.purple, Colors.cyan];
             break;
           case AssistantState.processing:
             statusText = 'Memproses...';
             icon = Icons.autorenew;
-            glowColors = [Colors.purple, Colors.pink, Colors.blue];
             break;
           case AssistantState.speaking:
             statusText = 'Berbicara...';
             icon = Icons.graphic_eq;
-            glowColors = [Colors.cyan, Colors.blue, Colors.teal];
             break;
           default:
             break;
@@ -49,7 +45,7 @@ class SigumiAssistantOverlay extends StatelessWidget {
               BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
                 child: Container(
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withValues(alpha: 0.4),
                 ),
               ).animate().fadeIn(duration: 300.ms),
               
