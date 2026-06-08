@@ -42,3 +42,14 @@ android {
 flutter {
     source = "../.."
 }
+
+// ═══════════════════════════════════════════════════════════════
+// Resolve duplicate class conflict between:
+//   - tflite_flutter  → com.google.ai.edge.litert:litert-api (new)
+//   - tflite_audio    → org.tensorflow:tensorflow-lite-api (old)
+// Both ship identical org.tensorflow.lite.* classes.
+// Exclude the OLD artifact so litert-api wins.
+// ═══════════════════════════════════════════════════════════════
+configurations.all {
+    exclude(group = "org.tensorflow", module = "tensorflow-lite-api")
+}

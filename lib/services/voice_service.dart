@@ -48,12 +48,22 @@ class VoiceService {
   // INIT — Speech-to-Text
   // ══════════════════════════════════════════════════════════════
 
+  // Callback global STT error
+  Function(String)? onSttError;
+
   Future<SpeechPermissionStatus> init() async {
     try {
       _speechEnabled = await _speechToText.initialize(
         onError: (SpeechRecognitionError error) {
           debugPrint('[VoiceService] STT Error: ${error.errorMsg}');
+          if (onSttError != null) onSttError!(error.errorMsg);
         },
+        onStatus: (String status) {
+          debugPrint('[VoiceService] STT Status: $status');
+          if (status == 'done' || status == 'notListening') {
+             // Let caller know it stopped? Or caller can check isListening
+          }
+        }
       );
       _hasBeenInitialized = true;
       return _speechEnabled 
@@ -76,6 +86,7 @@ class VoiceService {
     await _flutterTts.setVolume(1.0);
     await _flutterTts.setSpeechRate(0.5);
     await _flutterTts.setPitch(1.0);
+    await _flutterTts.awaitSpeakCompletion(true);
 
     _flutterTts.setStartHandler(() {
       _ttsState = TtsState.speaking;
@@ -132,8 +143,6 @@ class VoiceService {
   Future<void> startListening(
     Function(String) onResult, {
     String localeId = 'id_ID',
-    Function(String)? onError,
-    Function(String)? onStatus,
     Function(String)? onFinalResult,
   }) async {
     if (_speechEnabled) {
@@ -155,7 +164,15 @@ class VoiceService {
   }
 
   Future<void> stopListening() async {
-    await _speechToText.stop();
+    if (_speechToText.isListening) {
+      await _speechToText.stop();
+    }
+  }
+
+  Future<void> cancelListening() async {
+    if (_speechToText.isListening) {
+      await _speechToText.cancel();
+    }
   }
 
   // ══════════════════════════════════════════════════════════════
@@ -165,24 +182,22 @@ class VoiceService {
   Future<void> speak(
     String text, {
     String language = 'id',
-    VoidCallback? onCompletion,
   }) async {
     String ttsLang = 'id-ID';
     if (language == 'en') ttsLang = 'en-US';
-    
-    if (onCompletion != null) {
-      _flutterTts.setCompletionHandler(() {
-        _ttsState = TtsState.idle;
-        _ttsStateController.add(_ttsState);
-        onCompletion();
-        debugPrint('[VoiceService] TTS Completed (with onCompletion callback)');
-      });
-    }
+
+    // Strip markdown asterisks to prevent TTS from reading them out
+    final cleanText = text.replaceAll('**', '').replaceAll('*', '');
 
     await _flutterTts.setLanguage(ttsLang);
     _ttsState = TtsState.speaking;
     _ttsStateController.add(_ttsState);
-    await _flutterTts.speak(text);
+    
+    // Will wait until speech is finished because of awaitSpeakCompletion(true)
+    await _flutterTts.speak(cleanText);
+    
+    _ttsState = TtsState.idle;
+    _ttsStateController.add(_ttsState);
   }
   
   Future<void> stopSpeaking() async {

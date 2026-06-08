@@ -11,8 +11,11 @@ import 'providers/auth_provider.dart';
 import 'providers/news_provider.dart';
 import 'providers/assistant_provider.dart';
 import 'services/location_service.dart';
+import 'services/cloud_llm_service.dart';
+import 'config/ollama_config.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'widgets/assistant_ui.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +30,16 @@ void main() async {
     await Supabase.initialize(
       url: SupabaseConfig.url,
       anonKey: SupabaseConfig.anonKey,
+    );
+  }
+
+  // Inisialisasi Cloud LLM (Ollama + Gemma 4) untuk chatbot.
+  // Jika server tidak dikonfigurasi, chatbot tetap berjalan dengan NLP lokal saja.
+  if (OllamaConfig.isConfigured) {
+    CloudLlmService.init(
+      baseUrl: OllamaConfig.baseUrl,
+      modelName: OllamaConfig.modelName,
+      apiKey: OllamaConfig.apiKey,
     );
   }
 
@@ -45,8 +58,40 @@ void main() async {
   );
 }
 
-class SigumiApp extends StatelessWidget {
+class SigumiApp extends StatefulWidget {
   const SigumiApp({super.key});
+
+  @override
+  State<SigumiApp> createState() => _SigumiAppState();
+}
+
+class _SigumiAppState extends State<SigumiApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final assistantProvider = Provider.of<GlobalAssistantProvider>(context, listen: false);
+    
+    if (state == AppLifecycleState.paused) {
+      debugPrint('[AppLifecycle] ⏸️ App in Background -> Disabling Voice Assistant');
+      assistantProvider.disable();
+    } else if (state == AppLifecycleState.resumed) {
+      debugPrint('[AppLifecycle] ▶️ App Resumed -> Enabling Voice Assistant');
+      // If language was set before, re-enable it. But we just call enable()
+      // Note: enable() only works if model is loaded
+      assistantProvider.enable();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,9 +102,7 @@ class SigumiApp extends StatelessWidget {
           title: 'SIGUMI',
           debugShowCheckedModeBanner: false,
           materialThemeBuilder: (context, theme) {
-            return provider.highContrast 
-                ? SigumiTheme.highContrastTheme 
-                : SigumiTheme.lightTheme;
+            return SigumiTheme.lightTheme;
           },
           initialRoute: AppRoutes.splash,
           routes: AppRoutes.routes,
@@ -68,7 +111,17 @@ class SigumiApp extends StatelessWidget {
               data: MediaQuery.of(
                 context,
               ).copyWith(textScaler: TextScaler.linear(provider.fontSize)),
-              child: child!,
+              child: Stack(
+                textDirection: TextDirection.ltr,
+                children: [
+                  if (child != null) child,
+                  // Tampilkan overlay voice assistant secara global
+                  const Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: SigumiAssistantOverlay(),
+                  ),
+                ],
+              ),
             );
           },
         );
