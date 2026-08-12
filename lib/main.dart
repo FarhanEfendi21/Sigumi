@@ -9,10 +9,14 @@ import 'services/location_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: 'https://dzjannijekjtmfakbals.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6amFubmlqZWtqdG1mYWtiYWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDY2MzIsImV4cCI6MjA4OTQyMjYzMn0.x3yEI_PNCT0aX7r8YQrGg5nID6URfsP3wqHuFnYO9Ww',
-  );
+  try {
+    await Supabase.initialize(
+      url: 'https://dzjannijekjtmfakbals.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR6amFubmlqZWtqdG1mYWtiYWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDY2MzIsImV4cCI6MjA4OTQyMjYzMn0.x3yEI_PNCT0aX7r8YQrGg5nID6URfsP3wqHuFnYO9Ww',
+    );
+  } catch (e) {
+    debugPrint('Supabase init error: $e');
+  }
 
   await LocationService.fetchUserLocation();
 
