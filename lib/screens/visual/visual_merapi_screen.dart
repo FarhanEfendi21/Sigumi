@@ -9,6 +9,7 @@ import 'package:latlong2/latlong.dart' hide Path;
 import '../../models/eruption_history.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
+import '../../widgets/volcano_summarizer_widget.dart';
 
 /// Data kamera CCTV Merapi
 class _CctvCamera {
@@ -159,9 +160,10 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
           }
         }
 
-        final hasCctv = volcano.id == 'merapi_001' || 
-                        volcano.id == VolcanoModel.kMerapiUuid || 
-                        volcano.name.toLowerCase().contains('merapi');
+        final hasCctv =
+            volcano.id == 'merapi_001' ||
+            volcano.id == VolcanoModel.kMerapiUuid ||
+            volcano.name.toLowerCase().contains('merapi');
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -187,162 +189,203 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 if (hasCctv) ...[
                   // ── Live WebView Section (Full Screen focus) ──
                   Container(
-                        height: MediaQuery.of(context).size.height * 0.7,
-                        width: double.infinity,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF14141B),
+                    height: MediaQuery.of(context).size.height * 0.7,
+                    width: double.infinity,
+                    decoration: const BoxDecoration(color: Color(0xFF14141B)),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      children: [
+                        // ── WebView ──
+                        Positioned.fill(
+                          child:
+                              !_isPlatformSupported
+                                  ? _buildUnsupportedView()
+                                  : _hasWebViewError
+                                  ? _buildErrorView()
+                                  : WebViewWidget(
+                                    controller: _webViewController!,
+                                  ),
                         ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Stack(
-                          children: [
-                            // ── WebView ──
-                            Positioned.fill(
-                              child:
-                                  !_isPlatformSupported
-                                      ? _buildUnsupportedView()
-                                      : _hasWebViewError
-                                          ? _buildErrorView()
-                                          : WebViewWidget(
-                                            controller: _webViewController!,
-                                          ),
-                            ),
 
-                            // ── Loading Overlay ──
-                            if (_isWebViewLoading)
-                              Positioned.fill(
-                                child: Container(
-                                  color: const Color(0xFF14141B),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(
-                                        width: 32,
-                                        height: 32,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 3,
-                                          color: Colors.redAccent,
-                                        ),
+                        // ── Loading Overlay ──
+                        if (_isWebViewLoading)
+                          Positioned.fill(
+                            child: Container(
+                              color: const Color(0xFF14141B),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Text(
+                                    'Menghubungkan ke Kamera...',
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
                                       ),
-                                      const SizedBox(height: 20),
-                                      Text(
-                                        'Menghubungkan ke Kamera...',
-                                        style: AppFonts.plusJakartaSans(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white.withValues(alpha: 0.8),
-                                        ),
-                                      ),
-                                    ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                        // ── Top Info Overlay ──
+                        Positioned(
+                          top: 20,
+                          left: 20,
+                          right: 20,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.5),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.1),
                                   ),
                                 ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.videocam_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      _merapiCameras[_selectedCameraIndex]
+                                          .location,
+                                      style: AppFonts.plusJakartaSans(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-
-                            // ── Top Info Overlay ──
-                            Positioned(
-                              top: 20,
-                              left: 20,
-                              right: 20,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Row(
                                 children: [
+                                  _buildGlassButton(
+                                    Icons.refresh_rounded,
+                                    _reloadCamera,
+                                  ),
+                                  const SizedBox(width: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.5),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                                      color: Colors.redAccent.withValues(
+                                        alpha: 0.9,
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.videocam_rounded, color: Colors.white, size: 16),
-                                        const SizedBox(width: 8),
+                                        Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.white,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            )
+                                            .animate(
+                                              onPlay:
+                                                  (c) =>
+                                                      c.repeat(reverse: true),
+                                            )
+                                            .fade(
+                                              duration: 800.ms,
+                                              begin: 0.3,
+                                              end: 1.0,
+                                            ),
+                                        const SizedBox(width: 6),
                                         Text(
-                                          _merapiCameras[_selectedCameraIndex].location,
+                                          'LIVE',
                                           style: AppFonts.plusJakartaSans(
                                             color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 0.5,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Row(
-                                    children: [
-                                      _buildGlassButton(
-                                        Icons.refresh_rounded,
-                                        _reloadCamera,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        decoration: BoxDecoration(
-                                          color: Colors.redAccent.withValues(alpha: 0.9),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              width: 6,
-                                              height: 6,
-                                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                                            ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(duration: 800.ms, begin: 0.3, end: 1.0),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              'LIVE',
-                                              style: AppFonts.plusJakartaSans(
-                                                color: Colors.white,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w800,
-                                                letterSpacing: 0.5,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
                                 ],
                               ),
-                            ),
+                            ],
+                          ),
+                        ),
 
-                            // ── Camera Selector (Floating Bottom) ──
-                            Positioned(
-                              bottom: 30,
-                              left: 0,
-                              right: 0,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: Row(
-                                  children: _merapiCameras.asMap().entries.map((entry) {
+                        // ── Camera Selector (Floating Bottom) ──
+                        Positioned(
+                          bottom: 30,
+                          left: 0,
+                          right: 0,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Row(
+                              children:
+                                  _merapiCameras.asMap().entries.map((entry) {
                                     final i = entry.key;
                                     final camera = entry.value;
-                                    final isSelected = _selectedCameraIndex == i;
+                                    final isSelected =
+                                        _selectedCameraIndex == i;
                                     return GestureDetector(
                                       onTap: () => _switchCamera(i),
                                       child: AnimatedContainer(
                                         duration: 300.ms,
-                                        margin: const EdgeInsets.only(right: 10),
+                                        margin: const EdgeInsets.only(
+                                          right: 10,
+                                        ),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 10,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: isSelected 
-                                              ? Colors.redAccent 
-                                              : Colors.black.withValues(alpha: 0.6),
-                                          borderRadius: BorderRadius.circular(14),
+                                          color:
+                                              isSelected
+                                                  ? Colors.redAccent
+                                                  : Colors.black.withValues(
+                                                    alpha: 0.6,
+                                                  ),
+                                          borderRadius: BorderRadius.circular(
+                                            14,
+                                          ),
                                           border: Border.all(
-                                            color: isSelected 
-                                                ? Colors.white 
-                                                : Colors.white.withValues(alpha: 0.2),
+                                            color:
+                                                isSelected
+                                                    ? Colors.white
+                                                    : Colors.white.withValues(
+                                                      alpha: 0.2,
+                                                    ),
                                             width: 1.5,
                                           ),
                                           boxShadow: [
                                             if (isSelected)
                                               BoxShadow(
-                                                color: Colors.redAccent.withValues(alpha: 0.4),
+                                                color: Colors.redAccent
+                                                    .withValues(alpha: 0.4),
                                                 blurRadius: 10,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -362,9 +405,10 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                               style: AppFonts.plusJakartaSans(
                                                 color: Colors.white,
                                                 fontSize: 12,
-                                                fontWeight: isSelected 
-                                                    ? FontWeight.w800 
-                                                    : FontWeight.w600,
+                                                fontWeight:
+                                                    isSelected
+                                                        ? FontWeight.w800
+                                                        : FontWeight.w600,
                                               ),
                                             ),
                                           ],
@@ -372,14 +416,12 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                       ),
                                     );
                                   }).toList(),
-                                ),
-                              ),
                             ),
-                          ],
+                          ),
                         ),
-                      )
-                      .animate()
-                      .fadeIn(duration: 800.ms),
+                      ],
+                    ),
+                  ).animate().fadeIn(duration: 800.ms),
 
                   const SizedBox(height: 24),
                 ],
@@ -392,54 +434,61 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       if (!hasCctv) ...[
                         // ── Info Gunung (untuk yang tidak ada CCTV) ──
                         Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.blue.shade200, width: 1),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.info_rounded,
-                                  color: Colors.blue.shade700,
-                                  size: 20,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.blue.shade200,
+                                  width: 1,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      volcano.name,
-                                      style: AppFonts.plusJakartaSans(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.blue.shade900,
-                                      ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade100,
+                                      shape: BoxShape.circle,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
-                                      style: AppFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        color: Colors.blue.shade700,
-                                        height: 1.4,
-                                      ),
+                                    child: Icon(
+                                      Icons.info_rounded,
+                                      color: Colors.blue.shade700,
+                                      size: 20,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          volcano.name,
+                                          style: AppFonts.plusJakartaSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.blue.shade900,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
+                                          style: AppFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            color: Colors.blue.shade700,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.05, end: 0),
+                            )
+                            .animate()
+                            .fadeIn(duration: 500.ms)
+                            .slideY(begin: 0.05, end: 0),
                         const SizedBox(height: 28),
                       ],
 
@@ -493,6 +542,16 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                           .slideY(begin: 0.05, end: 0),
 
                       const SizedBox(height: 32),
+
+                      // ── Ringkasan Aktivitas Harian (dari volcano_summarizer) ──
+                      if (hasCctv)
+                        VolcanoLatestSummaryWithHistoryButton(
+                          volcanoKey: 'merapi',
+                          limit: 30,
+                          title: 'Ringkasan Aktivitas Terbaru',
+                        ),
+
+                      if (hasCctv) const SizedBox(height: 32),
 
                       // ── Riwayat Erupsi ──
                       Text(
@@ -703,8 +762,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
       ),
     );
   }
-
-
 
   Widget _buildInfoGridCard({
     required IconData icon,
@@ -1087,4 +1144,3 @@ class _GalleryItem extends StatelessWidget {
     );
   }
 }
-
