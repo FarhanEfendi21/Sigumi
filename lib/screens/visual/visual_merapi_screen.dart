@@ -6,9 +6,11 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:latlong2/latlong.dart' hide Path;
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/eruption_history.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
+import '../../widgets/volcanic_report_section.dart';
 import '../../widgets/volcano_summarizer_widget.dart';
 
 /// Data kamera CCTV Merapi
@@ -80,6 +82,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VolcanoProvider>().fetchEruptionHistory();
+      context.read<VolcanoProvider>().fetchDailyReports();
     });
   }
 
@@ -144,6 +147,20 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     _webViewController?.reload();
   }
 
+  Future<void> _openFullScreen() async {
+    final url = _merapiCameras[_selectedCameraIndex].url;
+    final uri = Uri.parse(url);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tidak dapat membuka tautan kamera')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
@@ -187,205 +204,163 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
               children: [
                 // ── CCTV Section (hanya untuk Merapi) ──
                 if (hasCctv) ...[
-                  // ── Live WebView Section (Full Screen focus) ──
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.7,
-                    width: double.infinity,
-                    decoration: const BoxDecoration(color: Color(0xFF14141B)),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      children: [
-                        // ── WebView ──
-                        Positioned.fill(
-                          child:
-                              !_isPlatformSupported
-                                  ? _buildUnsupportedView()
-                                  : _hasWebViewError
-                                  ? _buildErrorView()
-                                  : WebViewWidget(
-                                    controller: _webViewController!,
-                                  ),
+                        height: MediaQuery.of(context).size.height * 0.7,
+                        width: double.infinity,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF14141B),
                         ),
-
-                        // ── Loading Overlay ──
-                        if (_isWebViewLoading)
-                          Positioned.fill(
-                            child: Container(
-                              color: const Color(0xFF14141B),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const SizedBox(
-                                    width: 32,
-                                    height: 32,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 3,
-                                      color: Colors.redAccent,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 20),
-                                  Text(
-                                    'Menghubungkan ke Kamera...',
-                                    style: AppFonts.plusJakartaSans(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Stack(
+                          children: [
+                            // ── WebView ──
+                            Positioned.fill(
+                              child:
+                                  !_isPlatformSupported
+                                      ? _buildUnsupportedView()
+                                      : _hasWebViewError
+                                          ? _buildErrorView()
+                                          : WebViewWidget(
+                                            controller: _webViewController!,
+                                          ),
                             ),
-                          ),
 
-                        // ── Top Info Overlay ──
-                        Positioned(
-                          top: 20,
-                          left: 20,
-                          right: 20,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.videocam_rounded,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _merapiCameras[_selectedCameraIndex]
-                                          .location,
-                                      style: AppFonts.plusJakartaSans(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
+                            // ── Loading Overlay ──
+                            if (_isWebViewLoading)
+                              Positioned.fill(
+                                child: Container(
+                                  color: const Color(0xFF14141B),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(
+                                        width: 32,
+                                        height: 32,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 3,
+                                          color: Colors.redAccent,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 20),
+                                      Text(
+                                        'Menghubungkan ke Kamera...',
+                                        style: AppFonts.plusJakartaSans(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white.withValues(alpha: 0.8),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              Row(
+
+                            // ── Top Info Overlay ──
+                            Positioned(
+                              top: 20,
+                              left: 20,
+                              right: 20,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  _buildGlassButton(
-                                    Icons.refresh_rounded,
-                                    _reloadCamera,
-                                  ),
-                                  const SizedBox(width: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 6,
-                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                     decoration: BoxDecoration(
-                                      color: Colors.redAccent.withValues(
-                                        alpha: 0.9,
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
+                                      color: Colors.black.withValues(alpha: 0.5),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                                     ),
                                     child: Row(
                                       children: [
-                                        Container(
-                                              width: 6,
-                                              height: 6,
-                                              decoration: const BoxDecoration(
-                                                color: Colors.white,
-                                                shape: BoxShape.circle,
-                                              ),
-                                            )
-                                            .animate(
-                                              onPlay:
-                                                  (c) =>
-                                                      c.repeat(reverse: true),
-                                            )
-                                            .fade(
-                                              duration: 800.ms,
-                                              begin: 0.3,
-                                              end: 1.0,
-                                            ),
-                                        const SizedBox(width: 6),
+                                        const Icon(Icons.videocam_rounded, color: Colors.white, size: 16),
+                                        const SizedBox(width: 8),
                                         Text(
-                                          'LIVE',
+                                          _merapiCameras[_selectedCameraIndex].location,
                                           style: AppFonts.plusJakartaSans(
                                             color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 0.5,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
+                                  Row(
+                                    children: [
+                                      _buildGlassButton(
+                                        Icons.refresh_rounded,
+                                        _reloadCamera,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: Colors.redAccent.withValues(alpha: 0.9),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              width: 6,
+                                              height: 6,
+                                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                                            ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(duration: 800.ms, begin: 0.3, end: 1.0),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'LIVE',
+                                              style: AppFonts.plusJakartaSans(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
 
-                        // ── Camera Selector (Floating Bottom) ──
-                        Positioned(
-                          bottom: 30,
-                          left: 0,
-                          right: 0,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Row(
-                              children:
-                                  _merapiCameras.asMap().entries.map((entry) {
+                            // ── Camera Selector (Floating Bottom) ──
+                            Positioned(
+                              bottom: 30,
+                              left: 0,
+                              right: 0,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Row(
+                                  children: _merapiCameras.asMap().entries.map((entry) {
                                     final i = entry.key;
                                     final camera = entry.value;
-                                    final isSelected =
-                                        _selectedCameraIndex == i;
+                                    final isSelected = _selectedCameraIndex == i;
                                     return GestureDetector(
                                       onTap: () => _switchCamera(i),
                                       child: AnimatedContainer(
                                         duration: 300.ms,
-                                        margin: const EdgeInsets.only(
-                                          right: 10,
-                                        ),
+                                        margin: const EdgeInsets.only(right: 10),
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16,
                                           vertical: 10,
                                         ),
                                         decoration: BoxDecoration(
-                                          color:
-                                              isSelected
-                                                  ? Colors.redAccent
-                                                  : Colors.black.withValues(
-                                                    alpha: 0.6,
-                                                  ),
-                                          borderRadius: BorderRadius.circular(
-                                            14,
-                                          ),
+                                          color: isSelected 
+                                              ? Colors.redAccent 
+                                              : Colors.black.withValues(alpha: 0.6),
+                                          borderRadius: BorderRadius.circular(14),
                                           border: Border.all(
-                                            color:
-                                                isSelected
-                                                    ? Colors.white
-                                                    : Colors.white.withValues(
-                                                      alpha: 0.2,
-                                                    ),
+                                            color: isSelected 
+                                                ? Colors.white 
+                                                : Colors.white.withValues(alpha: 0.2),
                                             width: 1.5,
                                           ),
                                           boxShadow: [
                                             if (isSelected)
                                               BoxShadow(
-                                                color: Colors.redAccent
-                                                    .withValues(alpha: 0.4),
+                                                color: Colors.redAccent.withValues(alpha: 0.4),
                                                 blurRadius: 10,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -405,10 +380,9 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                               style: AppFonts.plusJakartaSans(
                                                 color: Colors.white,
                                                 fontSize: 12,
-                                                fontWeight:
-                                                    isSelected
-                                                        ? FontWeight.w800
-                                                        : FontWeight.w600,
+                                                fontWeight: isSelected 
+                                                    ? FontWeight.w800 
+                                                    : FontWeight.w600,
                                               ),
                                             ),
                                           ],
@@ -416,12 +390,14 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                       ),
                                     );
                                   }).toList(),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ).animate().fadeIn(duration: 800.ms),
+                      )
+                      .animate()
+                      .fadeIn(duration: 800.ms),
 
                   const SizedBox(height: 24),
                 ],
@@ -492,54 +468,58 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                         const SizedBox(height: 28),
                       ],
 
-                      // ── Informasi Terkini ──
+                      // ── Informasi Terkini (dari MAGMA Indonesia) ──
+                      Row(
+                        children: [
+                          Text(
+                            'Informasi Terkini',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1E1E2C),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
+                            ),
+                            child: Text(
+                              'PVMBG',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.redAccent.shade700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
                       Text(
-                        'Informasi Terkini',
+                        'Sumber: MAGMA Indonesia',
                         style: AppFonts.plusJakartaSans(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E1E2C),
+                          fontSize: 11,
+                          color: const Color(0xFF9E9EAE),
                         ),
                       ),
                       const SizedBox(height: 14),
 
-                      GridView.count(
-                            crossAxisCount: 2,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 1.7,
-                            children: [
-                              _buildInfoGridCard(
-                                icon: Icons.thermostat_rounded,
-                                title: 'Suhu Kawah',
-                                value: '${volcano.temperature ?? '-'}°C',
-                                color: Colors.orange,
-                              ),
-                              _buildInfoGridCard(
-                                icon: Icons.air_rounded,
-                                title: 'Arah Angin',
-                                value: volcano.windDirection ?? '-',
-                                color: Colors.blue,
-                              ),
-                              _buildInfoGridCard(
-                                icon: Icons.speed_rounded,
-                                title: 'Kecepatan',
-                                value: '${volcano.windSpeed ?? '-'} km/h',
-                                color: Colors.teal,
-                              ),
-                              _buildInfoGridCard(
-                                icon: Icons.height_rounded,
-                                title: 'Elevasi',
-                                value: '${volcano.elevation} mdpl',
-                                color: Colors.indigo,
-                              ),
-                            ],
-                          )
+                      _buildClimatologySection(provider, volcano)
                           .animate()
                           .fadeIn(delay: 150.ms, duration: 400.ms)
                           .slideY(begin: 0.05, end: 0),
+
+                      const SizedBox(height: 32),
+
+                      // ── Laporan Harian MAGMA ──
+                      VolcanicReportSection(
+                        reports: provider.dailyReports,
+                        isLoading: provider.isLoadingDailyReports,
+                      ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
 
                       const SizedBox(height: 32),
 
@@ -567,52 +547,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
 
                       const SizedBox(height: 32),
 
-                      // ── Galeri Visual ──
-                      Text(
-                        'Galeri Visual',
-                        style: AppFonts.plusJakartaSans(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1E1E2C),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
 
-                      GridView.count(
-                            crossAxisCount: 2,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 1.2,
-                            children: [
-                              _GalleryItem(
-                                'Puncak Kawah',
-                                Icons.landscape_rounded,
-                                Colors.brown,
-                              ),
-                              _GalleryItem(
-                                'Kubah Lava',
-                                Icons.local_fire_department_rounded,
-                                Colors.redAccent,
-                              ),
-                              _GalleryItem(
-                                'Guguran Vulkanik',
-                                Icons.cloud_rounded,
-                                Colors.grey.shade700,
-                              ),
-                              _GalleryItem(
-                                'Aliran Lahar',
-                                Icons.water_drop_rounded,
-                                Colors.blueAccent,
-                              ),
-                            ],
-                          )
-                          .animate()
-                          .fadeIn(delay: 450.ms, duration: 400.ms)
-                          .slideY(begin: 0.05, end: 0),
-
-                      const SizedBox(height: 32),
                     ],
                   ),
                 ),
@@ -683,6 +618,21 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
         ],
       ),
     );
+  }
+
+Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Icon(icon, color: Colors.white, size: 18),
+    ),
+  );
   }
 
   Widget _buildErrorView() {
@@ -763,21 +713,144 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     );
   }
 
-  Widget _buildInfoGridCard({
+
+  // ── Seksi Informasi Klimatologi dari MAGMA ──────────────────────
+  Widget _buildClimatologySection(VolcanoProvider provider, VolcanoModel volcano) {
+    // Ambil laporan terbaru untuk gunung ini
+    final key = volcano.name.toLowerCase().contains('merapi')
+        ? 'merapi'
+        : volcano.name.toLowerCase().contains('agung')
+            ? 'agung'
+            : 'rinjani';
+
+    final report = provider.dailyReports
+        .where((r) => r.volcanoKey == key)
+        .isNotEmpty
+        ? provider.dailyReports.firstWhere((r) => r.volcanoKey == key)
+        : null;
+
+    final isLoading = provider.isLoadingDailyReports;
+
+    // Jika loading → skeleton
+    if (isLoading) {
+      return Column(
+        children: List.generate(
+          4,
+          (index) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildSkeletonCard(),
+          ),
+        ),
+      );
+    }
+
+    // Tentukan nilai: pakai MAGMA jika ada, fallback ke volcano mock
+    final hasReport = report != null && report.hasClimatologyData;
+
+    final weather = hasReport
+        ? (report.weather ?? '-')
+        : 'Data belum tersedia';
+    final windVal = hasReport
+        ? report.windLabel
+        : (volcano.windDirection != null
+            ? '${volcano.windDirection}'
+            : '-');
+    final humidityVal = hasReport ? report.humidityLabel : '-';
+    final pressureVal = hasReport ? report.pressureLabel : '-';
+    final elevationVal = '${volcano.elevation.toInt()} mdpl';
+
+    return Column(
+      children: [
+        // Cuaca - Full Width
+        _buildMetricCard(
+          icon: Icons.wb_sunny_rounded,
+          label: 'Kondisi Cuaca',
+          value: weather,
+          color: const Color(0xFFF59E0B),
+        ),
+        const SizedBox(height: 12),
+        // Angin - Full Width
+        _buildMetricCard(
+          icon: Icons.air_rounded,
+          label: 'Angin',
+          value: windVal,
+          color: Colors.blue,
+        ),
+        const SizedBox(height: 12),
+        // Elevasi - Full Width
+        _buildMetricCard(
+          icon: Icons.height_rounded,
+          label: 'Elevasi',
+          value: elevationVal,
+          color: Colors.indigo,
+        ),
+        const SizedBox(height: 12),
+        // Tekanan Udara & Kelembaban - sejajar
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildMetricCard(
+                icon: Icons.compress_rounded,
+                label: 'Tekanan Udara',
+                value: pressureVal,
+                color: Colors.purple,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildMetricCard(
+                icon: Icons.water_drop_rounded,
+                label: 'Kelembaban',
+                value: humidityVal,
+                color: Colors.teal,
+              ),
+            ),
+          ],
+        ),
+
+        // Badge sumber + tanggal laporan
+        if (hasReport) ...[
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Icon(Icons.info_outline_rounded,
+                  size: 12, color: Colors.grey.shade500),
+              const SizedBox(width: 4),
+              Text(
+                'Data per ${_formatReportDate(report.reportDate)}',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
+
+  /// Unified Metric Card (Bisa Full Width atau dalam Row)
+  Widget _buildMetricCard({
     required IconData icon,
-    required String title,
+    required String label,
     required String value,
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: const Color(0xFFF3F4F6), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.04),
+            color: color.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -785,7 +858,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             children: [
@@ -795,37 +867,58 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 16),
+                child: Icon(icon, color: color, size: 14),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  title,
+                  label,
                   style: AppFonts.plusJakartaSans(
                     fontSize: 12,
+                    color: const Color(0xFF8E8E9E),
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF6B6B78),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 10),
           Text(
             value,
             style: AppFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
               color: const Color(0xFF1E1E2C),
+              height: 1.3,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            // Hapus maxLines & overflow agar text bisa multiline (wrap)
           ),
         ],
       ),
     );
+  }
+
+  /// Skeleton card saat loading
+  Widget _buildSkeletonCard() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(14),
+      ),
+    ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(
+          begin: 0.4,
+          end: 0.8,
+          duration: 800.ms,
+        );
+  }
+
+  String _formatReportDate(DateTime dt) {
+    const months = [
+      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
+    ];
+    return '${dt.day} ${months[dt.month]} ${dt.year}';
   }
 
   Widget _buildEruptionHistoryContent(VolcanoProvider provider) {
@@ -934,20 +1027,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
         .slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
-    );
-  }
 }
 
 // ─────────────────────────────────────────────
@@ -1144,3 +1223,4 @@ class _GalleryItem extends StatelessWidget {
     );
   }
 }
+

@@ -5,6 +5,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
+import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
@@ -21,43 +22,69 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      
+
       final volcanoProvider = context.read<VolcanoProvider>();
       await volcanoProvider.autoDetectAndSetRegion();
 
       if (!mounted) return;
-      
-      // Fetch news dari Supabase
+
+      // Fetch news dari Supabase, filtered by selected region
       final newsProvider = context.read<NewsProvider>();
-      await newsProvider.fetchLatestNews(limit: 5);
+      await newsProvider.fetchLatestNews(
+        limit: 5,
+        lokasi: volcanoProvider.selectedRegion,
+      );
+
+      // Listen to selectedRegion changes and auto-fetch news
+      volcanoProvider.addListener(() {
+        if (!mounted) return;
+        final newsProvider = context.read<NewsProvider>();
+        newsProvider.fetchLatestNews(
+          limit: 5,
+          lokasi: volcanoProvider.selectedRegion,
+        );
+      });
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
         final volcano = provider.volcano;
-        final statusColor = SigumiTheme.getStatusColor(volcano.statusLevel);
+        final cbMode = provider.colorBlindMode;
+        final statusColor = SigumiTheme.getStatusColor(
+          volcano.statusLevel,
+          highContrast: isHighContrast,
+          colorBlindMode: cbMode,
+        );
 
         return Scaffold(
+          backgroundColor: context.bgSecondary,
           body: RefreshIndicator(
             onRefresh: () async {
               // Get provider before async gap
-              final newsProvider = Provider.of<NewsProvider>(context, listen: false);
-              
+              final newsProvider = Provider.of<NewsProvider>(
+                context,
+                listen: false,
+              );
+
               await provider.forceRefresh();
-              
+
               if (!mounted) return;
-              
-              // Refresh berita juga
-              await newsProvider.refreshLatestNews(limit: 5);
+
+              // Refresh berita juga, filtered by selected region
+              await newsProvider.refreshLatestNews(
+                limit: 5,
+                lokasi: provider.selectedRegion,
+              );
             },
             child: SafeArea(
               child: SingleChildScrollView(
@@ -70,27 +97,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFFF0F4FF),
-                            Color(0xFFE8EDFA),
-                            Color(0xFFFFF8E8),
-                          ],
-                          stops: [0.0, 0.55, 1.0],
-                        ),
+                        gradient:
+                            isHighContrast
+                                ? null
+                                : const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFF0F4FF),
+                                    Color(0xFFE8EDFA),
+                                    Color(0xFFFFF8E8),
+                                  ],
+                                  stops: [0.0, 0.55, 1.0],
+                                ),
+                        color: isHighContrast ? context.bgSurface : null,
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(28),
                           bottomRight: Radius.circular(28),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF1B2E7B).withAlpha(18),
-                            blurRadius: 20,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
+                        border:
+                            isHighContrast
+                                ? Border.all(
+                                  color: context.borderColor,
+                                  width: context.borderWidth,
+                                )
+                                : null,
+                        boxShadow: context.cardShadow,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,8 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       AiService.getPersonalizedGreeting(
                                         provider.currentUser,
                                       ),
-                                      style: const TextStyle(
-                                        color: Color(0xFF5A6380),
+                                      style: TextStyle(
+                                        color: context.textTertiary,
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -133,23 +165,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.orange.withAlpha(30),
+                                        color: context.warningColor.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: context.warningColor
+                                              .withValues(alpha: 0.3),
+                                        ),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
                                             Icons.cloud_off,
-                                            color: Colors.orange,
+                                            color: context.warningColor,
                                             size: 14,
                                           ),
-                                          SizedBox(width: 4),
+                                          const SizedBox(width: 4),
                                           Text(
                                             'Offline',
                                             style: TextStyle(
-                                              color: Colors.orange,
+                                              color: context.warningColor,
                                               fontSize: 11,
+                                              fontWeight: FontWeight.w600,
                                             ),
                                           ),
                                         ],
@@ -183,12 +222,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Container(
                                   width: cardWidth,
                                   // Tinggi dinamis: 42% lebar layar, min 180, max 240
-                                  height: (cardWidth * 0.42).clamp(180.0, 240.0),
+                                  height: (cardWidth * 0.42).clamp(
+                                    180.0,
+                                    240.0,
+                                  ),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(24),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: const Color(0xFF1B2E7B).withAlpha(40),
+                                        color: const Color(
+                                          0xFF1B2E7B,
+                                        ).withAlpha(40),
                                         blurRadius: 24,
                                         offset: const Offset(0, 10),
                                       ),
@@ -221,20 +265,35 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              gradient: LinearGradient(
-                                                begin: Alignment.topCenter,
-                                                end: Alignment.bottomCenter,
-                                                colors: [
-                                                  Colors.black.withAlpha(15),
-                                                  Colors.black.withAlpha(210),
-                                                ],
-                                                stops: const [0.25, 1.0],
-                                              ),
+                                              gradient:
+                                                  isHighContrast
+                                                      ? null
+                                                      : LinearGradient(
+                                                        begin:
+                                                            Alignment.topCenter,
+                                                        end:
+                                                            Alignment
+                                                                .bottomCenter,
+                                                        colors: [
+                                                          Colors.black
+                                                              .withAlpha(15),
+                                                          Colors.black
+                                                              .withAlpha(210),
+                                                        ],
+                                                        stops: const [
+                                                          0.25,
+                                                          1.0,
+                                                        ],
+                                                      ),
+                                              color:
+                                                  isHighContrast
+                                                      ? context.overlayDark(0.7)
+                                                      : null,
                                             ),
                                           ),
                                         ),
                                         // Content
-                                         Positioned.fill(
+                                        Positioned.fill(
                                           child: Padding(
                                             padding: const EdgeInsets.all(16),
                                             child: Column(
@@ -278,89 +337,155 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 // ── Baris 2: Elevasi · Status MAGMA (info sekunder) ──
                                                 // FittedBox agar bisa menyusut jika layar terlalu sempit
                                                 Padding(
-                                                  padding: const EdgeInsets.only(left: 28),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 28,
+                                                      ),
                                                   child: FittedBox(
                                                     fit: BoxFit.scaleDown,
-                                                    alignment: Alignment.centerLeft,
+                                                    alignment:
+                                                        Alignment.centerLeft,
                                                     child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
                                                       children: [
                                                         // Elevasi
                                                         Text(
                                                           '${volcano.elevation.toInt()} mdpl',
                                                           style: TextStyle(
-                                                            fontFamily: 'Plus Jakarta Sans',
+                                                            fontFamily:
+                                                                'Plus Jakarta Sans',
                                                             fontSize: 12,
-                                                            fontWeight: FontWeight.w700,
-                                                            color: Colors.white.withAlpha(170),
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: Colors.white
+                                                                .withAlpha(170),
                                                           ),
                                                         ),
 
                                                         // Pemisah
                                                         Padding(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                          padding:
+                                                              const EdgeInsets.symmetric(
+                                                                horizontal: 8,
+                                                              ),
                                                           child: Text(
                                                             '·',
                                                             style: TextStyle(
                                                               fontSize: 14,
-                                                              color: Colors.white.withAlpha(110),
-                                                              fontWeight: FontWeight.w300,
+                                                              color: Colors
+                                                                  .white
+                                                                  .withAlpha(
+                                                                    110,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w300,
                                                             ),
                                                           ),
                                                         ),
 
                                                         // Badge Status MAGMA
-                                                        if (provider.isLoadingVolcanoes)
+                                                        if (provider
+                                                            .isLoadingVolcanoes)
                                                           Shimmer.fromColors(
-                                                            baseColor: Colors.white24,
-                                                            highlightColor: Colors.white38,
+                                                            baseColor:
+                                                                Colors.white24,
+                                                            highlightColor:
+                                                                Colors.white38,
                                                             child: Container(
                                                               width: 64,
                                                               height: 18,
                                                               decoration: BoxDecoration(
-                                                                color: Colors.white.withAlpha(40),
-                                                                borderRadius: BorderRadius.circular(12),
+                                                                color: Colors
+                                                                    .white
+                                                                    .withAlpha(
+                                                                      40,
+                                                                    ),
+                                                                borderRadius:
+                                                                    BorderRadius.circular(
+                                                                      12,
+                                                                    ),
                                                               ),
                                                             ),
                                                           )
                                                         else
                                                           Container(
-                                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                                            padding:
+                                                                const EdgeInsets.symmetric(
+                                                                  horizontal: 8,
+                                                                  vertical: 3,
+                                                                ),
                                                             decoration: BoxDecoration(
-                                                              color: statusColor.withAlpha(40),
-                                                              border: Border.all(color: statusColor.withAlpha(100), width: 1),
-                                                              borderRadius: BorderRadius.circular(12),
+                                                              color: statusColor
+                                                                  .withAlpha(
+                                                                    40,
+                                                                  ),
+                                                              border: Border.all(
+                                                                color: statusColor
+                                                                    .withAlpha(
+                                                                      100,
+                                                                    ),
+                                                                width: 1,
+                                                              ),
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    12,
+                                                                  ),
                                                             ),
                                                             child: Row(
-                                                              mainAxisSize: MainAxisSize.min,
-                                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .center,
                                                               children: [
                                                                 // Dot
                                                                 Container(
                                                                   width: 7,
                                                                   height: 7,
                                                                   decoration: BoxDecoration(
-                                                                    color: statusColor,
-                                                                    shape: BoxShape.circle,
+                                                                    color:
+                                                                        statusColor,
+                                                                    shape:
+                                                                        BoxShape
+                                                                            .circle,
                                                                     boxShadow: [
                                                                       BoxShadow(
-                                                                        color: statusColor.withAlpha(200),
-                                                                        blurRadius: 4,
-                                                                        spreadRadius: 0,
+                                                                        color: statusColor
+                                                                            .withAlpha(
+                                                                              200,
+                                                                            ),
+                                                                        blurRadius:
+                                                                            4,
+                                                                        spreadRadius:
+                                                                            0,
                                                                       ),
                                                                     ],
                                                                   ),
                                                                 ),
-                                                                const SizedBox(width: 5),
+                                                                const SizedBox(
+                                                                  width: 5,
+                                                                ),
                                                                 // Label
                                                                 Text(
-                                                                  volcano.statusLabel,
+                                                                  volcano
+                                                                      .statusLabel,
                                                                   style: const TextStyle(
-                                                                    fontFamily: 'Plus Jakarta Sans',
-                                                                    fontSize: 11,
-                                                                    fontWeight: FontWeight.w700,
-                                                                    color: Colors.white,
+                                                                    fontFamily:
+                                                                        'Plus Jakarta Sans',
+                                                                    fontSize:
+                                                                        11,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w700,
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
                                                                   ),
                                                                   maxLines: 1,
                                                                 ),
@@ -368,27 +493,53 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             ),
                                                           ),
 
-                                                        const SizedBox(width: 8),
+                                                        const SizedBox(
+                                                          width: 8,
+                                                        ),
 
                                                         // Waktu Pembaruan
-                                                        if (!provider.isLoadingVolcanoes)
+                                                        if (!provider
+                                                            .isLoadingVolcanoes)
                                                           Row(
-                                                            mainAxisSize: MainAxisSize.min,
-                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                            mainAxisSize:
+                                                                MainAxisSize
+                                                                    .min,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .center,
                                                             children: [
                                                               Icon(
-                                                                Icons.update_rounded,
+                                                                Icons
+                                                                    .update_rounded,
                                                                 size: 11,
-                                                                color: Colors.white.withAlpha(160),
+                                                                color: Colors
+                                                                    .white
+                                                                    .withAlpha(
+                                                                      160,
+                                                                    ),
                                                               ),
-                                                              const SizedBox(width: 3),
+                                                              const SizedBox(
+                                                                width: 3,
+                                                              ),
                                                               Text(
-                                                                DateFormat('d MMM, HH:mm').format(volcano.lastUpdate),
+                                                                DateFormat(
+                                                                  'd MMM, HH:mm',
+                                                                ).format(
+                                                                  volcano
+                                                                      .lastUpdate,
+                                                                ),
                                                                 style: TextStyle(
-                                                                  fontFamily: 'Plus Jakarta Sans',
+                                                                  fontFamily:
+                                                                      'Plus Jakarta Sans',
                                                                   fontSize: 10,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  color: Colors.white.withAlpha(160),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                  color: Colors
+                                                                      .white
+                                                                      .withAlpha(
+                                                                        160,
+                                                                      ),
                                                                 ),
                                                               ),
                                                             ],
@@ -413,15 +564,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                              ).animate().fadeIn(duration: 500.ms).slideY(
-                                begin: 0.1,
-                                end: 0,
-                              );
+                              ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
                             },
                           ),
                         ],
                       ),
                     ),
+
+                    // Guest Login Prompt Banner
+                    if (provider.isGuest)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                        child: _GuestLoginBanner(),
+                      ),
 
                     // Tourism Promo Banner
                     Padding(
@@ -431,95 +586,104 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // Menu Grid
+                    // Menu Grid — Opsi B: Featured + Small + FullWidth
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
                       child: Text(
                         context.tr('main_menu'),
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+                    // Row 1: 2 featured cards
+                    Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 1.7,
-                      children: [
-                        _ShadMenuCard(
-                          icon: Icons.alt_route_rounded,
-                          label: context.tr('evacuation_point'),
-                          color: Colors.green,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.evacuation,
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: _FeaturedMenuCard(
+                                icon: Icons.alt_route_rounded,
+                                label: context.tr('evacuation_point'),
+                                subtitle: 'Titik & jalur evakuasi terdekat',
+                                color: Colors.green,
+                                onTap: () => Navigator.pushNamed(context, AppRoutes.evacuation),
                               ),
-                        ),
-                        _ShadMenuCard(
-                          icon: Icons.videocam_rounded,
-                          label: context.tr('cctv_monitoring'),
-                          color: Colors.teal,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.visualMerapi,
-                                arguments: volcano,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _FeaturedMenuCard(
+                                icon: Icons.videocam_rounded,
+                                label: context.tr('cctv_monitoring'),
+                                subtitle: 'Pantau kondisi gunung live',
+                                color: Colors.teal,
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.visualMerapi,
+                                  arguments: volcano,
+                                ),
                               ),
+                            ),
+                          ],
                         ),
-                        _ShadMenuCard(
-                          icon: Icons.school_rounded,
-                          label: context.tr('education'),
-                          color: Colors.orange,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.education,
-                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Row 2: 4 small cards (ukuran asli, desain baru)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: _ShadMenuCard(
+                              icon: Icons.school_rounded,
+                              label: context.tr('education'),
+                              subtitle: context.tr('education_sub'),
+                              color: Colors.orange,
+                              onTap: () => Navigator.pushNamed(context, AppRoutes.education),
+                            )),
+                            const SizedBox(width: 10),
+                            Expanded(child: _ShadMenuCard(
+                              icon: Icons.local_hospital_rounded,
+                              label: context.tr('posko_faskes'),
+                              subtitle: context.tr('posko_faskes_sub'),
+                              color: Colors.indigo,
+                              onTap: () => Navigator.pushNamed(context, AppRoutes.postDisaster),
+                            )),
+                            const SizedBox(width: 10),
+                            Expanded(child: _ShadMenuCard(
+                              icon: Icons.chat_rounded,
+                              label: context.tr('ask_sigumi'),
+                              subtitle: context.tr('ask_sigumi_sub'),
+                              color: Colors.purple,
+                              onTap: () => Navigator.pushNamed(context, AppRoutes.chatbot),
+                            )),
+                            const SizedBox(width: 10),
+                            Expanded(child: _ShadMenuCard(
+                              icon: Icons.phone_in_talk_rounded,
+                              label: context.tr('emergency_number'),
+                              subtitle: context.tr('emergency_number_sub'),
+                              color: Colors.red,
+                              onTap: () => Navigator.pushNamed(context, AppRoutes.emergency),
+                            )),
+                          ],
                         ),
-                        _ShadMenuCard(
-                          icon: Icons.local_hospital_rounded,
-                          label: context.tr('posko_faskes'),
-                          color: Colors.indigo,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.postDisaster,
-                              ),
-                        ),
-                        _ShadMenuCard(
-                          icon: Icons.chat_rounded,
-                          label: context.tr('ask_sigumi'),
-                          color: Colors.purple,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.chatbot,
-                              ),
-                        ),
-                        _ShadMenuCard(
-                          icon: Icons.phone_in_talk_rounded,
-                          label: context.tr('emergency_number'),
-                          color: Colors.red,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.emergency,
-                              ),
-                        ),
-                        _ShadMenuCard(
-                          icon: Icons.accessibility_new_rounded,
-                          label: context.tr('accessibility'),
-                          color: Colors.brown,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.accessibility,
-                              ),
-                        ),
-                      ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Row 3: Full-width accessibility card
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _FullWidthMenuCard(
+                        icon: Icons.accessibility_new_rounded,
+                        label: context.tr('accessibility'),
+                        subtitle: 'Mode kontras tinggi & buta warna',
+                        color: Colors.brown,
+                        onTap: () => Navigator.pushNamed(context, AppRoutes.accessibility),
+                      ),
                     ),
 
                     // Berita Terkini Section (Disembunyikan sementara menunggu fitur Admin selesai)
@@ -529,22 +693,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         builder: (context, newsProvider, _) {
                           return Row(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: SigumiTheme.primaryBlue.withAlpha(25),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.newspaper_rounded,
-                                  color: SigumiTheme.primaryBlue,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
                               Text(
                                 context.tr('latest_news'),
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                               const Spacer(),
                               if (newsProvider.isLoading)
@@ -651,13 +804,14 @@ class _HomeScreenState extends State<HomeScreen> {
     VolcanoProvider provider,
   ) {
     final volcanoLevel = provider.volcano.statusLevel;
-    final zoneLevel   = provider.zoneLevel;
-    final zoneColor   = SigumiTheme.getStatusColor(zoneLevel);
+    final zoneLevel = provider.zoneLevel;
+    final isHC = provider.highContrast;
+    final cbMode = provider.colorBlindMode;
+    final zoneColor = SigumiTheme.getStatusColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
     final isHighAlert = volcanoLevel >= 3;
 
-    final zoneIcon = isHighAlert
-        ? Icons.warning_amber_rounded
-        : Icons.shield_rounded;
+    final zoneIcon =
+        isHighAlert ? Icons.warning_amber_rounded : Icons.shield_rounded;
 
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, AppRoutes.zoneDetail),
@@ -707,8 +861,7 @@ class _HomeScreenState extends State<HomeScreen> {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: zoneColor,
                 borderRadius: BorderRadius.circular(20),
@@ -716,21 +869,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white.withAlpha(isHighAlert ? 140 : 70),
                   width: isHighAlert ? 1.5 : 1.0,
                 ),
-                boxShadow: isHighAlert
-                    ? [
-                        BoxShadow(
-                          color: zoneColor.withAlpha(180),
-                          blurRadius: 10,
-                          spreadRadius: 0,
-                        ),
-                      ]
-                    : [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(35),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
+                boxShadow:
+                    isHighAlert
+                        ? [
+                          BoxShadow(
+                            color: zoneColor.withAlpha(180),
+                            blurRadius: 10,
+                            spreadRadius: 0,
+                          ),
+                        ]
+                        : [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(35),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -757,8 +911,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-
-
   // ────────────────────────────────────────────────
   // REGION SELECTOR — Header badge dengan deteksi GPS
   // ────────────────────────────────────────────────
@@ -775,9 +927,12 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color(0xFF1B2E7B).withAlpha(15),
+            color: context.accentPrimary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF1B2E7B).withAlpha(20)),
+            border: Border.all(
+              color: context.borderColor,
+              width: context.borderWidth,
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -788,8 +943,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     : Icons.location_on_rounded,
                 color:
                     isAutoDetected
-                        ? Colors.green.shade600
-                        : const Color(0xFF1B2E7B),
+                        ? context.successColor
+                        : context.accentPrimary,
                 size: 16,
               ),
               const SizedBox(width: 4),
@@ -801,15 +956,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       context.tr('your_location'),
                       style: TextStyle(
-                        color: Colors.green.shade600,
+                        color: context.successColor,
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   Text(
                     provider.selectedRegion,
-                    style: const TextStyle(
-                      color: Color(0xFF1B2E7B),
+                    style: TextStyle(
+                      color: context.textPrimary,
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
@@ -817,9 +972,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(width: 2),
-              const Icon(
+              Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: Color(0xFF1B2E7B),
+                color: context.textPrimary,
                 size: 16,
               ),
             ],
@@ -883,11 +1038,15 @@ class _HomeScreenState extends State<HomeScreen> {
         return PopScope(
           canPop: isDismissible,
           child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+              color: context.bgPrimary,
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
+              ),
+              border: Border.all(
+                color: context.borderColor,
+                width: context.borderWidth,
               ),
             ),
             child: Column(
@@ -936,8 +1095,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              subtitle ??
-                                  context.tr('monitor_volcano'),
+                              subtitle ?? context.tr('monitor_volcano'),
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: SigumiTheme.textSecondary,
@@ -1106,77 +1264,569 @@ class _HomeScreenState extends State<HomeScreen> {
 class _ShadMenuCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String subtitle;
   final Color color;
   final VoidCallback onTap;
 
   const _ShadMenuCard({
     required this.icon,
     required this.label,
+    required this.subtitle,
     required this.color,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = color.withAlpha(15);
-    final iconBgColor = color.withAlpha(30);
-    final iconColor = color.withAlpha(220);
+    final isHighContrast = context.isHighContrast;
+    final darkColor = Color.lerp(color, Colors.black, 0.28)!;
 
-    return ShadCard(
-      padding: EdgeInsets.zero,
-      radius: BorderRadius.circular(16),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            HapticFeedback.lightImpact();
-            onTap();
-          },
-          borderRadius: BorderRadius.circular(16),
-          splashColor: color.withAlpha(30),
-          highlightColor: color.withAlpha(15),
-          child: Container(
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: color.withAlpha(40), width: 1),
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: iconBgColor,
-                    shape: BoxShape.circle,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: isHighContrast
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color, darkColor],
                   ),
-                  child: Icon(icon, color: iconColor, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
+            color: isHighContrast ? context.bgSurface : null,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isHighContrast ? context.borderColor : color.withAlpha(80),
+              width: context.borderWidth,
+            ),
+            boxShadow: isHighContrast
+                ? []
+                : [
+                    BoxShadow(
+                      color: color.withAlpha(80),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -8,
+                bottom: -8,
+                child: Icon(icon, size: 54, color: Colors.white.withAlpha(20)),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(isHighContrast ? 30 : 45),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
                       label,
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: SigumiTheme.textPrimary.withAlpha(220),
-                        height: 1.1,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        height: 1.2,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            subtitle,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 9,
+                              fontWeight: FontWeight.w500,
+                              color: isHighContrast
+                                  ? context.textSecondary
+                                  : Colors.white.withAlpha(170),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 10,
+                          color: isHighContrast
+                              ? context.textSecondary
+                              : Colors.white.withAlpha(170),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// FEATURED MENU CARD — Opsi B (2 card besar atas)
+// ─────────────────────────────────────────────────────────────────
+class _FeaturedMenuCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _FeaturedMenuCard({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+    final darkColor = Color.lerp(color, Colors.black, 0.28)!;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(20),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: isHighContrast
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color, darkColor],
+                  ),
+            color: isHighContrast ? context.bgSurface : null,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isHighContrast ? context.borderColor : color.withAlpha(80),
+              width: context.borderWidth,
+            ),
+            boxShadow: isHighContrast
+                ? []
+                : [
+                    BoxShadow(
+                      color: color.withAlpha(90),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -12,
+                bottom: -12,
+                child: Icon(icon, size: 100, color: Colors.white.withAlpha(20)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(isHighContrast ? 30 : 45),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            subtitle,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                              color: isHighContrast
+                                  ? context.textSecondary
+                                  : Colors.white.withAlpha(180),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          size: 13,
+                          color: isHighContrast
+                              ? context.textSecondary
+                              : Colors.white.withAlpha(180),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// FULL WIDTH MENU CARD — Opsi B (card aksesibilitas full-width)
+// ─────────────────────────────────────────────────────────────────
+class _FullWidthMenuCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _FullWidthMenuCard({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+    final darkColor = Color.lerp(color, Colors.black, 0.28)!;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: isHighContrast
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [color, darkColor],
+                  ),
+            color: isHighContrast ? context.bgSurface : null,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isHighContrast ? context.borderColor : color.withAlpha(80),
+              width: context.borderWidth,
+            ),
+            boxShadow: isHighContrast
+                ? []
+                : [
+                    BoxShadow(
+                      color: color.withAlpha(80),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -16,
+                top: -16,
+                child: Icon(icon, size: 90, color: Colors.white.withAlpha(20)),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(isHighContrast ? 30 : 45),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: isHighContrast ? context.textPrimary : Colors.white,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            subtitle,
+                            style: TextStyle(
+                              fontFamily: 'Plus Jakarta Sans',
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: isHighContrast
+                                  ? context.textSecondary
+                                  : Colors.white.withAlpha(180),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: isHighContrast
+                          ? context.textTertiary
+                          : Colors.white.withAlpha(200),
+                      size: 18,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GUEST LOGIN BANNER — Clean Minimal Card (2025)
+// ─────────────────────────────────────────────────────────────────
+
+class _GuestLoginBanner extends StatefulWidget {
+  const _GuestLoginBanner();
+
+  @override
+  State<_GuestLoginBanner> createState() => _GuestLoginBannerState();
+}
+
+class _GuestLoginBannerState extends State<_GuestLoginBanner> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final accent = isHighContrast ? context.accentPrimary : SigumiTheme.primaryBlue;
+    final accentEnd = isHighContrast ? context.accentPrimary : const Color(0xFF1A3080);
+
+    final bgColor = isHighContrast
+        ? context.bgSurface
+        : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFF));
+
+    final borderColor = isHighContrast
+        ? context.borderColor
+        : accent.withValues(alpha: isDark ? 0.25 : 0.18);
+
+    final textPrimary = isHighContrast
+        ? context.textPrimary
+        : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A));
+
+    final textSecondary = isHighContrast
+        ? context.textSecondary
+        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+
+    return AnimatedScale(
+      scale: _isPressed ? 0.97 : 1.0,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      child: GestureDetector(
+        onTapDown: (_) => setState(() => _isPressed = true),
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.pushNamed(context, AppRoutes.login);
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: borderColor, width: 1),
+            boxShadow: isHighContrast
+                ? []
+                : [
+                    BoxShadow(
+                      color: accent.withValues(alpha: isDark ? 0.08 : 0.06),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+          ),
+          child: Row(
+            children: [
+              // Icon block
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: isHighContrast
+                      ? null
+                      : LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [accent, accentEnd],
+                        ),
+                  color: isHighContrast ? context.accentPrimary : null,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: isHighContrast
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.28),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                ),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+
+              const SizedBox(width: 14),
+
+              // Text
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Masuk ke Akun',
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                        letterSpacing: -0.3,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'Akses laporan, AI, dan fitur lengkap',
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: textSecondary,
+                        height: 1.4,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              // CTA chip
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                decoration: BoxDecoration(
+                  gradient: isHighContrast
+                      ? null
+                      : LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [accent, accentEnd],
+                        ),
+                  color: isHighContrast ? context.accentPrimary : null,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: isHighContrast
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: accent.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                ),
+                child: Text(
+                  'Masuk',
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    )
+    .animate()
+    .fadeIn(duration: 400.ms, curve: Curves.easeOut)
+    .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic);
   }
 }
 
@@ -1189,34 +1839,56 @@ class _TourismBannerCard extends StatelessWidget {
 
   const _TourismBannerCard({required this.region});
 
-  static const Map<String, Color> _regionColors = {
-    'Yogyakarta': Color(0xFF1B2E7B),
-    'Bali': Color(0xFF1A6B4A),
-    'Lombok': Color(0xFF0D4F7C),
+  static const Map<String, String> _regionImages = {
+    'Yogyakarta':
+        'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&q=80&w=1000', // Merapi/Mountain style
+    'Bali':
+        'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&q=80&w=1000', // Bali temple style
+    'Lombok':
+        'https://images.unsplash.com/photo-1583022846753-83a4eba54ac1?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', // Custom Lombok Image
   };
 
   @override
   Widget build(BuildContext context) {
-    // Default fallback to signature blue if region not strictly matched
-    final bgColor = _regionColors[region] ?? const Color(0xFF1B2E7B);
+    final isHighContrast = context.isHighContrast;
+    // Default fallback to signature image if region not strictly matched
+    final imageUrl = _regionImages[region] ??
+        'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&q=80&w=1000';
 
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 110),
+      constraints: const BoxConstraints(minHeight: 120),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [bgColor, bgColor.withAlpha(200)],
-        ),
+        color: isHighContrast ? context.accentPrimary : const Color(0xFF1B2E7B),
+        image:
+            isHighContrast
+                ? null
+                : DecorationImage(
+                  image: NetworkImage(imageUrl),
+                  fit: BoxFit.cover,
+                  colorFilter: const ColorFilter.mode(
+                    Colors.black54, // Dark overlay for readability
+                    BlendMode.darken,
+                  ),
+                ),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: bgColor.withAlpha(50),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border:
+            isHighContrast
+                ? Border.all(
+                  color: context.borderColor,
+                  width: context.borderWidth,
+                )
+                : null,
+        boxShadow:
+            isHighContrast
+                ? []
+                : [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(50),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -1226,72 +1898,72 @@ class _TourismBannerCard extends StatelessWidget {
             HapticFeedback.lightImpact();
             Navigator.pushNamed(context, AppRoutes.tourism);
           },
-          child: Stack(
-            children: [
-              // Decorative Background Icon
-              Positioned(
-                right: -20,
-                bottom: -20,
-                child: Icon(
-                  Icons.explore_rounded,
-                  size: 140,
-                  color: Colors.white.withAlpha(25),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Title Typography Hierarchy
+                Text(
+                  '${context.tr('explore_tourism')} $region',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                const SizedBox(height: 6),
+                // Subtitle & Action Indicator (Hierarchical Spacing)
+                Row(
                   children: [
-                    // Title Typography Hierarchy
-                      Text(
-                        '${context.tr('explore_tourism')} $region',
-                        style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.3,
+                    Expanded(
+                      child: Text(
+                        context.tr('find_destination'),
+                        style: TextStyle(
+                          color: Colors.white.withAlpha(220),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    // Subtitle & Action Indicator (Hierarchical Spacing)
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            context.tr('find_destination'),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: SigumiTheme.primaryBlue,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'Jelajah',
                             style: TextStyle(
-                              color: Colors.white.withAlpha(200),
+                              color: Colors.white,
                               fontSize: 12,
-                              fontWeight: FontWeight.w400,
+                              fontWeight: FontWeight.w700,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(40),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
+                          SizedBox(width: 4),
+                          Icon(
                             Icons.arrow_forward_rounded,
                             color: Colors.white,
                             size: 14,
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

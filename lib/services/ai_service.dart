@@ -4,13 +4,14 @@ import '../config/globals.dart';
 import '../config/routes.dart';
 import '../models/chat_message.dart';
 import '../models/user_model.dart';
-import 'nlp_engine.dart';
-import 'nlp_knowledge_base.dart';
+import 'chatbot_engine.dart';
+import 'rule_based_fallback.dart';
+import 'connectivity_service.dart';
 
 /// Service AI utama untuk chatbot SIGUMI.
 ///
 /// Menangani:
-/// - Routing pesan ke NlpEngine
+/// - Routing pesan ke ChatbotEngine (Cloud LLM + Rule-Based fallback)
 /// - Personalisasi berdasarkan usia (anak/dewasa/lansia)
 /// - Pencarian titik kumpul aman terdekat (intent evakuasi)
 /// - Rekomendasi evakuasi berbasis arah angin
@@ -18,9 +19,6 @@ import 'nlp_knowledge_base.dart';
 class AiService {
   // ═══════════════════════════════════════════════════════════════
   // TITIK KUMPUL AMAN (Assembly Points)
-  // ═══════════════════════════════════════════════════════════════
-  // Data dummy realistis di sekitar Gunung Merapi
-  // (campuran sisi Yogyakarta & Jawa Tengah)
   // ═══════════════════════════════════════════════════════════════
   static const List<Map<String, dynamic>> assemblyPoints = [
     {
@@ -90,10 +88,6 @@ class AiService {
   // ═══════════════════════════════════════════════════════════════
 
   /// Menghasilkan respons chatbot berdasarkan pesan user.
-  ///
-  /// Parameter opsional:
-  /// - [user]: data profil user untuk personalisasi usia
-  /// - [userLat], [userLng]: koordinat user untuk pencarian titik kumpul
   static Future<ChatMessage> getResponse(
     String userMessage, {
     required String languageCode,
@@ -101,30 +95,40 @@ class AiService {
     UserModel? user,
     double? userLat,
     double? userLng,
+    List<ChatMessage>? conversationHistory,
   }) async {
     // 1. Tentukan kategori usia dari profil user
     final ageCategory = getAgeCategory(user);
 
-    // 2. Deteksi intent dulu untuk cek apakah evakuasi
-    final intentResult = await NlpEngine.detectIntent(userMessage);
+    // Check internet connection
+    final hasInternet = await ConnectivityService.hasInternet();
 
-    // 3. Jika intent evakuasi DAN lokasi tersedia → intercept dengan titik kumpul
-    if (intentResult.intent == 'evakuasi' && userLat != null && userLng != null) {
-      return _buildEvacuationResponse(
-        userLat: userLat,
-        userLng: userLng,
-        language: languageCode,
-        ageCategory: ageCategory,
-        confidence: intentResult.confidence,
-      );
+    String? locationContext;
+    if (RuleBasedFallback.isEvacuationIntent(userMessage) && userLat != null && userLng != null) {
+      if (hasInternet) {
+        // Online: Inject nearest assembly point into LLM context
+        final nearest = getNearestAssemblyPoint(userLat, userLng);
+        final distanceStr = nearest.distance.toStringAsFixed(1);
+        locationContext = 'Lokasi pengguna saat ini dekat dengan: ${nearest.name} (${nearest.desc}), berjarak sekitar $distanceStr km.';
+      } else {
+        // Offline: Intercept and build local response
+        return _buildEvacuationResponse(
+          userLat: userLat,
+          userLng: userLng,
+          language: languageCode,
+          ageCategory: ageCategory,
+        );
+      }
     }
 
-    // 4. Untuk intent lainnya, delegasi ke NlpEngine
-    return await NlpEngine.processMessage(
+    // 3. Delegasi ke ChatbotEngine (Cloud LLM primary + rule-based fallback)
+    return await ChatbotEngine.processMessage(
       userMessage,
       appLanguage: languageCode,
       isVoice: isVoice,
       ageCategory: ageCategory,
+      locationContext: locationContext,
+      conversationHistory: conversationHistory,
     );
   }
 
@@ -133,9 +137,6 @@ class AiService {
   // ═══════════════════════════════════════════════════════════════
 
   /// Menentukan kategori usia berdasarkan UserModel.
-  /// - Usia < 13 → 'anak'
-  /// - Usia > 60 → 'lansia'
-  /// - Default → 'dewasa'
   static String getAgeCategory(UserModel? user) {
     if (user == null || user.age == null) return 'dewasa';
     if (user.isChild) return 'anak';
@@ -147,30 +148,15 @@ class AiService {
   // WELCOME MESSAGE
   // ═══════════════════════════════════════════════════════════════
 
-  /// Mengambil pesan selamat datang berdasarkan bahasa dan usia.
+  /// Mengambil pesan selamat datang berdasarkan bahasa.
   static String getWelcomeMessage(String language, {UserModel? user}) {
-    // Cek di knowledge base dengan struktur 3-level baru
-    final salamResponses = NlpKnowledgeBase.responses['salam'];
-    if (salamResponses != null) {
-      if (salamResponses.containsKey(language)) {
-        return salamResponses[language] as String;
-      }
-      if (salamResponses.containsKey('id')) {
-        return salamResponses['id'] as String;
-      }
-    }
-
-    return 'Halo! Saya chatbot SIGUMI siap membantu Anda.';
+    return RuleBasedFallback.getWelcomeMessage(language);
   }
 
   // ═══════════════════════════════════════════════════════════════
   // PENCARIAN TITIK KUMPUL TERDEKAT
   // ═══════════════════════════════════════════════════════════════
 
-  /// Mencari titik kumpul aman terdekat dari posisi user.
-  /// Menggunakan formula Haversine untuk menghitung jarak.
-  ///
-  /// Return: ({String name, String desc, double distance})
   static ({String name, String desc, double distance}) getNearestAssemblyPoint(
     double userLat,
     double userLng,
@@ -202,18 +188,15 @@ class AiService {
   }
 
   /// Membangun respons evakuasi dinamis berdasarkan titik kumpul terdekat.
-  /// Dipanggil ketika intent == 'evakuasi' dan koordinat user tersedia.
   static ChatMessage _buildEvacuationResponse({
     required double userLat,
     required double userLng,
     required String language,
     required String ageCategory,
-    required double confidence,
   }) {
     final nearest = getNearestAssemblyPoint(userLat, userLng);
     final distanceStr = nearest.distance.toStringAsFixed(1);
 
-    // Format pesan berdasarkan bahasa dan usia
     final responseText = _formatEvacuationMessage(
       name: nearest.name,
       desc: nearest.desc,
@@ -228,7 +211,7 @@ class AiService {
       timestamp: DateTime.now(),
       language: language,
       messageType: MessageType.text,
-      confidence: confidence,
+      confidence: 1.0,
       intentId: 'evakuasi',
       isVoice: false,
     );
@@ -346,7 +329,6 @@ class AiService {
   // AI PERSONALIZATION
   // ═══════════════════════════════════════════════════════════════
 
-  /// Personalisasi sapaan berdasarkan profil user.
   static String getPersonalizedGreeting(UserModel? user) {
     if (user == null) return 'Selamat datang di SIGUMI';
     if (user.isChild) return 'Halo, Adik! 👋 Yuk belajar tentang gunung berapi!';
@@ -358,7 +340,6 @@ class AiService {
   // AI-BASED REPORT RADIUS VALIDATION
   // ═══════════════════════════════════════════════════════════════
 
-  /// Cek apakah user berada dalam radius valid untuk membuat laporan.
   static bool isWithinReportRadius(double userLat, double userLng, double maxRadiusKm) {
     final distance = calculateDistance(
       userLat, userLng,
@@ -385,7 +366,6 @@ class AiService {
   // AI EVACUATION RECOMMENDATION (wind-based)
   // ═══════════════════════════════════════════════════════════════
 
-  /// Rekomendasi arah evakuasi berdasarkan arah angin.
   static String getEvacuationRecommendation(String? windDirection) {
     if (windDirection == null) {
       return 'Ikuti jalur evakuasi yang telah ditentukan oleh BPBD.';
@@ -405,11 +385,9 @@ class AiService {
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // NAVIGATION INTENT — Navigasi Otomatis dari Voice Assistant
+  // NAVIGATION INTENT
   // ═══════════════════════════════════════════════════════════════
 
-  /// Mapping intent NLP ke route aplikasi.
-  /// Jika intent bukan navigasi, return null.
   static String? _getRouteForIntent(String intentId) {
     switch (intentId) {
       case 'evakuasi':
@@ -435,7 +413,6 @@ class AiService {
     }
   }
 
-  /// Teks konfirmasi navigasi yang dibacakan TTS sebelum pindah halaman.
   static String _getNavigationConfirmation(String intentId, String language) {
     final Map<String, Map<String, String>> confirmations = {
       'evakuasi': {
@@ -483,10 +460,6 @@ class AiService {
     return language == 'en' ? 'Processing...' : 'Memproses...';
   }
 
-  /// Mencoba melakukan navigasi otomatis berdasarkan intent.
-  /// Dipanggil oleh GlobalAssistantProvider setelah mendapat respons.
-  ///
-  /// Return true jika navigasi berhasil dilakukan.
   static bool tryNavigateForIntent(String intentId) {
     final route = _getRouteForIntent(intentId);
     if (route == null) return false;
@@ -497,13 +470,11 @@ class AiService {
       return false;
     }
 
-    // Gunakan pushNamed agar user bisa kembali ke halaman sebelumnya
     navigator.pushNamed(route);
     debugPrint('[AiService] 🗺️ Auto-navigated to: $route (intent: $intentId)');
     return true;
   }
 
-  /// Mendapatkan teks konfirmasi navigasi untuk TTS.
   static String getNavigationText(String intentId, String language) {
     return _getNavigationConfirmation(intentId, language);
   }
