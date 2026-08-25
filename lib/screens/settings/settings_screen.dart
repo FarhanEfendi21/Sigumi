@@ -6,10 +6,14 @@ import '../../config/theme.dart';
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
 import '../../config/theme_extensions.dart';
+import '../../config/ollama_config.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/localization_service.dart';
+import '../../services/cloud_llm_service.dart';
+import '../../services/connectivity_service.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 
 /// Halaman Profil — mengikuti pedoman Apple Human Interface Guidelines (HIG).
 ///
@@ -128,6 +132,16 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: context.tr('version'),
                       onTap: () => _showAbout(context),
                     ),
+                  ],
+                ),
+
+                const SizedBox(height: 28),
+
+                // ── 3.5. Section: Server LLM (Testing) ──────────────
+                _SectionHeader(label: 'SERVER LLM'),
+                _GroupedList(
+                  children: [
+                    _LlmSettingsRow(),
                   ],
                 ),
 
@@ -995,3 +1009,513 @@ class _GuestProfileView extends StatelessWidget {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// LLM SETTINGS ROW — Konfigurasi Ollama Server (Testing/Runtime)
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _LlmSettingsRow extends StatefulWidget {
+  const _LlmSettingsRow();
+
+  @override
+  State<_LlmSettingsRow> createState() => _LlmSettingsRowState();
+}
+
+class _LlmSettingsRowState extends State<_LlmSettingsRow> {
+  @override
+  Widget build(BuildContext context) {
+    final currentUrl = OllamaConfig.baseUrl;
+    final currentModel = OllamaConfig.modelName;
+    final isOverride = OllamaConfig.hasRuntimeOverride;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          _showLlmSettings(context);
+        },
+        splashColor: context.dividerColor.withValues(alpha: 0.3),
+        highlightColor: context.bgSecondary.withValues(alpha: 0.5),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              _IconBadge(
+                icon: CupertinoIcons.desktopcomputer,
+                background: const Color(0xFF5856D6),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          'Server Ollama',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: context.textPrimary,
+                            letterSpacing: -0.2,
+                            height: 1.3,
+                          ),
+                        ),
+                        if (isOverride) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF34C759).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'CUSTOM',
+                              style: TextStyle(
+                                fontFamily: 'Plus Jakarta Sans',
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF34C759),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$currentUrl • $currentModel',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: context.textSecondary,
+                        height: 1.4,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                CupertinoIcons.chevron_right,
+                size: 16,
+                color: context.textTertiary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLlmSettings(BuildContext context) {
+    final urlController = TextEditingController(text: OllamaConfig.baseUrl);
+    final modelController = TextEditingController(text: OllamaConfig.modelName);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return _LlmSettingsSheet(
+          urlController: urlController,
+          modelController: modelController,
+          onSave: (url, model) async {
+            await OllamaConfig.saveToPrefs(baseUrl: url, modelName: model);
+            CloudLlmService.init(
+              baseUrl: OllamaConfig.baseUrl,
+              modelName: OllamaConfig.modelName,
+              apiKey: OllamaConfig.apiKey,
+            );
+            ConnectivityService.invalidateCache();
+            if (mounted) setState(() {});
+          },
+          onReset: () async {
+            await OllamaConfig.clearRuntimeOverrides();
+            if (OllamaConfig.isConfigured) {
+              CloudLlmService.init(
+                baseUrl: OllamaConfig.baseUrl,
+                modelName: OllamaConfig.modelName,
+                apiKey: OllamaConfig.apiKey,
+              );
+            }
+            ConnectivityService.invalidateCache();
+            if (mounted) setState(() {});
+          },
+        );
+      },
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// LLM SETTINGS BOTTOM SHEET
+// ══════════════════════════════════════════════════════════════════════════════
+
+class _LlmSettingsSheet extends StatefulWidget {
+  final TextEditingController urlController;
+  final TextEditingController modelController;
+  final Future<void> Function(String url, String model) onSave;
+  final Future<void> Function() onReset;
+
+  const _LlmSettingsSheet({
+    required this.urlController,
+    required this.modelController,
+    required this.onSave,
+    required this.onReset,
+  });
+
+  @override
+  State<_LlmSettingsSheet> createState() => _LlmSettingsSheetState();
+}
+
+class _LlmSettingsSheetState extends State<_LlmSettingsSheet> {
+  bool _isTesting = false;
+  String? _testResult;
+  bool? _testSuccess;
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: bottomInset),
+      decoration: BoxDecoration(
+        color: context.bgSurface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: context.textTertiary.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Title
+              Text(
+                '🖥️  Konfigurasi Server LLM',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Atur alamat server Ollama untuk chatbot Si Gumi.\n'
+                'Pastikan HP dan server terhubung di WiFi yang sama.',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  color: context.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // URL Field
+              _buildLabel('Server URL'),
+              const SizedBox(height: 6),
+              _buildTextField(
+                controller: widget.urlController,
+                hint: 'http://192.168.1.100:11434',
+                icon: CupertinoIcons.link,
+              ),
+              const SizedBox(height: 16),
+
+              // Model Field
+              _buildLabel('Model Name'),
+              const SizedBox(height: 6),
+              _buildTextField(
+                controller: widget.modelController,
+                hint: 'sigumi-gumi',
+                icon: CupertinoIcons.cube,
+              ),
+              const SizedBox(height: 16),
+
+              // Test Result
+              if (_testResult != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: (_testSuccess == true
+                            ? const Color(0xFF34C759)
+                            : const Color(0xFFFF3B30))
+                        .withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: (_testSuccess == true
+                              ? const Color(0xFF34C759)
+                              : const Color(0xFFFF3B30))
+                          .withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _testSuccess == true
+                            ? CupertinoIcons.checkmark_circle_fill
+                            : CupertinoIcons.xmark_circle_fill,
+                        size: 18,
+                        color: _testSuccess == true
+                            ? const Color(0xFF34C759)
+                            : const Color(0xFFFF3B30),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _testResult!,
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: context.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: OutlinedButton.icon(
+                        onPressed: _isTesting ? null : _testConnection,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF5856D6),
+                          side: BorderSide(
+                            color: const Color(0xFF5856D6).withValues(alpha: 0.4),
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: _isTesting
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF5856D6),
+                                ),
+                              )
+                            : const Icon(CupertinoIcons.wifi, size: 16),
+                        label: Text(
+                          _isTesting ? 'Testing...' : 'Tes Koneksi',
+                          style: const TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: SizedBox(
+                      height: 46,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          await widget.onSave(
+                            widget.urlController.text,
+                            widget.modelController.text,
+                          );
+                          if (mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: const Text(
+                                  '✅ Konfigurasi LLM disimpan!',
+                                  style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
+                                ),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5856D6),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(CupertinoIcons.checkmark_alt, size: 16),
+                        label: const Text(
+                          'Simpan',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
+              // Reset button
+              if (OllamaConfig.hasRuntimeOverride)
+                SizedBox(
+                  width: double.infinity,
+                  height: 40,
+                  child: TextButton(
+                    onPressed: () async {
+                      await widget.onReset();
+                      if (mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              '🔄 Konfigurasi direset ke default.',
+                              style: TextStyle(fontFamily: 'Plus Jakarta Sans'),
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text(
+                      'Reset ke Default',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFFF3B30),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: TextStyle(
+        fontFamily: 'Plus Jakarta Sans',
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: context.textSecondary,
+        letterSpacing: 0.3,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.bgSecondary,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: context.borderColor),
+      ),
+      child: TextField(
+        controller: controller,
+        style: TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontSize: 15,
+          color: context.textPrimary,
+        ),
+        decoration: InputDecoration(
+          prefixIcon: Icon(icon, size: 18, color: context.textTertiary),
+          hintText: hint,
+          hintStyle: TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 14,
+            color: context.textTertiary,
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _testConnection() async {
+    setState(() {
+      _isTesting = true;
+      _testResult = null;
+      _testSuccess = null;
+    });
+
+    final url = widget.urlController.text.trim();
+    if (url.isEmpty) {
+      setState(() {
+        _isTesting = false;
+        _testResult = 'URL tidak boleh kosong';
+        _testSuccess = false;
+      });
+      return;
+    }
+
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(
+        const Duration(seconds: 5),
+      );
+
+      if (response.statusCode == 200 &&
+          response.body.contains('Ollama is running')) {
+        setState(() {
+          _testResult = 'Server Ollama terhubung!';
+          _testSuccess = true;
+        });
+      } else {
+        setState(() {
+          _testResult = 'Server merespons tapi bukan Ollama (${response.statusCode})';
+          _testSuccess = false;
+        });
+      }
+    } catch (e) {
+      final msg = e.toString();
+      setState(() {
+        _testResult = 'Gagal terhubung: ${msg.length > 60 ? '${msg.substring(0, 60)}...' : msg}';
+        _testSuccess = false;
+      });
+    } finally {
+      setState(() => _isTesting = false);
+    }
+  }
+}

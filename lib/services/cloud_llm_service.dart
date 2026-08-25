@@ -111,7 +111,7 @@ $ageContext
     String ageCategory = 'dewasa',
     String? locationContext,
     List<ChatMessage>? conversationHistory,
-    Duration timeout = const Duration(seconds: 30),
+    Duration timeout = const Duration(seconds: 60),
   }) async {
     // Coba pertama
     final result = await _doRequest(

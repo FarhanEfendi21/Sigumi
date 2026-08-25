@@ -1,55 +1,101 @@
+import 'package:shared_preferences/shared_preferences.dart';
+
 /// Konfigurasi Ollama Server untuk Cloud LLM (Gemma 4).
 ///
-/// Ollama menjalankan model Gemma 4 secara self-hosted di VPS/server.
-/// Konfigurasi dapat di-set melalui environment variable saat build:
+/// Mendukung dua mode:
+/// 1. **Compile-time** via `--dart-define=OLLAMA_BASE_URL=...` (untuk build)
+/// 2. **Runtime** via SharedPreferences (untuk testing/settings UI)
 ///
-/// ```bash
-/// flutter run \
-///   --dart-define=OLLAMA_BASE_URL=https://your-vps.com:11434 \
-///   --dart-define=OLLAMA_MODEL=gemma4:12b \
-///   --dart-define=OLLAMA_API_KEY=your_secret_key
-/// ```
-///
-/// Untuk development lokal, cukup jalankan Ollama di mesin sendiri:
-/// ```bash
-/// ollama pull gemma4:e4b
-/// ollama serve
-/// ```
+/// Prioritas: Runtime override > compile-time > default.
 class OllamaConfig {
-  /// Base URL server Ollama.
-  ///
-  /// Default: `http://localhost:11434` (untuk development lokal).
-  /// Production: Ganti ke URL VPS via `--dart-define=OLLAMA_BASE_URL=...`
-  static const String baseUrl = String.fromEnvironment(
+  // ── SharedPreferences keys ──
+  static const _keyBaseUrl = 'ollama_base_url';
+  static const _keyModelName = 'ollama_model_name';
+
+  // ── Runtime overrides (di-load dari SharedPreferences) ──
+  static String? _runtimeBaseUrl;
+  static String? _runtimeModelName;
+
+  /// Compile-time base URL (dari --dart-define atau default).
+  static const String _compileTimeBaseUrl = String.fromEnvironment(
     'OLLAMA_BASE_URL',
     defaultValue: 'http://localhost:11434',
   );
 
-  /// Model Gemma 4 yang digunakan.
-  ///
-  /// Variant yang tersedia di Ollama:
-  /// - `gemma4:e2b`  → 2B params, untuk edge device
-  /// - `gemma4:e4b`  → 4B params, balanced (rekomendasi VPS kecil)
-  /// - `gemma4:12b`  → 12B params, workstation-grade
-  /// - `gemma4:27b`  → 27B MoE, frontier-level
-  static const String modelName = String.fromEnvironment(
+  /// Compile-time model name.
+  static const String _compileTimeModelName = String.fromEnvironment(
     'OLLAMA_MODEL',
     defaultValue: 'gemma4:e4b',
   );
 
-  /// API key opsional untuk autentikasi.
-  ///
-  /// Ollama default tidak butuh API key. Tapi jika server dilindungi
-  /// reverse proxy (nginx/caddy) dengan auth, set key di sini.
-  /// Dikirim sebagai header `Authorization: Bearer <key>`.
+  /// API key opsional untuk autentikasi reverse proxy.
   static const String apiKey = String.fromEnvironment(
     'OLLAMA_API_KEY',
     defaultValue: '',
   );
 
-  /// Cek apakah Ollama sudah dikonfigurasi (baseUrl tidak kosong).
+  /// Base URL aktif — runtime override > compile-time.
+  static String get baseUrl => _runtimeBaseUrl ?? _compileTimeBaseUrl;
+
+  /// Model name aktif — runtime override > compile-time.
+  static String get modelName => _runtimeModelName ?? _compileTimeModelName;
+
+  /// Cek apakah Ollama sudah dikonfigurasi.
   static bool get isConfigured => baseUrl.isNotEmpty;
 
-  /// Cek apakah API key di-set (untuk reverse proxy auth).
+  /// Cek apakah API key di-set.
   static bool get hasApiKey => apiKey.isNotEmpty;
+
+  /// Cek apakah sedang pakai runtime override.
+  static bool get hasRuntimeOverride =>
+      _runtimeBaseUrl != null || _runtimeModelName != null;
+
+  /// Load runtime config dari SharedPreferences.
+  /// Panggil sekali saat app startup (di main()).
+  static Future<void> loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedUrl = prefs.getString(_keyBaseUrl);
+    final savedModel = prefs.getString(_keyModelName);
+
+    if (savedUrl != null && savedUrl.isNotEmpty) {
+      _runtimeBaseUrl = savedUrl;
+    }
+    if (savedModel != null && savedModel.isNotEmpty) {
+      _runtimeModelName = savedModel;
+    }
+  }
+
+  /// Simpan runtime config ke SharedPreferences.
+  /// Dipanggil dari Settings UI.
+  static Future<void> saveToPrefs({
+    required String baseUrl,
+    required String modelName,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (baseUrl.trim().isNotEmpty) {
+      _runtimeBaseUrl = baseUrl.trim();
+      await prefs.setString(_keyBaseUrl, _runtimeBaseUrl!);
+    } else {
+      _runtimeBaseUrl = null;
+      await prefs.remove(_keyBaseUrl);
+    }
+
+    if (modelName.trim().isNotEmpty) {
+      _runtimeModelName = modelName.trim();
+      await prefs.setString(_keyModelName, _runtimeModelName!);
+    } else {
+      _runtimeModelName = null;
+      await prefs.remove(_keyModelName);
+    }
+  }
+
+  /// Reset runtime overrides — kembali ke compile-time values.
+  static Future<void> clearRuntimeOverrides() async {
+    final prefs = await SharedPreferences.getInstance();
+    _runtimeBaseUrl = null;
+    _runtimeModelName = null;
+    await prefs.remove(_keyBaseUrl);
+    await prefs.remove(_keyModelName);
+  }
 }

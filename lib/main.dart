@@ -34,7 +34,9 @@ void main() async {
   }
 
   // Inisialisasi Cloud LLM (Ollama + Gemma 4) untuk chatbot.
+  // Load runtime config (dari Settings UI) lalu init service.
   // Jika server tidak dikonfigurasi, chatbot tetap berjalan dengan NLP lokal saja.
+  await OllamaConfig.loadFromPrefs();
   if (OllamaConfig.isConfigured) {
     CloudLlmService.init(
       baseUrl: OllamaConfig.baseUrl,
