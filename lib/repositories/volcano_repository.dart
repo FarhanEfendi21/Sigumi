@@ -3,6 +3,7 @@ import '../config/supabase_config.dart';
 import '../models/volcano_activity.dart';
 import '../models/eruption_history.dart';
 import '../models/volcanic_daily_report.dart';
+import '../models/volcano_summarizer.dart';
 
 /// Repository untuk fetch data aktivitas & erupsi dari Supabase.
 ///
@@ -25,9 +26,8 @@ class VolcanoRepository {
 
     try {
       final client = Supabase.instance.client;
-      final sevenDaysAgo = DateTime.now()
-          .subtract(const Duration(days: 7))
-          .toIso8601String();
+      final sevenDaysAgo =
+          DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
 
       final response = await client
           .from('volcano_activities')
@@ -145,6 +145,69 @@ class VolcanoRepository {
       return results;
     } catch (e) {
       return [];
+    }
+  }
+  /// Fetch ringkasan aktivitas gunung harian dari volcano_summarizer
+  ///
+  /// [volcanoKey] — kunci unik gunung (misal: 'merapi')
+  /// [limit] — jumlah maksimal data yang diambil (default 30 hari terakhir)
+  /// Returns list kosong jika tabel belum ada atau belum ada data
+  Future<List<VolcanoSummarizer>> getVolcanoSummaries(
+    String volcanoKey, {
+    int limit = 30,
+  }) async {
+    if (!SupabaseConfig.isConfigured) {
+      return [];
+    }
+
+    try {
+      final client = Supabase.instance.client;
+
+      final response = await client
+          .from('volcano_summarizer')
+          .select()
+          .eq('volcano_key', volcanoKey)
+          .order('report_date', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => VolcanoSummarizer.fromJson(json))
+          .toList();
+    } catch (e) {
+      // Tabel mungkin belum ada atau belum ada data
+      // debugPrint('[VolcanoRepository] getVolcanoSummaries: $e');
+      return [];
+    }
+  }
+
+  /// Fetch ringkasan terbaru untuk gunung tertentu
+  ///
+  /// [volcanoKey] — kunci unik gunung
+  /// Returns null jika tidak ada data
+  Future<VolcanoSummarizer?> getLatestVolcanoSummary(String volcanoKey) async {
+    if (!SupabaseConfig.isConfigured) {
+      return null;
+    }
+
+    try {
+      final client = Supabase.instance.client;
+
+      final response = await client
+          .from('volcano_summarizer')
+          .select()
+          .eq('volcano_key', volcanoKey)
+          .order('report_date', ascending: false)
+          .limit(1);
+
+      if ((response as List).isEmpty) {
+        return null;
+      }
+
+      return VolcanoSummarizer.fromJson(response.first);
+    } catch (e) {
+      // Tabel mungkin belum ada atau belum ada data
+      // debugPrint('[VolcanoRepository] getLatestVolcanoSummary: $e');
+      return null;
     }
   }
 }

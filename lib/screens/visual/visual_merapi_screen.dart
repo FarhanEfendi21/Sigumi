@@ -6,11 +6,12 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:latlong2/latlong.dart' hide Path;
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/eruption_history.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/volcanic_report_section.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../../widgets/volcano_summarizer_widget.dart';
 
 /// Data kamera CCTV Merapi
 class _CctvCamera {
@@ -176,9 +177,10 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
           }
         }
 
-        final hasCctv = volcano.id == 'merapi_001' || 
-                        volcano.id == VolcanoModel.kMerapiUuid || 
-                        volcano.name.toLowerCase().contains('merapi');
+        final hasCctv =
+            volcano.id == 'merapi_001' ||
+            volcano.id == VolcanoModel.kMerapiUuid ||
+            volcano.name.toLowerCase().contains('merapi');
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -438,54 +440,61 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       if (!hasCctv) ...[
                         // ── Info Gunung (untuk yang tidak ada CCTV) ──
                         Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.blue.shade200, width: 1),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.shade100,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.info_rounded,
-                                  color: Colors.blue.shade700,
-                                  size: 20,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.blue.shade200,
+                                  width: 1,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      volcano.name,
-                                      style: AppFonts.plusJakartaSans(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.blue.shade900,
-                                      ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade100,
+                                      shape: BoxShape.circle,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
-                                      style: AppFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        color: Colors.blue.shade700,
-                                        height: 1.4,
-                                      ),
+                                    child: Icon(
+                                      Icons.info_rounded,
+                                      color: Colors.blue.shade700,
+                                      size: 20,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          volcano.name,
+                                          style: AppFonts.plusJakartaSans(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.blue.shade900,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
+                                          style: AppFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            color: Colors.blue.shade700,
+                                            height: 1.4,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.05, end: 0),
+                            )
+                            .animate()
+                            .fadeIn(duration: 500.ms)
+                            .slideY(begin: 0.05, end: 0),
                         const SizedBox(height: 28),
                       ],
 
@@ -544,6 +553,15 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
 
                       const SizedBox(height: 32),
 
+                      // ── Ringkasan Aktivitas Harian (dari volcano_summarizer) ──
+                      if (hasCctv)
+                        VolcanoLatestSummaryWithHistoryButton(
+                          volcanoKey: 'merapi',
+                          limit: 30,
+                          title: 'Ringkasan Aktivitas Terbaru',
+                        ),
+
+                      if (hasCctv) const SizedBox(height: 32),
                       // ── Riwayat Erupsi ──
                       Text(
                         'Riwayat Erupsi',
@@ -631,6 +649,21 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     );
   }
 
+Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: Icon(icon, color: Colors.white, size: 18),
+    ),
+  );
+  }
+
   Widget _buildErrorView() {
     return Container(
       color: const Color(0xFFF8F9FA),
@@ -710,8 +743,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
   }
 
 
-
-
   // ── Seksi Informasi Klimatologi dari MAGMA ──────────────────────
   Widget _buildClimatologySection(VolcanoProvider provider, VolcanoModel volcano) {
     // Ambil laporan terbaru untuk gunung ini
@@ -720,6 +751,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
         : volcano.name.toLowerCase().contains('agung')
             ? 'agung'
             : 'rinjani';
+
 
     final report = provider.dailyReports
         .where((r) => r.volcanoKey == key)

@@ -9,6 +9,7 @@ import '../models/user_model.dart';
 import '../models/volcano_activity.dart';
 import '../models/volcano_model.dart';
 import '../models/emergency_contact.dart';
+import '../models/volcano_summarizer.dart';
 import '../models/volcanic_daily_report.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/emergency_repository.dart';
@@ -38,6 +39,11 @@ class VolcanoProvider extends ChangeNotifier {
   // ── Laporan Harian MAGMA Indonesia ──
   List<VolcanicDailyReport> _dailyReports = [];
   bool _isLoadingDailyReports = false;
+
+  // ── Ringkasan Aktivitas Gunung Harian (dari volcano_summarizer) ──
+  List<VolcanoSummarizer> _volcanoSummaries = [];
+  VolcanoSummarizer? _latestVolcanoSummary;
+  bool _isLoadingSummaries = false;
 
   // ── Nomor Telepon Darurat ──
   List<EmergencyContact> _emergencyContacts = [];
@@ -120,6 +126,12 @@ class VolcanoProvider extends ChangeNotifier {
   List<VolcanicDailyReport> get dailyReports => _dailyReports;
   bool get isLoadingDailyReports => _isLoadingDailyReports;
   bool get hasDailyReports => _dailyReports.isNotEmpty;
+
+  // ── Getters Ringkasan Aktivitas Gunung ──
+  List<VolcanoSummarizer> get volcanoSummaries => _volcanoSummaries;
+  VolcanoSummarizer? get latestVolcanoSummary => _latestVolcanoSummary;
+  bool get isLoadingSummaries => _isLoadingSummaries;
+  bool get hasVolcanoSummaries => _volcanoSummaries.isNotEmpty;
 
   // ── Getters Nomor Darurat ──
   List<EmergencyContact> get emergencyContacts => _emergencyContacts;
@@ -1004,6 +1016,56 @@ class VolcanoProvider extends ChangeNotifier {
     }
 
     _isLoadingContacts = false;
+    notifyListeners();
+  }
+
+  /// ──────────────────────────────────────────────────
+  /// FETCH RINGKASAN AKTIVITAS GUNUNG dari volcano_summarizer
+  /// ──────────────────────────────────────────────────
+  /// Mengambil data ringkasan aktivitas harian dari Supabase.
+  /// [volcanoKey] — kunci unik gunung (contoh: 'merapi')
+  /// [limit] — jumlah data yang diambil (default 30 hari)
+  Future<void> fetchVolcanoSummaries(
+    String volcanoKey, {
+    int limit = 30,
+  }) async {
+    _isLoadingSummaries = true;
+    notifyListeners();
+
+    try {
+      _volcanoSummaries = await _volcanoRepo.getVolcanoSummaries(
+        volcanoKey,
+        limit: limit,
+      );
+    } catch (e) {
+      debugPrint('[VolcanoProvider] fetchVolcanoSummaries error: $e');
+      _volcanoSummaries = [];
+    }
+
+    _isLoadingSummaries = false;
+    notifyListeners();
+  }
+
+  /// ──────────────────────────────────────────────────
+  /// FETCH RINGKASAN TERBARU dari volcano_summarizer
+  /// ──────────────────────────────────────────────────
+  /// Mengambil data ringkasan aktivitas terbaru gunung.
+  /// [volcanoKey] — kunci unik gunung (contoh: 'merapi')
+  /// Returns null jika tidak ada data
+  Future<void> fetchLatestVolcanoSummary(String volcanoKey) async {
+    _isLoadingSummaries = true;
+    notifyListeners();
+
+    try {
+      _latestVolcanoSummary = await _volcanoRepo.getLatestVolcanoSummary(
+        volcanoKey,
+      );
+    } catch (e) {
+      debugPrint('[VolcanoProvider] fetchLatestVolcanoSummary error: $e');
+      _latestVolcanoSummary = null;
+    }
+
+    _isLoadingSummaries = false;
     notifyListeners();
   }
 
