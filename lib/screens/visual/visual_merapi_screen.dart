@@ -10,7 +10,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/eruption_history.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
-import '../../widgets/volcanic_report_section.dart';
 import '../../widgets/volcano_summarizer_widget.dart';
 
 /// Data kamera CCTV Merapi
@@ -82,7 +81,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<VolcanoProvider>().fetchEruptionHistory();
-      context.read<VolcanoProvider>().fetchDailyReports();
     });
   }
 
@@ -498,58 +496,54 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                         const SizedBox(height: 28),
                       ],
 
-                      // ── Informasi Terkini (dari MAGMA Indonesia) ──
-                      Row(
-                        children: [
-                          Text(
-                            'Informasi Terkini',
-                            style: AppFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF1E1E2C),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.redAccent.withValues(alpha: 0.2)),
-                            ),
-                            child: Text(
-                              'PVMBG',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.redAccent.shade700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
+                      // ── Informasi Terkini ──
                       Text(
-                        'Sumber: MAGMA Indonesia',
+                        'Informasi Terkini',
                         style: AppFonts.plusJakartaSans(
-                          fontSize: 11,
-                          color: const Color(0xFF9E9EAE),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E1E2C),
                         ),
                       ),
                       const SizedBox(height: 14),
 
-                      _buildClimatologySection(provider, volcano)
+                      GridView.count(
+                            crossAxisCount: 2,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            mainAxisSpacing: 12,
+                            crossAxisSpacing: 12,
+                            childAspectRatio: 1.7,
+                            children: [
+                              _buildInfoGridCard(
+                                icon: Icons.thermostat_rounded,
+                                title: 'Suhu Kawah',
+                                value: '${volcano.temperature ?? '-'}°C',
+                                color: Colors.orange,
+                              ),
+                              _buildInfoGridCard(
+                                icon: Icons.air_rounded,
+                                title: 'Arah Angin',
+                                value: volcano.windDirection ?? '-',
+                                color: Colors.blue,
+                              ),
+                              _buildInfoGridCard(
+                                icon: Icons.speed_rounded,
+                                title: 'Kecepatan',
+                                value: '${volcano.windSpeed ?? '-'} km/h',
+                                color: Colors.teal,
+                              ),
+                              _buildInfoGridCard(
+                                icon: Icons.height_rounded,
+                                title: 'Elevasi',
+                                value: '${volcano.elevation} mdpl',
+                                color: Colors.indigo,
+                              ),
+                            ],
+                          )
                           .animate()
                           .fadeIn(delay: 150.ms, duration: 400.ms)
                           .slideY(begin: 0.05, end: 0),
-
-                      const SizedBox(height: 32),
-
-                      // ── Laporan Harian MAGMA ──
-                      VolcanicReportSection(
-                        reports: provider.dailyReports,
-                        isLoading: provider.isLoadingDailyReports,
-                      ).animate().fadeIn(delay: 300.ms, duration: 400.ms),
 
                       const SizedBox(height: 32),
 
@@ -743,144 +737,21 @@ Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
   }
 
 
-  // ── Seksi Informasi Klimatologi dari MAGMA ──────────────────────
-  Widget _buildClimatologySection(VolcanoProvider provider, VolcanoModel volcano) {
-    // Ambil laporan terbaru untuk gunung ini
-    final key = volcano.name.toLowerCase().contains('merapi')
-        ? 'merapi'
-        : volcano.name.toLowerCase().contains('agung')
-            ? 'agung'
-            : 'rinjani';
-
-
-    final report = provider.dailyReports
-        .where((r) => r.volcanoKey == key)
-        .isNotEmpty
-        ? provider.dailyReports.firstWhere((r) => r.volcanoKey == key)
-        : null;
-
-    final isLoading = provider.isLoadingDailyReports;
-
-    // Jika loading → skeleton
-    if (isLoading) {
-      return Column(
-        children: List.generate(
-          4,
-          (index) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: _buildSkeletonCard(),
-          ),
-        ),
-      );
-    }
-
-    // Tentukan nilai: pakai MAGMA jika ada, fallback ke volcano mock
-    final hasReport = report != null && report.hasClimatologyData;
-
-    final weather = hasReport
-        ? (report.weather ?? '-')
-        : 'Data belum tersedia';
-    final windVal = hasReport
-        ? report.windLabel
-        : (volcano.windDirection != null
-            ? '${volcano.windDirection}'
-            : '-');
-    final humidityVal = hasReport ? report.humidityLabel : '-';
-    final pressureVal = hasReport ? report.pressureLabel : '-';
-    final elevationVal = '${volcano.elevation.toInt()} mdpl';
-
-    return Column(
-      children: [
-        // Cuaca - Full Width
-        _buildMetricCard(
-          icon: Icons.wb_sunny_rounded,
-          label: 'Kondisi Cuaca',
-          value: weather,
-          color: const Color(0xFFF59E0B),
-        ),
-        const SizedBox(height: 12),
-        // Angin - Full Width
-        _buildMetricCard(
-          icon: Icons.air_rounded,
-          label: 'Angin',
-          value: windVal,
-          color: Colors.blue,
-        ),
-        const SizedBox(height: 12),
-        // Elevasi - Full Width
-        _buildMetricCard(
-          icon: Icons.height_rounded,
-          label: 'Elevasi',
-          value: elevationVal,
-          color: Colors.indigo,
-        ),
-        const SizedBox(height: 12),
-        // Tekanan Udara & Kelembaban - sejajar
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: _buildMetricCard(
-                icon: Icons.compress_rounded,
-                label: 'Tekanan Udara',
-                value: pressureVal,
-                color: Colors.purple,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildMetricCard(
-                icon: Icons.water_drop_rounded,
-                label: 'Kelembaban',
-                value: humidityVal,
-                color: Colors.teal,
-              ),
-            ),
-          ],
-        ),
-
-        // Badge sumber + tanggal laporan
-        if (hasReport) ...[
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Icon(Icons.info_outline_rounded,
-                  size: 12, color: Colors.grey.shade500),
-              const SizedBox(width: 4),
-              Text(
-                'Data per ${_formatReportDate(report.reportDate)}',
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ],
-    );
-  }
-
-
-  /// Unified Metric Card (Bisa Full Width atau dalam Row)
-  Widget _buildMetricCard({
+  Widget _buildInfoGridCard({
     required IconData icon,
-    required String label,
+    required String title,
     required String value,
     required Color color,
   }) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF3F4F6), width: 1.5),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.03),
+            color: color.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -888,6 +759,7 @@ Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             children: [
@@ -897,17 +769,18 @@ Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(icon, color: color, size: 14),
+                child: Icon(icon, color: color, size: 16),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  label,
+                  title,
                   style: AppFonts.plusJakartaSans(
                     fontSize: 12,
                     color: const Color(0xFF8E8E9E),
                     fontWeight: FontWeight.w600,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -916,39 +789,14 @@ Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
           Text(
             value,
             style: AppFonts.plusJakartaSans(
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               color: const Color(0xFF1E1E2C),
-              height: 1.3,
             ),
-            // Hapus maxLines & overflow agar text bisa multiline (wrap)
           ),
         ],
       ),
     );
-  }
-
-  /// Skeleton card saat loading
-  Widget _buildSkeletonCard() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3F4F6),
-        borderRadius: BorderRadius.circular(14),
-      ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(
-          begin: 0.4,
-          end: 0.8,
-          duration: 800.ms,
-        );
-  }
-
-  String _formatReportDate(DateTime dt) {
-    const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
-      'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des',
-    ];
-    return '${dt.day} ${months[dt.month]} ${dt.year}';
   }
 
   Widget _buildEruptionHistoryContent(VolcanoProvider provider) {

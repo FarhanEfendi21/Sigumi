@@ -10,7 +10,6 @@ import '../models/volcano_activity.dart';
 import '../models/volcano_model.dart';
 import '../models/emergency_contact.dart';
 import '../models/volcano_summarizer.dart';
-import '../models/volcanic_daily_report.dart';
 import '../repositories/auth_repository.dart';
 import '../repositories/emergency_repository.dart';
 import '../repositories/volcano_repository.dart';
@@ -36,9 +35,7 @@ class VolcanoProvider extends ChangeNotifier {
   bool _isLoadingEruptions = false;
   bool _isLoadingVolcanoes = true;
 
-  // ── Laporan Harian MAGMA Indonesia ──
-  List<VolcanicDailyReport> _dailyReports = [];
-  bool _isLoadingDailyReports = false;
+
 
   // ── Ringkasan Aktivitas Gunung Harian (dari volcano_summarizer) ──
   List<VolcanoSummarizer> _volcanoSummaries = [];
@@ -122,10 +119,7 @@ class VolcanoProvider extends ChangeNotifier {
   bool get hasActivities => _recentActivities.isNotEmpty;
   bool get hasEruptionHistory => _eruptionHistory.isNotEmpty;
 
-  // ── Getters Laporan Harian MAGMA ──
-  List<VolcanicDailyReport> get dailyReports => _dailyReports;
-  bool get isLoadingDailyReports => _isLoadingDailyReports;
-  bool get hasDailyReports => _dailyReports.isNotEmpty;
+
 
   // ── Getters Ringkasan Aktivitas Gunung ──
   List<VolcanoSummarizer> get volcanoSummaries => _volcanoSummaries;
@@ -896,7 +890,7 @@ class VolcanoProvider extends ChangeNotifier {
         _processMagmaPayload(data);
       }
     } catch (e) {
-      debugPrint('[MAGMA] âš ï¸ Sync status error: $e');
+      debugPrint('[MAGMA] âš ï¸  Sync status error: $e');
     }
   }
 
@@ -967,35 +961,7 @@ class VolcanoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// ──────────────────────────────────────────────
-  /// FETCH LAPORAN HARIAN MAGMA INDONESIA
-  /// ──────────────────────────────────────────────
-  /// Mengambil laporan harian dari tabel volcanic_daily_reports.
-  /// [volcanoKey] default ke gunung aktif saat ini.
-  Future<void> fetchDailyReports({String? volcanoKey}) async {
-    final key = volcanoKey ?? _getVolcanoKey(_volcano.name);
-    _isLoadingDailyReports = true;
-    notifyListeners();
 
-    try {
-      _dailyReports = await _volcanoRepo.getDailyReports(key);
-    } catch (e) {
-      debugPrint('[SIGUMI] fetchDailyReports error: $e');
-      _dailyReports = [];
-    }
-
-    _isLoadingDailyReports = false;
-    notifyListeners();
-  }
-
-  /// Normalize volcano name ke key (merapi/agung/rinjani)
-  String _getVolcanoKey(String name) {
-    final lower = name.toLowerCase();
-    if (lower.contains('merapi')) return 'merapi';
-    if (lower.contains('agung')) return 'agung';
-    if (lower.contains('rinjani')) return 'rinjani';
-    return lower.replaceAll('gunung', '').trim();
-  }
 
   /// ──────────────────────────────────────────────────
   /// FETCH NOMOR TELEPON DARURAT dari Supabase
