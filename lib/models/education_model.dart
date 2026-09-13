@@ -37,3 +37,42 @@ class EducationTopic {
     required this.sections,
   });
 }
+
+class EducationItem {
+  final String id;
+  final String title;
+  final String? category;
+  final String content;
+  final String? imageUrl;
+  final String? lokasi;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  const EducationItem({
+    required this.id,
+    required this.title,
+    this.category,
+    required this.content,
+    this.imageUrl,
+    this.lokasi,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory EducationItem.fromJson(Map<String, dynamic> json) {
+    return EducationItem(
+      id: json['id'] as String,
+      title: json['title'] as String? ?? '',
+      category: json['category'] as String?,
+      content: json['content'] as String? ?? '',
+      imageUrl: json['image_url'] as String?,
+      lokasi: json['lokasi'] as String?,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())
+          : null,
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'].toString())
+          : null,
+    );
+  }
+}
