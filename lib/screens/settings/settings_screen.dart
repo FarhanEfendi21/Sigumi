@@ -91,6 +91,8 @@ class SettingsScreen extends StatelessWidget {
                           ),
                     ),
                     _ListDivider(),
+                    _VoiceAssistantRow(provider: provider),
+                    _ListDivider(),
                     _ListRow(
                       icon: CupertinoIcons.globe,
                       iconBg: const Color(0xFF34C759),
@@ -671,6 +673,69 @@ class _OfflineRow extends StatelessWidget {
             onChanged: (val) {
               HapticFeedback.lightImpact();
               provider.toggleOffline();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Baris saklar Panduan Audio / Voice Assistant
+class _VoiceAssistantRow extends StatelessWidget {
+  final VolcanoProvider provider;
+
+  const _VoiceAssistantRow({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      child: Row(
+        children: [
+          _IconBadge(
+            icon: CupertinoIcons.mic_fill,
+            background: const Color(0xFF5856D6),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Panduan Audio',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary,
+                    letterSpacing: -0.2,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  provider.audioGuidance
+                      ? 'Aktif ("Halo Sigumi")'
+                      : 'Nonaktif',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: context.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          CupertinoSwitch(
+            value: provider.audioGuidance,
+            activeTrackColor: context.accentPrimary,
+            onChanged: (val) {
+              HapticFeedback.lightImpact();
+              provider.setAudioGuidance(val);
             },
           ),
         ],

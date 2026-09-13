@@ -157,6 +157,7 @@ class VolcanoProvider extends ChangeNotifier {
     _isFirstTime = prefs.getBool('is_first_time') ?? true;
     _language = prefs.getString('language') ?? 'id';
     _colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
+    _audioGuidance = prefs.getBool('audio_guidance') ?? false;
     notifyListeners();
   }
 
@@ -617,7 +618,13 @@ class VolcanoProvider extends ChangeNotifier {
         _language = _currentUser!.language;
         _fontSize = _currentUser!.fontSize;
         _highContrast = _currentUser!.highContrast;
-        _audioGuidance = _currentUser!.audioGuidance;
+        final prefs = await SharedPreferences.getInstance();
+        if (prefs.containsKey('audio_guidance')) {
+          _audioGuidance = prefs.getBool('audio_guidance') ?? _currentUser!.audioGuidance;
+        } else {
+          _audioGuidance = _currentUser!.audioGuidance;
+          await prefs.setBool('audio_guidance', _audioGuidance);
+        }
         if (_currentUser!.region != null) {
           _selectedRegion = _currentUser!.region!;
         }
@@ -867,18 +874,27 @@ class VolcanoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setAudioGuidance(bool value) {
+  void setAudioGuidance(bool value) async {
+    if (_audioGuidance == value) return;
     _audioGuidance = value;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('audio_guidance', value);
+    } catch (e) {
+      debugPrint('[VolcanoProvider] Error saving audio guidance to prefs: $e');
+    }
+
     if (_isAuthenticated) {
       try {
-        _authRepo.updateProfileTable(audioGuidance: value);
+        await _authRepo.updateProfileTable(audioGuidance: value);
       } catch (e) {
         debugPrint(
           '[VolcanoProvider] Error updating audio guidance in database: $e',
         );
       }
     }
-    notifyListeners();
   }
 
   /// Set mode simulasi buta warna. Tersimpan di SharedPreferences.

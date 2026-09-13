@@ -12,7 +12,6 @@ import '../../providers/volcano_provider.dart';
 /// - Ukuran teks (slider 80%–150%)
 /// - Kontras tinggi (hitam/putih WCAG AAA)
 /// - Mode buta warna: Normal / Deuteranopia / Protanopia / Tritanopia
-/// - Panduan audio
 /// - Preview badge status MAGMA real-time sesuai mode aktif
 class AccessibilityScreen extends StatelessWidget {
   const AccessibilityScreen({super.key});
@@ -390,70 +389,7 @@ class AccessibilityScreen extends StatelessWidget {
                   ),
                 ).animate().fadeIn(delay: 200.ms),
 
-                const SizedBox(height: 28),
 
-                // ═══════════════════════════════════════════════
-                // BAGIAN 3: BANTUAN SUARA
-                // ═══════════════════════════════════════════════
-                _SectionHeader(
-                  title: 'Bantuan Suara',
-                  icon: Icons.volume_up_outlined,
-                  color: tertiaryText,
-                ),
-                const SizedBox(height: 14),
-
-                _AccessCard(
-                  isHC: isHC,
-                  surfaceColor: surfaceColor,
-                  borderColor: borderColor,
-                  borderW: borderW,
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: accentColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(
-                          Icons.record_voice_over_rounded,
-                          color: accentColor,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Panduan Audio',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: primaryText,
-                              ),
-                            ),
-                            Text(
-                              'Narasi otomatis teks penting',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 12,
-                                color: tertiaryText,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ShadSwitch(
-                        value: provider.audioGuidance,
-                        onChanged: (v) {
-                          HapticFeedback.mediumImpact();
-                          provider.setAudioGuidance(v);
-                        },
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(delay: 280.ms),
 
 
                 const SizedBox(height: 40),

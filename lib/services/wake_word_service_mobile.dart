@@ -21,7 +21,7 @@ class WakeWordServiceImpl implements WakeWordService {
   /// beberapa inference pertama karena buffer audio belum terisi.
   static const int _warmUpSkipCount = 3;
   int _inferenceCount = 0;
-
+  int _consecutiveHits = 0;
 
   @override
   bool get isModelLoaded => _modelLoaded;
@@ -64,6 +64,7 @@ class WakeWordServiceImpl implements WakeWordService {
 
     _isListening = true;
     _inferenceCount = 0; // Reset warm-up counter
+    _consecutiveHits = 0;
     debugPrint('[WakeWord] 🎤 Starting audio recognition stream...');
     debugPrint('[WakeWord] 🎤 Config: sampleRate=44100, bufferSize=22016, warmUpSkip=$_warmUpSkipCount');
 
@@ -103,12 +104,26 @@ class WakeWordServiceImpl implements WakeWordService {
             debugPrint('[WakeWord] ❌ Error parsing scores: $e');
           }
 
-          // Threshold 0.85 to avoid false triggers from noise
-          const double threshold = 0.85;
-          if (wakeWordScore >= threshold) {
-            debugPrint('[WakeWord] 🔥🔥🔥 WAKE WORD DETECTED! Score: $wakeWordScore >= $threshold');
+          // Anti-false trigger:
+          // Single transient spikes from noise/handling can hit ~0.85 for 1 frame.
+          // Real spoken "Halo Sigumi" spans ~1.0-1.2s across multiple 500ms frames.
+          // Require either very high confidence (>= 0.94) or 2 consecutive frames (>= 0.82).
+          if (wakeWordScore >= 0.94) {
+            debugPrint('[WakeWord] 🔥🔥🔥 WAKE WORD DETECTED (High confidence: $wakeWordScore)');
+            _consecutiveHits = 0;
             stopListening();
             onDetected();
+          } else if (wakeWordScore >= 0.82) {
+            _consecutiveHits++;
+            debugPrint('[WakeWord] ⚡ Wake word candidate frame #$_consecutiveHits (Score: $wakeWordScore)');
+            if (_consecutiveHits >= 2) {
+              debugPrint('[WakeWord] 🔥🔥🔥 WAKE WORD DETECTED (2 consecutive frames: $wakeWordScore)');
+              _consecutiveHits = 0;
+              stopListening();
+              onDetected();
+            }
+          } else {
+            _consecutiveHits = 0;
           }
         },
         onError: (e) {
@@ -131,6 +146,7 @@ class WakeWordServiceImpl implements WakeWordService {
 
   @override
   void stopListening() {
+    _consecutiveHits = 0;
     _subscription?.cancel();
     _subscription = null;
     _isListening = false;
