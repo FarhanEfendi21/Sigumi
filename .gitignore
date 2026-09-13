@@ -30,7 +30,7 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-# /build/ - kept to allow build/web
+/build/
 /coverage/
 
 # Symbolication related
@@ -47,5 +47,3 @@ app.*.map.json
 # Local models and agent skills
 sigumi-model/
 .agents/
-
-# Allow build/web for Vercel deployment

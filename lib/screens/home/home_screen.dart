@@ -526,8 +526,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   'd MMM, HH:mm',
                                                                 ).format(
                                                                   volcano
-                                                                      .lastUpdate,
+                                                                      .lastUpdate
+                                                                      .toLocal(),
                                                                 ),
+
                                                                 style: TextStyle(
                                                                   fontFamily:
                                                                       'Plus Jakarta Sans',

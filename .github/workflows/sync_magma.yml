@@ -1,0 +1,17 @@
+name: Sync MAGMA Indonesia
+
+on:
+  schedule:
+    # Berjalan otomatis setiap 15 menit
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # Memungkinkan tombol "Run workflow" manual di GitHub Actions
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Supabase Edge Function
+        run: |
+          curl -i --location --request POST 'https://rtwanteecrvydxyrgpii.supabase.co/functions/v1/sync-magma' \
+            --header 'Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || secrets.SUPABASE_ANON_KEY }}' \
+            --header 'Content-Type: application/json'

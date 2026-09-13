@@ -1,6 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'services/notification_service.dart';
 import 'config/supabase_config.dart';
 import 'config/theme.dart';
 import 'config/routes.dart';
@@ -31,6 +35,27 @@ void main() async {
       url: SupabaseConfig.url,
       anonKey: SupabaseConfig.anonKey,
     );
+  }
+
+  // Inisialisasi Firebase & Layanan Notifikasi Mitigasi Real-Time
+  try {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      await NotificationService.instance.initialize(
+        onNotificationClick: (volcanoId) {
+          debugPrint('[Notification] Tap notifikasi gunung ID: $volcanoId');
+        },
+      );
+
+      final token = await NotificationService.instance.getDeviceToken();
+      if (token != null) {
+        await NotificationService.instance.saveTokenToSupabase(token);
+      }
+    }
+  } catch (e) {
+    debugPrint('[Firebase] Inisialisasi notifikasi error: $e');
   }
 
   // Inisialisasi Cloud LLM (Ollama + Gemma 4) untuk chatbot.

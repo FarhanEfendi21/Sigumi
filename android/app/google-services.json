@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1006748221061",
+    "project_id": "sigumi-app-2026",
+    "storage_bucket": "sigumi-app-2026.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006748221061:android:18ce774dab6d61d9b633ec",
+        "android_client_info": {
+          "package_name": "com.sigumi.sigumi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZCpOrOGlF8yJy1CTG-u0sZmZt4PG9gKQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
