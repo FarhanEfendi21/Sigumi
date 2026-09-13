@@ -678,6 +678,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
   // _zoneEmoji tidak lagi digunakan — diganti ikon Material shape-coded
 
   String _formatTime(DateTime dt) {
+    final localDt = dt.toLocal();
     final months = [
       '',
       'Jan',
@@ -693,8 +694,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
       'Nov',
       'Des',
     ];
-    return '${dt.day} ${months[dt.month]} ${dt.year}, '
-        '${dt.hour.toString().padLeft(2, '0')}:'
-        '${dt.minute.toString().padLeft(2, '0')} WIB';
+    return '${localDt.day} ${months[localDt.month]} ${localDt.year}, '
+        '${localDt.hour.toString().padLeft(2, '0')}:'
+        '${localDt.minute.toString().padLeft(2, '0')} WIB';
   }
+
 }

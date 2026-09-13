@@ -35,7 +35,6 @@ class VolcanoSummarizerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final levelColor = _getLevelColor();
-    final isDarkLevel = summary.levelCode >= 3;
 
     return Container(
       decoration: BoxDecoration(
@@ -521,6 +520,14 @@ class _VolcanoLatestSummaryWithHistoryButtonState
     });
   }
 
+  void _openHistory(BuildContext context, VolcanoProvider provider) {
+    provider.fetchVolcanoSummaries(
+      widget.volcanoKey,
+      limit: widget.limit,
+    );
+    _showHistoryBottomSheet(context, provider);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
@@ -530,57 +537,56 @@ class _VolcanoLatestSummaryWithHistoryButtonState
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Title ──
+            // ── Title & Quick Pill (Responsive & Overflow-safe) ──
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.title ?? 'Ringkasan Aktivitas Terbaru',
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1E1E2C),
+                Expanded(
+                  child: Text(
+                    widget.title ?? 'Laporan Aktivitas',
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1E1E2C),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // ── Button Lihat Riwayat ──
-                InkWell(
-                  onTap: () {
-                    // Fetch data riwayat sebelum membuka bottom sheet
-                    provider.fetchVolcanoSummaries(
-                      widget.volcanoKey,
-                      limit: widget.limit,
-                    );
-                    _showHistoryBottomSheet(context, provider);
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      border: Border.all(color: Colors.blue.shade300),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.history_rounded,
-                          size: 16,
-                          color: Colors.blue.shade700,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Riwayat',
-                          style: AppFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue.shade700,
+                const SizedBox(width: 8),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _openHistory(context, provider),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF3F4F6),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: const Color(0xFFE5E7EB)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.history_rounded,
+                            size: 14,
+                            color: Colors.grey.shade700,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Text(
+                            'Riwayat',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -645,6 +651,72 @@ class _VolcanoLatestSummaryWithHistoryButtonState
               )
             else
               VolcanoSummarizerCard(summary: latest),
+
+            // ── Minimalist Full-Width Action Tile (Thumb-friendly & 100% responsive) ──
+            const SizedBox(height: 12),
+            Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                onTap: () => _openHistory(context, provider),
+                borderRadius: BorderRadius.circular(14),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFE5E7EB)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.history_rounded,
+                          size: 18,
+                          color: Color(0xFF4B5563),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Riwayat Aktivitas 30 Hari',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF1E1E2C),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Lihat catatan dan tren pengamatan harian',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 11,
+                                color: const Color(0xFF8E8E9E),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
+                        color: Color(0xFF9E9EAE),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         );
       },
@@ -669,6 +741,18 @@ class _VolcanoLatestSummaryWithHistoryButtonState
             builder: (context, scrollController) {
               return Column(
                 children: [
+                  // ── Drag Handle Indicator ──
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 4),
+                      width: 38,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE5E7EB),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
                   // ── Header ──
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),

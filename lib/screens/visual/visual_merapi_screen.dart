@@ -552,7 +552,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                         VolcanoLatestSummaryWithHistoryButton(
                           volcanoKey: 'merapi',
                           limit: 30,
-                          title: 'Ringkasan Aktivitas Terbaru',
+                          title: 'Laporan Aktivitas',
                         ),
 
                       if (hasCctv) const SizedBox(height: 32),
@@ -641,21 +641,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
         ],
       ),
     );
-  }
-
-Widget _buildGlassButton(IconData icon, VoidCallback onTap) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Icon(icon, color: Colors.white, size: 18),
-    ),
-  );
   }
 
   Widget _buildErrorView() {

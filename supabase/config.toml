@@ -1,0 +1,4 @@
+project_id = "rtwanteecrvydxyrgpii"
+
+[functions.sync-magma]
+verify_jwt = false

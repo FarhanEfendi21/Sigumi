@@ -12,10 +12,17 @@
     <!-- Wajib untuk build apk release agar aplikasi bisa akses internet (Supabase) -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Wajib untuk Android 13+ Push Notifications -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
     <application
         android:label="Sigumi"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="mitigation_alerts" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -14,6 +14,7 @@ import '../repositories/auth_repository.dart';
 import '../repositories/emergency_repository.dart';
 import '../repositories/volcano_repository.dart';
 import '../services/location_service.dart';
+import '../services/notification_service.dart';
 
 /// Provider utama untuk state management SIGUMI.
 ///
@@ -169,10 +170,9 @@ class VolcanoProvider extends ChangeNotifier {
     Future.delayed(const Duration(seconds: 2), () async {
       try {
         debugPrint('[MAGMA] ðŸš€ Inisialisasi Klien Kedua (MAGMA)...');
-        _magmaClient = SupabaseClient(
-          SupabaseConfig.magmaUrl,
-          SupabaseConfig.magmaAnonKey,
-        );
+        _magmaClient = Supabase.instance.isInitialized
+            ? Supabase.instance.client
+            : SupabaseClient(SupabaseConfig.url, SupabaseConfig.anonKey);
 
         // 1. Test Fetch Manual + Load semua status awal
         await _testMagmaConnection();
@@ -226,8 +226,8 @@ class VolcanoProvider extends ChangeNotifier {
         final data =
             await _magmaClient!
                 .from('volcanoes')
-                .select('name, alert_level')
-                .eq('name', _volcano.name.replaceAll('Gunung', '').trim())
+                .select()
+                .ilike('name', '%${_volcano.name.replaceAll('Gunung', '').trim()}%')
                 .maybeSingle();
 
         if (data != null) {
@@ -242,12 +242,12 @@ class VolcanoProvider extends ChangeNotifier {
   void _processMagmaPayload(Map<String, dynamic> record) {
     if (record.isEmpty) return;
 
-    final String? volcanoName = record['name']?.toString();
-    final String? alertLevel = record['alert_level']?.toString();
+    final String? volcanoName = (record['name'] ?? record['volcano_name'])?.toString();
+    final dynamic rawLevel = record['alert_level'] ?? record['status_level'];
 
     if (volcanoName == null) return;
 
-    final newStatusLevel = _mapAlertLevelToInt(alertLevel);
+    final newStatusLevel = _mapAlertLevelToInt(rawLevel);
     final newDescription = _generateStatusDescriptionFor(
       volcanoName,
       newStatusLevel,
@@ -265,6 +265,25 @@ class VolcanoProvider extends ChangeNotifier {
     bool foundInList = false;
     for (int i = 0; i < _allVolcanoes.length; i++) {
       if (normalize(_allVolcanoes[i].name).contains(normalizedInput)) {
+        final oldLevel = _allVolcanoes[i].statusLevel;
+        final isCurrentVolcano =
+            normalize(_volcano.name).contains(normalizedInput);
+
+        // Notifikasi untuk gunung lain jika status naik (agar tidak duplikat dengan gunung aktif)
+        if (!isCurrentVolcano && oldLevel > 0 && newStatusLevel > oldLevel) {
+          final levelName = _getLevelName(newStatusLevel);
+          final roman = _getLevelRoman(newStatusLevel);
+          final directive = _getMitigationDirective(newStatusLevel);
+
+          NotificationService.instance.showLocalNotification(
+            title: _allVolcanoes[i].name,
+            body: 'Status naik ke Level $roman ($levelName). $directive',
+            payload: _allVolcanoes[i].id,
+            level: newStatusLevel,
+            volcanoName: _allVolcanoes[i].name,
+          );
+        }
+
         _allVolcanoes[i] = _allVolcanoes[i].copyWith(
           statusLevel: newStatusLevel,
           statusDescription: newDescription,
@@ -280,6 +299,21 @@ class VolcanoProvider extends ChangeNotifier {
         debugPrint(
           '[MAGMA] ✅ Perubahan Terdeteksi! $volcanoName: Level $newStatusLevel',
         );
+
+        // 🔔 TRIGGER NOTIFIKASI JIKA STATUS NAIK (ESKALASI MITIGASI BENCANA)
+        if (_volcano.statusLevel > 0 && newStatusLevel > _volcano.statusLevel) {
+          final levelName = _getLevelName(newStatusLevel);
+          final roman = _getLevelRoman(newStatusLevel);
+          final directive = _getMitigationDirective(newStatusLevel);
+
+          NotificationService.instance.showLocalNotification(
+            title: volcanoName,
+            body: 'Status naik ke Level $roman ($levelName). $directive',
+            payload: _volcano.id,
+            level: newStatusLevel,
+            volcanoName: volcanoName,
+          );
+        }
 
         // Gunakan microtask agar tidak bentrok dengan siklus render UI Web
         Future.microtask(() {
@@ -304,7 +338,7 @@ class VolcanoProvider extends ChangeNotifier {
     try {
       final data = await _magmaClient!
           .from('volcanoes')
-          .select('name, alert_level')
+          .select()
           .limit(1);
       if (data.isNotEmpty) {
         debugPrint(
@@ -330,7 +364,7 @@ class VolcanoProvider extends ChangeNotifier {
     try {
       final data = await _magmaClient!
           .from('volcanoes')
-          .select('name, alert_level');
+          .select();
 
       String normalize(String s) =>
           s.toLowerCase().replaceAll('gunung', '').trim();
@@ -338,7 +372,8 @@ class VolcanoProvider extends ChangeNotifier {
       _magmaAllStatuses.clear();
       for (final row in data) {
         final name = row['name']?.toString();
-        final level = _mapAlertLevelToInt(row['alert_level']?.toString());
+        final rawLevel = row['status_level'] ?? row['alert_level'];
+        final level = _mapAlertLevelToInt(rawLevel);
         if (name != null) {
           _magmaAllStatuses[normalize(name)] = level;
         }
@@ -350,25 +385,67 @@ class VolcanoProvider extends ChangeNotifier {
     }
   }
 
-  /// Memetakan tipe Varchar 'alert_level' (II, III, IV) menjadi int (2, 3, 4)
-  int _mapAlertLevelToInt(String? alertLevel) {
-    if (alertLevel == 'IV') return 4;
-    if (alertLevel == 'III') return 3;
-    if (alertLevel == 'II') return 2;
+  /// Memetakan tipe alert_level / status_level (II, III, IV, Siaga, 2, 3, dll) ke int (1-4)
+  int _mapAlertLevelToInt(dynamic alertLevel) {
+    if (alertLevel == null) return 1;
+    if (alertLevel is int) return alertLevel.clamp(1, 4);
+    final val = alertLevel.toString().trim().toUpperCase();
+    if (val == '4' || val == 'IV' || val.contains('AWAS')) return 4;
+    if (val == '3' || val == 'III' || val.contains('SIAGA')) return 3;
+    if (val == '2' || val == 'II' || val.contains('WASPADA')) return 2;
     return 1;
   }
 
-  /// Generate placeholder deskripsi aman untuk Sigumi Edukasi mitigasi.
+  /// Generate deskripsi status resmi & mitigasi yang ringkas dan profesional
   String _generateStatusDescriptionFor(String name, int level) {
     switch (level) {
       case 4:
-        return 'AWAS! Status Gunung $name berada pada Level IV. Data detail aktivitas sedang diperbarui...';
+        return 'Status Level IV (Awas). Bahaya erupsi mengancam. Jauhi radius bahaya dan ikuti jalur evakuasi.';
       case 3:
-        return 'SIAGA! Status Gunung $name berada pada Level III. Data detail aktivitas sedang diperbarui...';
+        return 'Status Level III (Siaga). Peningkatan aktivitas vulkanik. Tingkatkan kewaspadaan dan siapkan tas siaga.';
       case 2:
-        return 'WASPADA! Status Gunung $name berada pada Level II. Data detail aktivitas sedang diperbarui...';
+        return 'Status Level II (Waspada). Aktivitas di atas normal. Hindari aktivitas di sekitar kawah aktif.';
       default:
-        return 'Status Gunung $name Normal (Level I). Data detail aktivitas sedang diperbarui...';
+        return 'Status Level I (Normal). Kondisi vulkanik stabil dan tidak ada ancaman bahaya dalam waktu dekat.';
+    }
+  }
+
+  String _getLevelName(int level) {
+    switch (level) {
+      case 4:
+        return 'Awas';
+      case 3:
+        return 'Siaga';
+      case 2:
+        return 'Waspada';
+      default:
+        return 'Normal';
+    }
+  }
+
+  String _getLevelRoman(int level) {
+    switch (level) {
+      case 4:
+        return 'IV';
+      case 3:
+        return 'III';
+      case 2:
+        return 'II';
+      default:
+        return 'I';
+    }
+  }
+
+  String _getMitigationDirective(int level) {
+    switch (level) {
+      case 4:
+        return 'Wajib evakuasi dari zona bahaya segera. Pantau arahan BPBD.';
+      case 3:
+        return 'Warga dalam radius bahaya diimbau waspada & bersiap evakuasi.';
+      case 2:
+        return 'Masyarakat diimbau tidak beraktivitas di sekitar kawah.';
+      default:
+        return 'Kondisi stabil. Tetap pantau informasi berkala PVMBG.';
     }
   }
 
@@ -603,8 +680,9 @@ class VolcanoProvider extends ChangeNotifier {
               statusDescription: json['status_description'] ?? '',
               lastUpdate:
                   json['last_update'] != null
-                      ? DateTime.parse(json['last_update'])
+                      ? DateTime.parse(json['last_update']).toLocal()
                       : DateTime.now(),
+
               lastEruption: json['last_eruption'],
               recentActivities:
                   [], // Paksa kosong sementara menunggu data real dari admin panel
@@ -879,13 +957,14 @@ class VolcanoProvider extends ChangeNotifier {
       final data =
           await _magmaClient!
               .from('volcanoes')
-              .select('name, alert_level')
+              .select()
               .ilike('name', '%$searchName%')
               .maybeSingle();
 
       if (data != null) {
+        final lvl = data['status_level'] ?? data['alert_level'];
         debugPrint(
-          '[MAGMA] ðŸ”„ Sync status untuk ${_volcano.name}: ${data['alert_level']}',
+          '[MAGMA] 🔄 Sync status untuk ${_volcano.name}: $lvl',
         );
         _processMagmaPayload(data);
       }
