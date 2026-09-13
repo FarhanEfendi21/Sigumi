@@ -126,6 +126,8 @@ class _MainNavigationState extends State<MainNavigation> {
           if (mounted) {
             context.read<GlobalAssistantProvider>().updateContext(
               isAudioGuidanceEnabled: provider.audioGuidance,
+              language: provider.language,
+              user: provider.currentUser,
             );
           }
         });

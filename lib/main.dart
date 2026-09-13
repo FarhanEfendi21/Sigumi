@@ -107,14 +107,12 @@ class _SigumiAppState extends State<SigumiApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final assistantProvider = Provider.of<GlobalAssistantProvider>(context, listen: false);
     
-    if (state == AppLifecycleState.paused) {
-      debugPrint('[AppLifecycle] ⏸️ App in Background -> Disabling Voice Assistant');
-      assistantProvider.disable();
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      debugPrint('[AppLifecycle] ⏸️ App Inactive/Background -> Pausing Voice Assistant');
+      assistantProvider.pauseForBackground();
     } else if (state == AppLifecycleState.resumed) {
-      debugPrint('[AppLifecycle] ▶️ App Resumed -> Enabling Voice Assistant');
-      // If language was set before, re-enable it. But we just call enable()
-      // Note: enable() only works if model is loaded
-      assistantProvider.enable();
+      debugPrint('[AppLifecycle] ▶️ App Resumed -> Resuming Voice Assistant (if enabled)');
+      assistantProvider.resumeFromBackground();
     }
   }
 

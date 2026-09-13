@@ -48,8 +48,9 @@ class VoiceService {
   // INIT — Speech-to-Text
   // ══════════════════════════════════════════════════════════════
 
-  // Callback global STT error
+  // Callback global STT error & status
   Function(String)? onSttError;
+  Function(String)? onSttStatus;
 
   Future<SpeechPermissionStatus> init() async {
     try {
@@ -60,10 +61,8 @@ class VoiceService {
         },
         onStatus: (String status) {
           debugPrint('[VoiceService] STT Status: $status');
-          if (status == 'done' || status == 'notListening') {
-             // Let caller know it stopped? Or caller can check isListening
-          }
-        }
+          if (onSttStatus != null) onSttStatus!(status);
+        },
       );
       _hasBeenInitialized = true;
       return _speechEnabled 
