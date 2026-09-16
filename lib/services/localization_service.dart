@@ -69,7 +69,7 @@ class LocalizationService {
       // Home
       'main_menu': 'Menu Utama',
       'evacuation_point': 'Titik\nEvakuasi',
-      'cctv_monitoring': 'Pantauan\nCCTV',
+      'cctv_monitoring': 'Pantauan\nGunung',
       'education': 'Edukasi',
       'education_sub': 'Materi mitigasi bencana',
       'posko_faskes': 'Posko &\nFaskes',
@@ -180,7 +180,7 @@ class LocalizationService {
       // Home
       'main_menu': 'Main Menu',
       'evacuation_point': 'Evacuation\nPoint',
-      'cctv_monitoring': 'CCTV\nMonitoring',
+      'cctv_monitoring': 'Volcano\nMonitoring',
       'education': 'Education',
       'education_sub': 'Disaster mitigation materials',
       'posko_faskes': 'Post &\nClinic',
@@ -291,7 +291,7 @@ class LocalizationService {
       // Home
       'main_menu': 'Menu Utama',
       'evacuation_point': 'Titik\nEvakuasi',
-      'cctv_monitoring': 'Pantauan\nCCTV',
+      'cctv_monitoring': 'Pantauan\nGunung',
       'education': 'Edukasi',
       'education_sub': 'Materi mitigasi bencana',
       'posko_faskes': 'Posko &\nFaskes',
@@ -402,7 +402,7 @@ class LocalizationService {
       // Home
       'main_menu': 'Menu Utama',
       'evacuation_point': 'Titik\nEvakuasi',
-      'cctv_monitoring': 'Pantauan\nCCTV',
+      'cctv_monitoring': 'Pantauan\nGunung',
       'education': 'Edukasi',
       'education_sub': 'Materi mitigasi bencana',
       'posko_faskes': 'Posko &\nFaskes',
@@ -513,7 +513,7 @@ class LocalizationService {
       // Home
       'main_menu': 'Menu Utama',
       'evacuation_point': 'Titik\nEvakuasi',
-      'cctv_monitoring': 'Pantauan\nCCTV',
+      'cctv_monitoring': 'Pantauan\nGunung',
       'education': 'Edukasi',
       'education_sub': 'Materi mitigasi bencana',
       'posko_faskes': 'Posko &\nFaskes',

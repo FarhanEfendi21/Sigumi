@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
 
 /// ZoneDetailScreen — Halaman detail status zona bencana.
@@ -259,9 +260,19 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                         ),
                       ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
 
+                      // ── Keterangan Sumber MAGMA Indonesia ──
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6, left: 2),
+                        child: Text(
+                          'Sumber: MAGMA Indonesia',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 11,
+                            color: isHC ? SigumiTheme.hcPrimary : const Color(0xFF9E9EAE),
+                          ),
+                        ),
+                      ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
+
                       const SizedBox(height: 14),
-
-
 
                       // ── Pembagian Zona KRB — Kondisional dengan dropdown ──
                       _buildKrbSection(
@@ -274,10 +285,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                           isHC: isHC,
                           cbMode: cbMode),
 
-
                       Center(
                         child: Text(
-                          'Sumber: PVMBG, BPPTKG, BPBD',
+                          'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD',
                           style: AppFonts.plusJakartaSans(
                             fontSize: 11,
                             color: const Color(0xFF9E9EAE),
@@ -646,27 +656,35 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     Color? valueColor,
   }) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: const Color(0xFF9E9EAE)),
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(icon, size: 16, color: const Color(0xFF9E9EAE)),
+        ),
         const SizedBox(width: 8),
         Expanded(
-          child: Text(
-            label,
-            style: AppFonts.plusJakartaSans(
-              fontSize: 12,
-              color: const Color(0xFF6B6B78),
-            ),
-          ),
-        ),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.end,
-            style: AppFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: valueColor ?? const Color(0xFF1A1A2E),
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: const Color(0xFF6B6B78),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: valueColor ?? const Color(0xFF1A1A2E),
+                ),
+                softWrap: true,
+              ),
+            ],
           ),
         ),
       ],
