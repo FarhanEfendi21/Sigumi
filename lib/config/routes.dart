@@ -16,6 +16,7 @@ import '../screens/post_disaster/post_disaster_screen.dart';
 import '../screens/accessibility/accessibility_screen.dart';
 import '../screens/tourism/tourism_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/hiking/hiking_tracking_screen.dart';
 import '../screens/news/news_detail_screen.dart';
 import '../screens/home/zone_detail_screen.dart';
 import 'package:sigumi/screens/settings/language_settings_screen.dart';
@@ -40,6 +41,7 @@ class AppRoutes {
   static const String accessibility = '/accessibility';
   static const String tourism = '/tourism';
   static const String settings = '/settings';
+  static const String hikingTracking = '/hiking-tracking';
   static const String languageSettings = '/settings/language';
   static const String newsDetail = '/news-detail';
   static const String zoneDetail = '/zone-detail';
@@ -63,6 +65,7 @@ class AppRoutes {
     accessibility: (_) => const AccessibilityScreen(),
     tourism: (_) => const TourismScreen(),
     settings: (_) => const SettingsScreen(),
+    hikingTracking: (_) => const HikingTrackingScreen(),
     languageSettings: (_) => const LanguageSettingsScreen(),
     newsDetail: (_) => const NewsDetailScreen(),
     zoneDetail: (_) => const ZoneDetailScreen(),
