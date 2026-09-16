@@ -611,7 +611,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 label: context.tr('evacuation_point'),
                                 subtitle: 'Titik & jalur evakuasi terdekat',
                                 color: Colors.green,
-                                onTap: () => Navigator.pushNamed(context, AppRoutes.evacuation),
+                                onTap:
+                                    () => Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.evacuation,
+                                    ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -621,15 +625,30 @@ class _HomeScreenState extends State<HomeScreen> {
                                 label: context.tr('cctv_monitoring'),
                                 subtitle: 'Pantau kondisi gunung live',
                                 color: Colors.teal,
-                                onTap: () => Navigator.pushNamed(
-                                  context,
-                                  AppRoutes.visualMerapi,
-                                  arguments: volcano,
-                                ),
+                                onTap:
+                                    () => Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.visualMerapi,
+                                      arguments: volcano,
+                                    ),
                               ),
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _FullWidthMenuCard(
+                        icon: Icons.hiking_rounded,
+                        label: 'Tracking Pendakian',
+                        subtitle: 'Bagikan lokasi Anda selama mendaki',
+                        color: Colors.deepOrange,
+                        onTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.hikingTracking,
+                            ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -640,37 +659,61 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Expanded(child: _ShadMenuCard(
-                              icon: Icons.school_rounded,
-                              label: context.tr('education'),
-                              subtitle: context.tr('education_sub'),
-                              color: Colors.orange,
-                              onTap: () => Navigator.pushNamed(context, AppRoutes.education),
-                            )),
+                            Expanded(
+                              child: _ShadMenuCard(
+                                icon: Icons.school_rounded,
+                                label: context.tr('education'),
+                                subtitle: context.tr('education_sub'),
+                                color: Colors.orange,
+                                onTap:
+                                    () => Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.education,
+                                    ),
+                              ),
+                            ),
                             const SizedBox(width: 10),
-                            Expanded(child: _ShadMenuCard(
-                              icon: Icons.local_hospital_rounded,
-                              label: context.tr('posko_faskes'),
-                              subtitle: context.tr('posko_faskes_sub'),
-                              color: Colors.indigo,
-                              onTap: () => Navigator.pushNamed(context, AppRoutes.postDisaster),
-                            )),
+                            Expanded(
+                              child: _ShadMenuCard(
+                                icon: Icons.local_hospital_rounded,
+                                label: context.tr('posko_faskes'),
+                                subtitle: context.tr('posko_faskes_sub'),
+                                color: Colors.indigo,
+                                onTap:
+                                    () => Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.postDisaster,
+                                    ),
+                              ),
+                            ),
                             const SizedBox(width: 10),
-                            Expanded(child: _ShadMenuCard(
-                              icon: Icons.chat_rounded,
-                              label: context.tr('ask_sigumi'),
-                              subtitle: context.tr('ask_sigumi_sub'),
-                              color: Colors.purple,
-                              onTap: () => Navigator.pushNamed(context, AppRoutes.chatbot),
-                            )),
+                            Expanded(
+                              child: _ShadMenuCard(
+                                icon: Icons.chat_rounded,
+                                label: context.tr('ask_sigumi'),
+                                subtitle: context.tr('ask_sigumi_sub'),
+                                color: Colors.purple,
+                                onTap:
+                                    () => Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.chatbot,
+                                    ),
+                              ),
+                            ),
                             const SizedBox(width: 10),
-                            Expanded(child: _ShadMenuCard(
-                              icon: Icons.phone_in_talk_rounded,
-                              label: context.tr('emergency_number'),
-                              subtitle: context.tr('emergency_number_sub'),
-                              color: Colors.red,
-                              onTap: () => Navigator.pushNamed(context, AppRoutes.emergency),
-                            )),
+                            Expanded(
+                              child: _ShadMenuCard(
+                                icon: Icons.phone_in_talk_rounded,
+                                label: context.tr('emergency_number'),
+                                subtitle: context.tr('emergency_number_sub'),
+                                color: Colors.red,
+                                onTap:
+                                    () => Navigator.pushNamed(
+                                      context,
+                                      AppRoutes.emergency,
+                                    ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -684,7 +727,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: context.tr('accessibility'),
                         subtitle: 'Mode kontras tinggi & buta warna',
                         color: Colors.brown,
-                        onTap: () => Navigator.pushNamed(context, AppRoutes.accessibility),
+                        onTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.accessibility,
+                            ),
                       ),
                     ),
 
@@ -697,9 +744,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             children: [
                               Text(
                                 context.tr('latest_news'),
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(fontWeight: FontWeight.w800),
                               ),
                               const Spacer(),
                               if (newsProvider.isLoading)
@@ -809,7 +855,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final zoneLevel = provider.zoneLevel;
     final isHC = provider.highContrast;
     final cbMode = provider.colorBlindMode;
-    final zoneColor = SigumiTheme.getStatusColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
+    final zoneColor = SigumiTheme.getStatusColor(
+      zoneLevel,
+      highContrast: isHC,
+      colorBlindMode: cbMode,
+    );
     final isHighAlert = volcanoLevel >= 3;
 
     final zoneIcon =
@@ -1293,28 +1343,30 @@ class _ShadMenuCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: isHighContrast
-                ? null
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [color, darkColor],
-                  ),
+            gradient:
+                isHighContrast
+                    ? null
+                    : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [color, darkColor],
+                    ),
             color: isHighContrast ? context.bgSurface : null,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isHighContrast ? context.borderColor : color.withAlpha(80),
               width: context.borderWidth,
             ),
-            boxShadow: isHighContrast
-                ? []
-                : [
-                    BoxShadow(
-                      color: color.withAlpha(80),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+            boxShadow:
+                isHighContrast
+                    ? []
+                    : [
+                      BoxShadow(
+                        color: color.withAlpha(80),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
           ),
           child: Stack(
             children: [
@@ -1324,7 +1376,10 @@ class _ShadMenuCard extends StatelessWidget {
                 child: Icon(icon, size: 54, color: Colors.white.withAlpha(20)),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -1337,7 +1392,8 @@ class _ShadMenuCard extends StatelessWidget {
                       ),
                       child: Icon(
                         icon,
-                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        color:
+                            isHighContrast ? context.textPrimary : Colors.white,
                         size: 18,
                       ),
                     ),
@@ -1348,7 +1404,8 @@ class _ShadMenuCard extends StatelessWidget {
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        color:
+                            isHighContrast ? context.textPrimary : Colors.white,
                         height: 1.2,
                       ),
                       maxLines: 2,
@@ -1364,9 +1421,10 @@ class _ShadMenuCard extends StatelessWidget {
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 9,
                               fontWeight: FontWeight.w500,
-                              color: isHighContrast
-                                  ? context.textSecondary
-                                  : Colors.white.withAlpha(170),
+                              color:
+                                  isHighContrast
+                                      ? context.textSecondary
+                                      : Colors.white.withAlpha(170),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1375,9 +1433,10 @@ class _ShadMenuCard extends StatelessWidget {
                         Icon(
                           Icons.arrow_forward_rounded,
                           size: 10,
-                          color: isHighContrast
-                              ? context.textSecondary
-                              : Colors.white.withAlpha(170),
+                          color:
+                              isHighContrast
+                                  ? context.textSecondary
+                                  : Colors.white.withAlpha(170),
                         ),
                       ],
                     ),
@@ -1425,28 +1484,30 @@ class _FeaturedMenuCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: isHighContrast
-                ? null
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [color, darkColor],
-                  ),
+            gradient:
+                isHighContrast
+                    ? null
+                    : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [color, darkColor],
+                    ),
             color: isHighContrast ? context.bgSurface : null,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isHighContrast ? context.borderColor : color.withAlpha(80),
               width: context.borderWidth,
             ),
-            boxShadow: isHighContrast
-                ? []
-                : [
-                    BoxShadow(
-                      color: color.withAlpha(90),
-                      blurRadius: 16,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+            boxShadow:
+                isHighContrast
+                    ? []
+                    : [
+                      BoxShadow(
+                        color: color.withAlpha(90),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
           ),
           child: Stack(
             children: [
@@ -1469,7 +1530,8 @@ class _FeaturedMenuCard extends StatelessWidget {
                       ),
                       child: Icon(
                         icon,
-                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        color:
+                            isHighContrast ? context.textPrimary : Colors.white,
                         size: 24,
                       ),
                     ),
@@ -1480,7 +1542,8 @@ class _FeaturedMenuCard extends StatelessWidget {
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
-                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        color:
+                            isHighContrast ? context.textPrimary : Colors.white,
                         height: 1.2,
                       ),
                       maxLines: 2,
@@ -1496,9 +1559,10 @@ class _FeaturedMenuCard extends StatelessWidget {
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 10,
                               fontWeight: FontWeight.w500,
-                              color: isHighContrast
-                                  ? context.textSecondary
-                                  : Colors.white.withAlpha(180),
+                              color:
+                                  isHighContrast
+                                      ? context.textSecondary
+                                      : Colors.white.withAlpha(180),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1507,9 +1571,10 @@ class _FeaturedMenuCard extends StatelessWidget {
                         Icon(
                           Icons.arrow_forward_rounded,
                           size: 13,
-                          color: isHighContrast
-                              ? context.textSecondary
-                              : Colors.white.withAlpha(180),
+                          color:
+                              isHighContrast
+                                  ? context.textSecondary
+                                  : Colors.white.withAlpha(180),
                         ),
                       ],
                     ),
@@ -1557,28 +1622,30 @@ class _FullWidthMenuCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: isHighContrast
-                ? null
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [color, darkColor],
-                  ),
+            gradient:
+                isHighContrast
+                    ? null
+                    : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [color, darkColor],
+                    ),
             color: isHighContrast ? context.bgSurface : null,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isHighContrast ? context.borderColor : color.withAlpha(80),
               width: context.borderWidth,
             ),
-            boxShadow: isHighContrast
-                ? []
-                : [
-                    BoxShadow(
-                      color: color.withAlpha(80),
-                      blurRadius: 12,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+            boxShadow:
+                isHighContrast
+                    ? []
+                    : [
+                      BoxShadow(
+                        color: color.withAlpha(80),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
           ),
           child: Stack(
             children: [
@@ -1588,7 +1655,10 @@ class _FullWidthMenuCard extends StatelessWidget {
                 child: Icon(icon, size: 90, color: Colors.white.withAlpha(20)),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -1599,7 +1669,8 @@ class _FullWidthMenuCard extends StatelessWidget {
                       ),
                       child: Icon(
                         icon,
-                        color: isHighContrast ? context.textPrimary : Colors.white,
+                        color:
+                            isHighContrast ? context.textPrimary : Colors.white,
                         size: 22,
                       ),
                     ),
@@ -1614,7 +1685,10 @@ class _FullWidthMenuCard extends StatelessWidget {
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 14,
                               fontWeight: FontWeight.w800,
-                              color: isHighContrast ? context.textPrimary : Colors.white,
+                              color:
+                                  isHighContrast
+                                      ? context.textPrimary
+                                      : Colors.white,
                               height: 1.2,
                             ),
                           ),
@@ -1625,9 +1699,10 @@ class _FullWidthMenuCard extends StatelessWidget {
                               fontFamily: 'Plus Jakarta Sans',
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
-                              color: isHighContrast
-                                  ? context.textSecondary
-                                  : Colors.white.withAlpha(180),
+                              color:
+                                  isHighContrast
+                                      ? context.textSecondary
+                                      : Colors.white.withAlpha(180),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -1637,9 +1712,10 @@ class _FullWidthMenuCard extends StatelessWidget {
                     ),
                     Icon(
                       Icons.arrow_forward_rounded,
-                      color: isHighContrast
-                          ? context.textTertiary
-                          : Colors.white.withAlpha(200),
+                      color:
+                          isHighContrast
+                              ? context.textTertiary
+                              : Colors.white.withAlpha(200),
                       size: 18,
                     ),
                   ],
@@ -1672,163 +1748,179 @@ class _GuestLoginBannerState extends State<_GuestLoginBanner> {
     final isHighContrast = context.isHighContrast;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final accent = isHighContrast ? context.accentPrimary : SigumiTheme.primaryBlue;
-    final accentEnd = isHighContrast ? context.accentPrimary : const Color(0xFF1A3080);
+    final accent =
+        isHighContrast ? context.accentPrimary : SigumiTheme.primaryBlue;
+    final accentEnd =
+        isHighContrast ? context.accentPrimary : const Color(0xFF1A3080);
 
-    final bgColor = isHighContrast
-        ? context.bgSurface
-        : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFF));
+    final bgColor =
+        isHighContrast
+            ? context.bgSurface
+            : (isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFF));
 
-    final borderColor = isHighContrast
-        ? context.borderColor
-        : accent.withValues(alpha: isDark ? 0.25 : 0.18);
+    final borderColor =
+        isHighContrast
+            ? context.borderColor
+            : accent.withValues(alpha: isDark ? 0.25 : 0.18);
 
-    final textPrimary = isHighContrast
-        ? context.textPrimary
-        : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A));
+    final textPrimary =
+        isHighContrast
+            ? context.textPrimary
+            : (isDark ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A));
 
-    final textSecondary = isHighContrast
-        ? context.textSecondary
-        : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
+    final textSecondary =
+        isHighContrast
+            ? context.textSecondary
+            : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B));
 
     return AnimatedScale(
-      scale: _isPressed ? 0.97 : 1.0,
-      duration: const Duration(milliseconds: 120),
-      curve: Curves.easeOut,
-      child: GestureDetector(
-        onTapDown: (_) => setState(() => _isPressed = true),
-        onTapUp: (_) => setState(() => _isPressed = false),
-        onTapCancel: () => setState(() => _isPressed = false),
-        onTap: () {
-          HapticFeedback.lightImpact();
-          Navigator.pushNamed(context, AppRoutes.login);
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: borderColor, width: 1),
-            boxShadow: isHighContrast
-                ? []
-                : [
-                    BoxShadow(
-                      color: accent.withValues(alpha: isDark ? 0.08 : 0.06),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-          ),
-          child: Row(
-            children: [
-              // Icon block
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  gradient: isHighContrast
-                      ? null
-                      : LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [accent, accentEnd],
-                        ),
-                  color: isHighContrast ? context.accentPrimary : null,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: isHighContrast
-                      ? []
-                      : [
+          scale: _isPressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOut,
+          child: GestureDetector(
+            onTapDown: (_) => setState(() => _isPressed = true),
+            onTapUp: (_) => setState(() => _isPressed = false),
+            onTapCancel: () => setState(() => _isPressed = false),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pushNamed(context, AppRoutes.login);
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: borderColor, width: 1),
+                boxShadow:
+                    isHighContrast
+                        ? []
+                        : [
                           BoxShadow(
-                            color: accent.withValues(alpha: 0.28),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                            color: accent.withValues(
+                              alpha: isDark ? 0.08 : 0.06,
+                            ),
+                            blurRadius: 20,
+                            offset: const Offset(0, 6),
                           ),
                         ],
-                ),
-                child: const Icon(
-                  Icons.person_outline_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
               ),
-
-              const SizedBox(width: 14),
-
-              // Text
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Masuk ke Akun',
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
-                        letterSpacing: -0.3,
-                        height: 1.2,
-                      ),
+              child: Row(
+                children: [
+                  // Icon block
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      gradient:
+                          isHighContrast
+                              ? null
+                              : LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [accent, accentEnd],
+                              ),
+                      color: isHighContrast ? context.accentPrimary : null,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow:
+                          isHighContrast
+                              ? []
+                              : [
+                                BoxShadow(
+                                  color: accent.withValues(alpha: 0.28),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                     ),
-                    const SizedBox(height: 3),
-                    Text(
-                      'Akses laporan, AI, dan fitur lengkap',
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: textSecondary,
-                        height: 1.4,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    child: const Icon(
+                      Icons.person_outline_rounded,
+                      color: Colors.white,
+                      size: 24,
                     ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              // CTA chip
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                decoration: BoxDecoration(
-                  gradient: isHighContrast
-                      ? null
-                      : LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [accent, accentEnd],
-                        ),
-                  color: isHighContrast ? context.accentPrimary : null,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: isHighContrast
-                      ? []
-                      : [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                ),
-                child: Text(
-                  'Masuk',
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: -0.2,
                   ),
-                ),
+
+                  const SizedBox(width: 14),
+
+                  // Text
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Masuk ke Akun',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
+                            letterSpacing: -0.3,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Akses laporan, AI, dan fitur lengkap',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: textSecondary,
+                            height: 1.4,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // CTA chip
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 9,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient:
+                          isHighContrast
+                              ? null
+                              : LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [accent, accentEnd],
+                              ),
+                      color: isHighContrast ? context.accentPrimary : null,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow:
+                          isHighContrast
+                              ? []
+                              : [
+                                BoxShadow(
+                                  color: accent.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                    ),
+                    child: Text(
+                      'Masuk',
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    )
-    .animate()
-    .fadeIn(duration: 400.ms, curve: Curves.easeOut)
-    .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic);
+        )
+        .animate()
+        .fadeIn(duration: 400.ms, curve: Curves.easeOut)
+        .slideY(begin: 0.08, end: 0, curve: Curves.easeOutCubic);
   }
 }
 
@@ -1854,7 +1946,8 @@ class _TourismBannerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isHighContrast = context.isHighContrast;
     // Default fallback to signature image if region not strictly matched
-    final imageUrl = _regionImages[region] ??
+    final imageUrl =
+        _regionImages[region] ??
         'https://images.unsplash.com/photo-1588668214407-6ea9a6d8c272?auto=format&fit=crop&q=80&w=1000';
 
     return Container(
