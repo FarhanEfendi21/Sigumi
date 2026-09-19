@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'location_service.dart';
+import 'notification_service.dart';
 
 /// Mengelola satu sesi pendakian dan sinkronisasi titik GPS ke Supabase.
 class HikingTrackingService extends ChangeNotifier {
@@ -42,13 +43,19 @@ class HikingTrackingService extends ChangeNotifier {
           ? Duration.zero
           : (_endedAt ?? DateTime.now()).difference(_startedAt!);
 
-  Future<bool> start() async {
+  Future<bool> start({String? region}) async {
     if (isActive || _isStarting) return false;
     _isStarting = true;
     _error = null;
     notifyListeners();
 
     try {
+      if (region != null && region.toLowerCase() != 'lombok') {
+        throw StateError(
+          'Fitur tracking pendakian saat ini hanya tersedia untuk wilayah Gunung Rinjani (Lombok).',
+        );
+      }
+
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) {
         throw StateError(
@@ -89,6 +96,12 @@ class HikingTrackingService extends ChangeNotifier {
       _locationService.addListener(_locationListener!);
       _locationService.startTracking(distanceFilterMeters: 20);
       await _recordCurrentPosition();
+
+      // Tampilkan notifikasi sticky foreground agar GPS tetap aktif saat layar mati
+      unawaited(
+        NotificationService.instance.showHikingForegroundNotification(),
+      );
+
       notifyListeners();
       return true;
     } catch (e) {
@@ -97,6 +110,8 @@ class HikingTrackingService extends ChangeNotifier {
       debugPrint('[HikingTracking] Start error: $e');
       _sessionId = null;
       _startedAt = null;
+      // Pastikan notifikasi juga dihapus jika start gagal
+      unawaited(NotificationService.instance.cancelHikingForegroundNotification());
       return false;
     } finally {
       _isStarting = false;
@@ -192,6 +207,8 @@ class HikingTrackingService extends ChangeNotifier {
       _locationService.stopTracking();
       _sessionId = null;
       _isStopping = false;
+      // Hapus notifikasi sticky saat tracking selesai
+      unawaited(NotificationService.instance.cancelHikingForegroundNotification());
       notifyListeners();
     }
   }

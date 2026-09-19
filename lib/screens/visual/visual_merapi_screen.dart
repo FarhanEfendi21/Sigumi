@@ -184,7 +184,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
           backgroundColor: Colors.white,
           appBar: AppBar(
             title: Text(
-              hasCctv ? 'Pantauan CCTV' : 'Detail ${volcano.name}',
+              hasCctv ? 'Pantauan Gunung' : 'Detail ${volcano.name}',
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,

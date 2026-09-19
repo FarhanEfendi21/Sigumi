@@ -10,6 +10,8 @@ import '../../providers/volcano_provider.dart';
 import '../../providers/news_provider.dart';
 import '../../services/ai_service.dart';
 import '../../services/localization_service.dart';
+import '../../services/hiking_tracking_service.dart';
+import '../../services/location_service.dart';
 import '../../models/news_item.dart';
 import 'widgets/news_carousel.dart';
 import 'package:flutter/services.dart';
@@ -33,6 +35,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
+      // Mulai background GPS tracking agar jarak realtime selalu aktif saat bergerak
+      final locationService = context.read<LocationService>();
+      locationService.startTracking(distanceFilterMeters: 25);
+
       // Fetch news dari Supabase, filtered by selected region
       final newsProvider = context.read<NewsProvider>();
       await newsProvider.fetchLatestNews(
@@ -40,14 +46,18 @@ class _HomeScreenState extends State<HomeScreen> {
         lokasi: volcanoProvider.selectedRegion,
       );
 
-      // Listen to selectedRegion changes and auto-fetch news
+      // Listen to selectedRegion changes and auto-fetch news (hanya jika region benar-benar berubah)
+      String lastRegion = volcanoProvider.selectedRegion;
       volcanoProvider.addListener(() {
         if (!mounted) return;
-        final newsProvider = context.read<NewsProvider>();
-        newsProvider.fetchLatestNews(
-          limit: 5,
-          lokasi: volcanoProvider.selectedRegion,
-        );
+        if (volcanoProvider.selectedRegion != lastRegion) {
+          lastRegion = volcanoProvider.selectedRegion;
+          final newsProvider = context.read<NewsProvider>();
+          newsProvider.fetchLatestNews(
+            limit: 5,
+            lokasi: volcanoProvider.selectedRegion,
+          );
+        }
       });
     });
   }
@@ -580,23 +590,44 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: _GuestLoginBanner(),
                       ),
 
-                    // Tourism Promo Banner
+                    // ── Fitur Pariwisata Section ──
+                    _HomeSectionHeader(
+                      title: context.tr('tourism_section'),
+                      actionText: 'Lihat Semua',
+                      onActionTap:
+                          () => Navigator.pushNamed(context, AppRoutes.tourism),
+                    ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: _TourismBannerCard(
                         region: provider.selectedRegion,
                       ),
                     ),
 
-                    // Menu Grid — Opsi B: Featured + Small + FullWidth
+                    // ── Fitur Tracking Pendakian Section ──
+                    _HomeSectionHeader(
+                      title: context.tr('hiking_tracking_section'),
+                      actionText: 'Buka Peta',
+                      onActionTap:
+                          () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.hikingTracking,
+                          ),
+                    ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                      child: Text(
-                        context.tr('main_menu'),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _HikingSpotlightCard(
+                        onTap:
+                            () => Navigator.pushNamed(
+                              context,
+                              AppRoutes.hikingTracking,
+                            ),
                       ),
+                    ),
+
+                    // ── Fitur Menu Utama Section ──
+                    _HomeSectionHeader(
+                      title: context.tr('main_menu'),
                     ),
                     // Row 1: 2 featured cards
                     Padding(
@@ -635,20 +666,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: _FullWidthMenuCard(
-                        icon: Icons.hiking_rounded,
-                        label: 'Tracking Pendakian',
-                        subtitle: 'Bagikan lokasi Anda selama mendaki',
-                        color: Colors.deepOrange,
-                        onTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.hikingTracking,
-                            ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -735,42 +752,59 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
 
-                    // Berita Terkini Section (Disembunyikan sementara menunggu fitur Admin selesai)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 24, 20, 8),
-                      child: Consumer<NewsProvider>(
-                        builder: (context, newsProvider, _) {
-                          return Row(
-                            children: [
-                              Text(
-                                context.tr('latest_news'),
-                                style: Theme.of(context).textTheme.titleLarge
-                                    ?.copyWith(fontWeight: FontWeight.w800),
-                              ),
-                              const Spacer(),
-                              if (newsProvider.isLoading)
-                                const SizedBox(
-                                  width: 14,
-                                  height: 14,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation(
-                                      SigumiTheme.textSecondary,
+                    // ── Fitur Berita Terkini Section ──
+                    Consumer<NewsProvider>(
+                      builder: (context, newsProvider, _) {
+                        return _HomeSectionHeader(
+                          title: context.tr('latest_news'),
+                          trailing:
+                              newsProvider.isLoading
+                                  ? const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation(
+                                        SigumiTheme.textSecondary,
+                                      ),
                                     ),
-                                  ),
-                                )
-                              else
-                                Text(
-                                  '${newsProvider.newsList.length} ${context.tr('latest_news').toLowerCase()}',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: SigumiTheme.textSecondary,
-                                  ),
-                                ),
-                            ],
-                          );
-                        },
-                      ),
+                                  )
+                                  : (newsProvider.newsList.isEmpty
+                                      ? null
+                                      : Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 9,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              isHighContrast
+                                                  ? context.bgSurface
+                                                  : context.textTertiary
+                                                      .withValues(alpha: 0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border:
+                                              isHighContrast
+                                                  ? Border.all(
+                                                    color: context.borderColor,
+                                                  )
+                                                  : null,
+                                        ),
+                                        child: Text(
+                                          '${newsProvider.newsList.length}',
+                                          style: AppFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                isHighContrast
+                                                    ? context.textPrimary
+                                                    : context.textSecondary,
+                                          ),
+                                        ),
+                                      )),
+                        );
+                      },
                     ),
 
                     // News Carousel Slider
@@ -1272,7 +1306,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      '${region['volcano']} \u2022 ${region['elevation']}',
+                                      '${region['volcano']} \u2022 ${region['elevation']} \u2022 ${provider.getDistanceShortForRegion(regionName)}',
                                       style: const TextStyle(
                                         fontSize: 12,
                                         color: SigumiTheme.textSecondary,
@@ -1585,6 +1619,311 @@ class _FeaturedMenuCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// HIKING SPOTLIGHT CARD — Minimalist & Clean Real-time Tracker
+// ─────────────────────────────────────────────────────────────────
+class _HikingSpotlightCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _HikingSpotlightCard({required this.onTap});
+
+  String _formatDuration(Duration d) {
+    final hours = d.inHours.toString().padLeft(2, '0');
+    final minutes = (d.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return d.inHours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+    final volcanoProvider = context.watch<VolcanoProvider>();
+    final isLombok = volcanoProvider.selectedRegion.toLowerCase() == 'lombok';
+
+    // Watch service safely if registered in tree
+    HikingTrackingService? tracking;
+    try {
+      tracking = context.watch<HikingTrackingService>();
+    } catch (_) {
+      tracking = null;
+    }
+
+    final isActive = tracking?.isActive ?? false;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          onTap();
+        },
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            color: isHighContrast ? context.bgSurface : null,
+            gradient: isHighContrast
+                ? null
+                : LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isActive
+                        ? const [
+                            Color(0xFF26120C),
+                            Color(0xFF381A12),
+                          ]
+                        : const [
+                            Color(0xFF0B2117),
+                            Color(0xFF133827),
+                          ],
+                  ),
+            border: Border.all(
+              color: isHighContrast
+                  ? context.borderColor
+                  : (isActive
+                      ? Colors.orange.withAlpha(120)
+                      : const Color(0xFF00E676).withAlpha(70)),
+              width: isHighContrast ? context.borderWidth : 1.2,
+            ),
+            boxShadow: isHighContrast
+                ? []
+                : [
+                    BoxShadow(
+                      color: (isActive
+                              ? Colors.orangeAccent
+                              : const Color(0xFF00E676))
+                          .withAlpha(25),
+                      blurRadius: 14,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+          ),
+          child: Stack(
+            children: [
+              // Subtle mountain watermark
+              Positioned(
+                right: -10,
+                bottom: -15,
+                child: Icon(
+                  Icons.terrain_rounded,
+                  size: 80,
+                  color: Colors.white.withAlpha(isHighContrast ? 8 : 12),
+                ),
+              ),
+
+              Row(
+                children: [
+                  // Left: Modern squircle icon with live indicator
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: isHighContrast
+                          ? Colors.white.withAlpha(25)
+                          : (isActive
+                              ? Colors.red.withAlpha(40)
+                              : const Color(0xFF00E676).withAlpha(35)),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: isHighContrast
+                            ? context.borderColor
+                            : (isActive
+                                ? Colors.red.withAlpha(80)
+                                : const Color(0xFF00E676).withAlpha(80)),
+                        width: 1,
+                      ),
+                    ),
+                    child: Icon(
+                      isActive
+                          ? Icons.navigation_rounded
+                          : Icons.hiking_rounded,
+                      color: isHighContrast
+                          ? context.textPrimary
+                          : (isActive
+                              ? const Color(0xFFFF8A80)
+                              : const Color(0xFF00E676)),
+                      size: 26,
+                    ),
+                  ),
+
+                  const SizedBox(width: 14),
+
+                  // Center: Title + Live status + Subtitle
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'Tracking Pendakian',
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: isHighContrast
+                                      ? context.textPrimary
+                                      : Colors.white,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isActive) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isHighContrast
+                                      ? Colors.white.withAlpha(20)
+                                      : Colors.red.withAlpha(50),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _PulseDot(
+                                      color: isHighContrast
+                                          ? context.textPrimary
+                                          : const Color(0xFFFF5252),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      _formatDuration(
+                                        tracking?.elapsed ?? Duration.zero,
+                                      ),
+                                      style: AppFonts.plusJakartaSans(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.5,
+                                        color: isHighContrast
+                                            ? context.textPrimary
+                                            : const Color(0xFFFF8A80),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          isActive
+                              ? 'Aktif merekam • ${(tracking?.distanceKm ?? 0).toStringAsFixed(2)} km terlewati'
+                              : (isLombok
+                                  ? 'Pantau rute & koordinat jalur secara realtime'
+                                  : 'Khusus wilayah Gunung Rinjani (Lombok)'),
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: isHighContrast
+                                ? context.textSecondary
+                                : Colors.white.withAlpha(190),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  // Right: Minimal action button
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: isHighContrast
+                          ? Colors.white.withAlpha(20)
+                          : Colors.white.withAlpha(25),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 16,
+                      color: isHighContrast
+                          ? context.textPrimary
+                          : Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// PULSING STATUS DOT FOR REAL-TIME INDICATOR
+// ─────────────────────────────────────────────────────────────────
+class _PulseDot extends StatefulWidget {
+  final Color color;
+  const _PulseDot({required this.color});
+
+  @override
+  State<_PulseDot> createState() => _PulseDotState();
+}
+
+class _PulseDotState extends State<_PulseDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _animation = Tween<double>(begin: 0.35, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: widget.color,
+            boxShadow: [
+              BoxShadow(
+                color: widget.color.withAlpha(
+                  (170 * _animation.value).toInt(),
+                ),
+                blurRadius: 6 * _animation.value,
+                spreadRadius: 2 * _animation.value,
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -2061,6 +2400,94 @@ class _TourismBannerCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────
+// HOME SECTION HEADER — Human Interface Guidelines (Minimalist)
+// ─────────────────────────────────────────────────────────────────
+class _HomeSectionHeader extends StatelessWidget {
+  final String title;
+  final String? actionText;
+  final VoidCallback? onActionTap;
+  final Widget? trailing;
+
+  const _HomeSectionHeader({
+    required this.title,
+    this.actionText,
+    this.onActionTap,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isHighContrast = context.isHighContrast;
+    final accent = context.accentPrimary;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 26, 16, 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: context.textPrimary,
+                letterSpacing: -0.4,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (trailing != null)
+            trailing!
+          else if (actionText != null && onActionTap != null)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onActionTap!();
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        actionText!,
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isHighContrast
+                              ? context.textPrimary
+                              : accent,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 18,
+                        color: isHighContrast
+                            ? context.textPrimary
+                            : accent,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

@@ -15,6 +15,7 @@ import 'providers/auth_provider.dart';
 import 'providers/news_provider.dart';
 import 'providers/assistant_provider.dart';
 import 'services/location_service.dart';
+import 'services/hiking_tracking_service.dart';
 import 'services/cloud_llm_service.dart';
 import 'config/ollama_config.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -74,6 +75,9 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => VolcanoProvider()),
         ChangeNotifierProvider(create: (_) => LocationService()),
+        ChangeNotifierProvider(
+          create: (_) => HikingTrackingService(locationService: LocationService()),
+        ),
         ChangeNotifierProvider(create: (_) => TourismProvider()),
         ChangeNotifierProvider(create: (_) => NewsProvider()),
         ChangeNotifierProvider(create: (_) => GlobalAssistantProvider()),

@@ -104,6 +104,25 @@ class LocationService extends ChangeNotifier {
   String get distanceLabel =>
       '${_distanceFromVolcano.toStringAsFixed(1)} km dari puncak $_nearestVolcanoName';
 
+  /// Jarak realtime user ke gunung tertentu berdasarkan nama daerah ('Yogyakarta', 'Bali', 'Lombok')
+  double getDistanceToRegion(String region) {
+    final target = regionCenters[region];
+    if (target == null) return _distanceFromVolcano;
+    return _haversineDistance(
+      _userLat,
+      _userLng,
+      target['lat']!,
+      target['lng']!,
+    );
+  }
+
+  /// Map jarak realtime ke ketiga gunung
+  Map<String, double> get allVolcanoDistances => {
+    'Yogyakarta': getDistanceToRegion('Yogyakarta'),
+    'Bali': getDistanceToRegion('Bali'),
+    'Lombok': getDistanceToRegion('Lombok'),
+  };
+
   /// ──────────────────────────────────────────────
   /// DETEKSI DAERAH — Berdasarkan koordinat GPS
   /// ──────────────────────────────────────────────
@@ -201,19 +220,30 @@ class LocationService extends ChangeNotifier {
 
       // Ambil posisi pertama
       _locationError = null;
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          distanceFilter: 0,
-        ),
-      );
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 0,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
+      } catch (posErr) {
+        debugPrint(
+          '[LocationService] Init getCurrentPosition error/timeout: $posErr, fallback ke lastKnown',
+        );
+        position = await Geolocator.getLastKnownPosition();
+      }
 
-      _userLat = position.latitude;
-      _userLng = position.longitude;
-      _isUsingRealGps = true;
-      _lastUpdated = DateTime.now();
-      _gpsStatus = GpsStatus.active;
-      _consecutiveErrors = 0;
+      if (position != null) {
+        _userLat = position.latitude;
+        _userLng = position.longitude;
+        _isUsingRealGps = true;
+        _lastUpdated = DateTime.now();
+        _gpsStatus = GpsStatus.active;
+        _consecutiveErrors = 0;
+      }
 
       // Update ke Supabase & hitung zona risiko
       await _updateLocationToSupabase();
@@ -480,24 +510,72 @@ class LocationService extends ChangeNotifier {
   /// ──────────────────────────────────────────────
   Future<void> refreshLocation() async {
     try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
-      _userLat = position.latitude;
-      _userLng = position.longitude;
-      _isUsingRealGps = true;
-      _lastUpdated = DateTime.now();
-      _locationError = null;
-      _gpsStatus = GpsStatus.active;
-      _consecutiveErrors = 0;
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _locationError = 'GPS tidak aktif. Aktifkan lokasi di pengaturan.';
+        _gpsStatus = GpsStatus.disabled;
+        _calculateLocalDistance();
+        notifyListeners();
+        return;
+      }
 
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _locationError = 'Izin lokasi ditolak.';
+          _gpsStatus = GpsStatus.denied;
+          _calculateLocalDistance();
+          notifyListeners();
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _locationError =
+            'Izin lokasi diblokir permanen. Buka pengaturan untuk mengizinkan.';
+        _gpsStatus = GpsStatus.denied;
+        _calculateLocalDistance();
+        notifyListeners();
+        return;
+      }
+
+      Position? position;
+      try {
+        position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 8),
+          ),
+        );
+      } catch (posErr) {
+        debugPrint(
+          '[LocationService] Refresh getCurrentPosition error/timeout: $posErr, fallback ke lastKnown',
+        );
+        position = await Geolocator.getLastKnownPosition();
+      }
+
+      if (position != null) {
+        _userLat = position.latitude;
+        _userLng = position.longitude;
+        _isUsingRealGps = true;
+        _lastUpdated = DateTime.now();
+        _locationError = null;
+        _gpsStatus = GpsStatus.active;
+        _consecutiveErrors = 0;
+      }
+
+      // Deteksi ulang daerah berdasarkan koordinat terbaru
+      detectRegion();
+
+      // Recalculate local distance & update ke Supabase
       await _updateLocationToSupabase();
       notifyListeners();
     } catch (e) {
+      debugPrint('[LocationService] Refresh location error: $e');
       _locationError = 'Gagal refresh lokasi.';
       _gpsStatus = GpsStatus.error;
+      _calculateLocalDistance();
       notifyListeners();
     }
   }

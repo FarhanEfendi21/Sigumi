@@ -137,6 +137,7 @@ class VolcanoProvider extends ChangeNotifier {
 
   // ── Lokasi (delegasi ke LocationService) ──
   double get distanceFromMerapi => _locationService.distanceFromVolcano;
+  double get distanceFromVolcano => _locationService.distanceFromVolcano;
   String get distanceLabel => _locationService.distanceLabel;
 
   /// Jarak ringkas: hanya angka + satuan, tanpa nama gunung (untuk chip UI)
@@ -145,10 +146,27 @@ class VolcanoProvider extends ChangeNotifier {
   String get zoneLabel => _locationService.zoneLabel;
   int get zoneLevel => _locationService.zoneLevel;
 
+  /// Jarak realtime user ke salah satu dari 3 region ('Yogyakarta', 'Bali', 'Lombok')
+  double getDistanceToRegion(String region) =>
+      _locationService.getDistanceToRegion(region);
+
+  /// Jarak ringkas ke region: 'X.X km'
+  String getDistanceShortForRegion(String region) =>
+      '${getDistanceToRegion(region).toStringAsFixed(1)} km';
+
+  /// Map jarak realtime ke ketiga gunung
+  Map<String, double> get allVolcanoDistances =>
+      _locationService.allVolcanoDistances;
+
   VolcanoProvider() {
+    _locationService.addListener(_onLocationServiceChanged);
     _initAuthListener();
     _initMagmaRealtime();
     _initPrefs();
+  }
+
+  void _onLocationServiceChanged() {
+    notifyListeners();
   }
 
   /// Inisialisasi preferensi lokal
@@ -702,6 +720,13 @@ class VolcanoProvider extends ChangeNotifier {
       // Set volcano pertama atau sesuai region
       _updateSelectedVolcano();
 
+      // Sinkronisasikan ke LocationService agar kalkulasi jarak selalu akurat
+      _locationService.setActiveVolcano(
+        lat: _volcano.latitude,
+        lng: _volcano.longitude,
+        name: _volcano.name,
+      );
+
       // Sinkronisasikan status dari MAGMA sebelum me-render badge & memberhentikan loading
       if (_magmaClient != null) {
         await _syncMagmaStatusForCurrentVolcano();
@@ -1141,20 +1166,37 @@ class VolcanoProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Paksa reload semua volcano dari Supabase (termasuk status MAGMA)
+      // 1. Refresh lokasi realtime pengguna via GPS
+      await _locationService.refreshLocation();
+
+      // 2. Pastikan target gunung aktif di LocationService sinkron
+      _locationService.setActiveVolcano(
+        lat: _volcano.latitude,
+        lng: _volcano.longitude,
+        name: _volcano.name,
+      );
+
+      // 3. Paksa reload semua volcano dari Supabase (termasuk status MAGMA)
       await loadVolcanoes();
 
-      // Sync langsung status level dari MAGMA untuk gunung aktif
+      // 4. Sync langsung status level dari MAGMA untuk gunung aktif
       await _syncMagmaStatusForCurrentVolcano();
 
-      // Reload aktivitas & riwayat terkini
+      // 5. Pastikan active volcano tetap sinkron setelah reload
+      _locationService.setActiveVolcano(
+        lat: _volcano.latitude,
+        lng: _volcano.longitude,
+        name: _volcano.name,
+      );
+
+      // 6. Reload aktivitas & riwayat terkini
       await fetchRecentActivities();
       await fetchEruptionHistory();
 
-      // Reload kontak darurat
+      // 7. Reload kontak darurat
       await fetchEmergencyContacts();
     } catch (e) {
-      debugPrint('[VolcanoProvider] forceRefresh error: \$e');
+      debugPrint('[VolcanoProvider] forceRefresh error: $e');
     } finally {
       _isRefreshing = false;
       notifyListeners();
@@ -1163,6 +1205,7 @@ class VolcanoProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _locationService.removeListener(_onLocationServiceChanged);
     _authSubscription?.cancel();
     _magmaChannel?.unsubscribe();
     _pollingTimer?.cancel();
