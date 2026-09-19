@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
-import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
 
 /// ZoneDetailScreen — Halaman detail status zona bencana.

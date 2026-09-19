@@ -269,7 +269,7 @@ class SettingsScreen extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// HERO PROFIL
+// HERO PROFIL (Minimalist — Apple Human Interface Guidelines)
 // ══════════════════════════════════════════════════════════════════════════════
 
 class _ProfileHero extends StatelessWidget {
@@ -279,46 +279,45 @@ class _ProfileHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = provider.currentUser;
+
+    // 1. Nama Pengguna (Apple HIG: Large Title / Title 2)
     final name =
-        provider.currentUser?.name.isNotEmpty == true
-            ? provider.currentUser!.name
-            : 'Pengguna SIGUMI';
+        user?.name.isNotEmpty == true ? user!.name : 'Pengguna SIGUMI';
 
-    final contact =
-        provider.currentUser?.phone?.isNotEmpty == true
-            ? provider.currentUser!.phone!
-            : (provider.currentUser?.email ?? '—');
+    // 2. Nomor Telepon yang digunakan (Apple HIG: Subheadline)
+    final phone =
+        user?.phone?.isNotEmpty == true
+            ? user!.phone!
+            : (user?.email?.isNotEmpty == true
+                ? user!.email
+                : 'Nomor belum ditambahkan');
 
-    // Ambil inisial untuk avatar
-    final initials =
-        name
-            .trim()
-            .split(' ')
-            .where((e) => e.isNotEmpty)
-            .take(2)
-            .map((e) => e[0].toUpperCase())
-            .join();
+    // 3. Lokasi yang ia pilih (Apple HIG: Inset Grouped Cell Value)
+    final selectedLocation =
+        user?.region?.isNotEmpty == true
+            ? user!.region!
+            : (provider.selectedRegion.isNotEmpty
+                ? provider.selectedRegion
+                : 'Yogyakarta');
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       decoration: BoxDecoration(
         color: context.bgSurface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: context.borderColor,
           width: context.borderWidth,
         ),
         boxShadow: context.cardShadow,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Avatar ──
-          _AvatarWidget(initials: initials),
-          const SizedBox(width: 16),
-
-          // ── Info nama & kontak ──
-          Expanded(
+          // ── Identitas Utama: Nama Pengguna & Nomor Telepon ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -326,117 +325,74 @@ class _ProfileHero extends StatelessWidget {
                   name,
                   style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 20,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: context.textPrimary,
                     letterSpacing: -0.5,
-                    height: 1.2,
+                    height: 1.25,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
-                  contact,
+                  phone,
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: context.textSecondary,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Apple Hairline Inset Divider ──
+          Padding(
+            padding: const EdgeInsets.only(left: 20),
+            child: Container(
+              height: context.borderWidth,
+              color: context.borderColor,
+            ),
+          ),
+
+          // ── Baris Lokasi yang Dipilih ──
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Row(
+              children: [
+                Icon(
+                  CupertinoIcons.location_fill,
+                  size: 16,
+                  color: context.accentPrimary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Lokasi Terpilih',
                   style: TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontSize: 14,
-                    fontWeight: FontWeight.w400,
+                    fontWeight: FontWeight.w500,
                     color: context.textSecondary,
-                    letterSpacing: -0.1,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
-
-                // ── Badge bahasa ──
-                _LanguageBadge(language: provider.language),
+                const Spacer(),
+                Text(
+                  selectedLocation,
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary,
+                    letterSpacing: -0.2,
+                  ),
+                ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ── Widget avatar dengan inisial ─────────────────────────────────────────────
-class _AvatarWidget extends StatelessWidget {
-  final String initials;
-
-  const _AvatarWidget({required this.initials});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 72,
-      height: 72,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: context.isHighContrast ? null : const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1B3FA0), // sedikit lebih terang dari primaryBlue
-            Color(0xFF0D2060), // lebih gelap
-          ],
-        ),
-        color: context.isHighContrast ? context.accentPrimary : null,
-        border: Border.all(
-          color: context.isHighContrast ? context.borderColor : Colors.transparent,
-          width: context.borderWidth,
-        ),
-        boxShadow: context.cardShadow,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        initials.isEmpty ? '?' : initials,
-        style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 26,
-          fontWeight: FontWeight.w700,
-          color: context.isHighContrast ? context.bgPrimary : Colors.white,
-          letterSpacing: -0.5,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Badge bahasa ──────────────────────────────────────────────────────────────
-class _LanguageBadge extends StatelessWidget {
-  final String language;
-
-  const _LanguageBadge({required this.language});
-
-  @override
-  Widget build(BuildContext context) {
-    final label = switch (language.toLowerCase()) {
-      'en' => '🇬🇧  English',
-      'jv' => '☕  Basa Jawa',
-      'ba' => '🌴  Basa Bali',
-      'sa' => '🏔️  Basa Sasak',
-      _ => '🇮🇩  Indonesia',
-    };
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: context.bgSecondary,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: context.borderColor,
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: context.textSecondary,
-          letterSpacing: 0.1,
-        ),
       ),
     );
   }

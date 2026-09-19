@@ -35,6 +35,16 @@ class NotificationService {
   static const String channelDescription =
       'Notifikasi darurat peringatan dini perubahan level aktivitas gunung api.';
 
+  // Channel khusus untuk foreground service tracking pendakian (ongoing, silent)
+  static const String _hikingChannelId = 'hiking_tracking';
+  static const String _hikingChannelName = 'Tracking Pendakian';
+  static const String _hikingChannelDescription =
+      'Notifikasi aktif saat SIGUMI sedang merekam jalur pendakian. GPS tetap aktif meski layar mati.';
+
+  /// ID tetap untuk notifikasi sticky tracking pendakian
+  static const int _hikingNotificationId = 9001;
+
+
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
@@ -54,11 +64,24 @@ class NotificationService {
         enableVibration: true,
       );
 
+      // Channel khusus hiking tracking — silent, ongoing
+      const AndroidNotificationChannel hikingChannel =
+          AndroidNotificationChannel(
+        _hikingChannelId,
+        _hikingChannelName,
+        description: _hikingChannelDescription,
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+        showBadge: false,
+      );
+
       final androidPlugin = _localNotifications
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>();
 
       await androidPlugin?.createNotificationChannel(channel);
+      await androidPlugin?.createNotificationChannel(hikingChannel);
 
       // Wajib untuk Android 13+ (API 33+) agar dialog izin notifikasi muncul
       await androidPlugin?.requestNotificationsPermission();
@@ -194,6 +217,58 @@ class NotificationService {
       );
     } catch (e) {
       debugPrint('[NotificationService] Gagal menampilkan notifikasi lokal: $e');
+    }
+  }
+
+  /// Tampilkan notifikasi sticky foreground service saat tracking pendakian aktif.
+  /// Notifikasi ini mencegah Android mematikan GPS saat layar HP dikunci.
+  Future<void> showHikingForegroundNotification({
+    String title = 'Tracking Pendakian Aktif',
+    String body = 'Sigumi sedang merekam jalur pendakian',
+  }) async {
+    try {
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+        _hikingChannelId,
+        _hikingChannelName,
+        channelDescription: _hikingChannelDescription,
+        importance: Importance.low,
+        priority: Priority.low,
+        ongoing: true,
+        autoCancel: false,
+        icon: '@mipmap/launcher_icon',
+        color: Color(0xFF16A34A),
+        visibility: NotificationVisibility.public,
+        showWhen: true,
+        usesChronometer: true,
+        chronometerCountDown: false,
+      );
+
+      const NotificationDetails details = NotificationDetails(
+        android: androidDetails,
+      );
+
+      // flutter_local_notifications v22+ gunakan named parameters
+      await _localNotifications.show(
+        id: _hikingNotificationId,
+        title: title,
+        body: body,
+        notificationDetails: details,
+      );
+      debugPrint('[NotificationService] ✅ Hiking foreground notification ditampilkan');
+    } catch (e) {
+      debugPrint('[NotificationService] ⚠️ Gagal tampilkan hiking notification: $e');
+    }
+  }
+
+  /// Hapus notifikasi sticky tracking pendakian saat sesi selesai.
+  Future<void> cancelHikingForegroundNotification() async {
+    try {
+      // flutter_local_notifications v22+ gunakan named parameters
+      await _localNotifications.cancel(id: _hikingNotificationId);
+      debugPrint('[NotificationService] ✅ Hiking foreground notification dihapus');
+    } catch (e) {
+      debugPrint('[NotificationService] ⚠️ Gagal hapus hiking notification: $e');
     }
   }
 

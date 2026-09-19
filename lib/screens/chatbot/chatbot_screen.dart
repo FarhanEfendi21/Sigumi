@@ -439,13 +439,15 @@ class _ChatbotScreenState extends State<ChatbotScreen>
   Future<void> _startVoiceAssistantLoop() async {
     // Cek & minta permission dulu (hanya pertama kali)
     final hasPermission = await _initSpeechWithPermission();
-    if (!hasPermission) return;
+    if (!hasPermission || !mounted) return;
 
     // Pause wake word agar mic dilepas dari tflite_audio
     await context.read<GlobalAssistantProvider>().pauseWakeWord();
+    if (!mounted) return;
 
     // Stop ongoing TTS when user starts speaking
     await _voiceService.stopSpeaking();
+    if (!mounted) return;
 
     // Gunakan locale sesuai bahasa aplikasi
     final currentLang = context.read<VolcanoProvider>().language;
