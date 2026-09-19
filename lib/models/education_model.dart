@@ -45,6 +45,7 @@ class EducationItem {
   final String content;
   final String? imageUrl;
   final String? lokasi;
+  final String? audience;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -55,6 +56,7 @@ class EducationItem {
     required this.content,
     this.imageUrl,
     this.lokasi,
+    this.audience,
     this.createdAt,
     this.updatedAt,
   });
@@ -62,11 +64,14 @@ class EducationItem {
   factory EducationItem.fromJson(Map<String, dynamic> json) {
     return EducationItem(
       id: json['id'] as String,
-      title: json['title'] as String? ?? '',
-      category: json['category'] as String?,
-      content: json['content'] as String? ?? '',
+      title: _stripHtml(json['title'] as String? ?? ''),
+      category: json['category'] != null
+          ? _stripHtml(json['category'] as String)
+          : null,
+      content: _stripHtml(json['content'] as String? ?? ''),
       imageUrl: json['image_url'] as String?,
       lokasi: json['lokasi'] as String?,
+      audience: json['audience'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
@@ -74,5 +79,32 @@ class EducationItem {
           ? DateTime.tryParse(json['updated_at'].toString())
           : null,
     );
+  }
+
+  static String _stripHtml(String html) {
+    if (html.isEmpty) return '';
+    String text = html;
+    // Replace breaks and paragraph/block closing tags with newlines
+    text = text.replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n');
+    text = text.replaceAll(
+        RegExp(r'</?(p|div|li|h[1-6])\b[^>]*>', caseSensitive: false), '\n');
+    // Strip all remaining HTML tags
+    text = text.replaceAll(RegExp(r'<[^>]*>'), '');
+    // Decode common HTML entities
+    text = text
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&apos;', "'");
+    // Normalize newlines and whitespace
+    text = text
+        .split('\n')
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
+        .join('\n\n');
+    return text.trim();
   }
 }
