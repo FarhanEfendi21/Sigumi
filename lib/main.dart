@@ -61,7 +61,8 @@ void main() async {
     CloudLlmService.init(
       baseUrl: OllamaConfig.baseUrl,
       modelName: OllamaConfig.modelName,
-      apiKey: OllamaConfig.apiKey,
+      user: OllamaConfig.ollamaUser,
+      pass: OllamaConfig.ollamaPass,
     );
   }
 

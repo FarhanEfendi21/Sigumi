@@ -44,7 +44,7 @@ class ConnectivityService {
         Uri.parse(ollamaUrl),
       ).timeout(_timeout);
 
-      _lastResult = response.statusCode == 200;
+      _lastResult = response.statusCode == 200 || response.statusCode == 401;
       _lastCheck = DateTime.now();
 
       debugPrint('[Connectivity] ${_lastResult! ? '✅ Ollama reachable' : '❌ Ollama not reachable'}');
