@@ -22,18 +22,21 @@ class CloudLlmService {
 
   final String _baseUrl;
   final String _modelName;
-  final String _apiKey;
+  final String _user;
+  final String _pass;
 
   // ── Singleton factory ──
   static void init({
     required String baseUrl,
     required String modelName,
-    String apiKey = '',
+    String user = '',
+    String pass = '',
   }) {
     _instance = CloudLlmService._(
       baseUrl: baseUrl,
       modelName: modelName,
-      apiKey: apiKey,
+      user: user,
+      pass: pass,
     );
     debugPrint('[CloudLLM] ✅ Initialized — Ollama at $baseUrl, model: $modelName');
   }
@@ -43,10 +46,12 @@ class CloudLlmService {
   CloudLlmService._({
     required String baseUrl,
     required String modelName,
-    String apiKey = '',
+    String user = '',
+    String pass = '',
   })  : _baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl,
         _modelName = modelName,
-        _apiKey = apiKey;
+        _user = user,
+        _pass = pass;
 
   // ══════════════════════════════════════════════════════════════
   // SYSTEM PROMPT — Konteks kebencanaan SIGUMI
@@ -111,7 +116,7 @@ $ageContext
     String ageCategory = 'dewasa',
     String? locationContext,
     List<ChatMessage>? conversationHistory,
-    Duration timeout = const Duration(seconds: 30),
+    Duration timeout = const Duration(seconds: 120),
   }) async {
     // Coba pertama
     final result = await _doRequest(
@@ -129,7 +134,7 @@ $ageContext
     debugPrint('[CloudLLM] 🔄 Retrying after 1s backoff...');
     await Future.delayed(const Duration(seconds: 1));
 
-    return await _doRequest(
+    final retryResult = await _doRequest(
       userMessage: userMessage,
       language: language,
       ageCategory: ageCategory,
@@ -137,6 +142,10 @@ $ageContext
       conversationHistory: conversationHistory,
       timeout: timeout + const Duration(seconds: 10), // Tambah 10s untuk retry
     );
+
+    if (retryResult != null) return retryResult;
+
+    throw Exception('ERROR_CONNECTION');
   }
 
   /// Eksekusi satu request ke Ollama API (`POST /api/chat`).
@@ -184,8 +193,9 @@ $ageContext
       final headers = <String, String>{
         'Content-Type': 'application/json',
       };
-      if (_apiKey.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $_apiKey';
+      if (_user.isNotEmpty && _pass.isNotEmpty) {
+        final basicAuth = base64Encode(utf8.encode('$_user:$_pass'));
+        headers['Authorization'] = 'Basic $basicAuth';
       }
 
       final response = await http.post(

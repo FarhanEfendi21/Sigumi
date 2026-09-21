@@ -22,34 +22,30 @@ class OllamaConfig {
   /// Production: Ganti ke URL VPS via `--dart-define=OLLAMA_BASE_URL=...`
   static const String baseUrl = String.fromEnvironment(
     'OLLAMA_BASE_URL',
-    defaultValue: 'http://localhost:11434',
+    defaultValue: 'https://ollama-mvod.srv1985398.hstgr.cloud',
   );
 
-  /// Model Gemma 4 yang digunakan.
-  ///
-  /// Variant yang tersedia di Ollama:
-  /// - `gemma4:e2b`  → 2B params, untuk edge device
-  /// - `gemma4:e4b`  → 4B params, balanced (rekomendasi VPS kecil)
-  /// - `gemma4:12b`  → 12B params, workstation-grade
-  /// - `gemma4:27b`  → 27B MoE, frontier-level
+  /// Model yang digunakan (Finetuned untuk SIGUMI).
   static const String modelName = String.fromEnvironment(
     'OLLAMA_MODEL',
-    defaultValue: 'gemma4:e4b',
+    defaultValue: 'sigumi-finetuned',
   );
 
-  /// API key opsional untuk autentikasi.
-  ///
-  /// Ollama default tidak butuh API key. Tapi jika server dilindungi
-  /// reverse proxy (nginx/caddy) dengan auth, set key di sini.
-  /// Dikirim sebagai header `Authorization: Bearer <key>`.
-  static const String apiKey = String.fromEnvironment(
-    'OLLAMA_API_KEY',
+  /// Username untuk Basic Auth (didapat dari --dart-define).
+  static const String ollamaUser = String.fromEnvironment(
+    'OLLAMA_USER',
+    defaultValue: '',
+  );
+
+  /// Password untuk Basic Auth (didapat dari --dart-define).
+  static const String ollamaPass = String.fromEnvironment(
+    'OLLAMA_PASS',
     defaultValue: '',
   );
 
   /// Cek apakah Ollama sudah dikonfigurasi (baseUrl tidak kosong).
   static bool get isConfigured => baseUrl.isNotEmpty;
 
-  /// Cek apakah API key di-set (untuk reverse proxy auth).
-  static bool get hasApiKey => apiKey.isNotEmpty;
+  /// Cek apakah kredensial Basic Auth tersedia.
+  static bool get hasBasicAuth => ollamaUser.isNotEmpty && ollamaPass.isNotEmpty;
 }

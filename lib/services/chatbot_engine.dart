@@ -35,31 +35,45 @@ class ChatbotEngine {
     if (hasInternet) {
       debugPrint('[ChatbotEngine] 🌐 Online — trying Cloud LLM...');
 
-      final cloudResponse = await _tryCloudLlm(
-        userMessage: text,
-        language: appLanguage,
-        ageCategory: ageCategory,
-        locationContext: locationContext,
-        conversationHistory: conversationHistory,
-      );
+      try {
+        final cloudResponse = await _tryCloudLlm(
+          userMessage: text,
+          language: appLanguage,
+          ageCategory: ageCategory,
+          locationContext: locationContext,
+          conversationHistory: conversationHistory,
+        );
 
-      if (cloudResponse != null) {
-        debugPrint('[ChatbotEngine] ☁️ Cloud LLM response received');
+        if (cloudResponse != null) {
+          debugPrint('[ChatbotEngine] ☁️ Cloud LLM response received');
+          return ChatMessage(
+            content: cloudResponse,
+            isUser: false,
+            timestamp: DateTime.now(),
+            language: appLanguage,
+            messageType: MessageType.text,
+            confidence: 1.0,
+            intentId: 'cloud_llm',
+            isVoice: false,
+            responseSource: ResponseSource.cloud,
+          );
+        }
+      } catch (e) {
+        debugPrint('[ChatbotEngine] ❌ Cloud LLM error: $e, returning friendly error message');
         return ChatMessage(
-          content: cloudResponse,
+          content: 'Maaf, terjadi gangguan koneksi ke server. Coba lagi.',
           isUser: false,
           timestamp: DateTime.now(),
           language: appLanguage,
           messageType: MessageType.text,
-          confidence: 1.0,
-          intentId: 'cloud_llm',
+          intentId: 'error_connection',
           isVoice: false,
           responseSource: ResponseSource.cloud,
         );
       }
 
-      // Cloud gagal — fallback
-      debugPrint('[ChatbotEngine] ⚠️ Cloud LLM failed, using rule-based fallback');
+      // Cloud return null (belum lempar exception, ex: not initialized) — fallback
+      debugPrint('[ChatbotEngine] ⚠️ Cloud LLM returned null, using rule-based fallback');
       return _buildFallbackResponse(text, appLanguage, ResponseSource.localFallback);
     }
 
@@ -84,18 +98,14 @@ class ChatbotEngine {
       return null;
     }
 
-    try {
-      return await cloudService.generateResponse(
-        userMessage: userMessage,
-        language: language,
-        ageCategory: ageCategory,
-        locationContext: locationContext,
-        conversationHistory: conversationHistory,
-      );
-    } catch (e) {
-      debugPrint('[ChatbotEngine] ❌ Cloud LLM error: $e');
-      return null;
-    }
+    // Biarkan exception bubbled up supaya processMessage bisa menangkapnya
+    return await cloudService.generateResponse(
+      userMessage: userMessage,
+      language: language,
+      ageCategory: ageCategory,
+      locationContext: locationContext,
+      conversationHistory: conversationHistory,
+    );
   }
 
   /// Build rule-based fallback response.
