@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -83,9 +85,6 @@ class NotificationService {
       await androidPlugin?.createNotificationChannel(channel);
       await androidPlugin?.createNotificationChannel(hikingChannel);
 
-      // Wajib untuk Android 13+ (API 33+) agar dialog izin notifikasi muncul
-      await androidPlugin?.requestNotificationsPermission();
-
       // 2. Inisialisasi plugin notifikasi lokal (untuk pop-up saat aplikasi sedang dibuka)
       const AndroidInitializationSettings androidSettings =
           AndroidInitializationSettings('@mipmap/launcher_icon');
@@ -106,15 +105,6 @@ class NotificationService {
       // 3. Setup Firebase Cloud Messaging jika didukung di platform ini
       final messaging = _fcm;
       if (messaging != null) {
-        // Minta izin ke pengguna (Android 13+ & iOS)
-        NotificationSettings settings = await messaging.requestPermission(
-          alert: true,
-          badge: true,
-          sound: true,
-          criticalAlert: true, // Prioritas tinggi untuk mitigasi bencana
-        );
-        debugPrint('[FCM] Status izin pengguna: ${settings.authorizationStatus}');
-
         // Registrasi background handler
         FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -147,6 +137,67 @@ class NotificationService {
       debugPrint('[NotificationService] ✅ Inisialisasi notifikasi berhasil');
     } catch (e) {
       debugPrint('[NotificationService] ⚠️ Gagal inisialisasi notifikasi: $e');
+    }
+  }
+
+  bool _hasRequestedPermission = false;
+
+  /// Meminta izin notifikasi ke pengguna (Android 13+ & iOS).
+  /// Dipanggil dari HomeScreen setelah UI siap & Activity Android stabil,
+  /// menghindari crash NullPointerException saat app baru di-install.
+  Future<bool> requestPermission() async {
+    if (_hasRequestedPermission) return true;
+    _hasRequestedPermission = true;
+
+    try {
+      bool granted = false;
+
+      if (!_isInitialized) {
+        await initialize();
+      }
+
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        // Khusus Android 13+ (POST_NOTIFICATIONS)
+        final androidPlugin = _localNotifications
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+        if (androidPlugin != null) {
+          final bool? localGranted =
+              await androidPlugin.requestNotificationsPermission();
+          granted = localGranted ?? false;
+        }
+      } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
+        // Khusus iOS Push Notifications
+        final messaging = _fcm;
+        if (messaging != null) {
+          final settings = await messaging.requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+            criticalAlert: true,
+          );
+          granted = settings.authorizationStatus ==
+                  AuthorizationStatus.authorized ||
+              settings.authorizationStatus == AuthorizationStatus.provisional;
+        }
+      }
+
+      // Ambil dan simpan token FCM secara background tanpa memblokir alur UI izin lainnya
+      unawaited(() async {
+        try {
+          final token = await getDeviceToken();
+          if (token != null) {
+            await saveTokenToSupabase(token);
+          }
+        } catch (e) {
+          debugPrint('[FCM] Background token sync error: $e');
+        }
+      }());
+
+      return granted;
+    } catch (e) {
+      debugPrint('[NotificationService] ⚠️ Gagal meminta izin notifikasi: $e');
+      return false;
     }
   }
 

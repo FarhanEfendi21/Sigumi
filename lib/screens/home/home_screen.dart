@@ -12,6 +12,7 @@ import '../../services/ai_service.dart';
 import '../../services/localization_service.dart';
 import '../../services/hiking_tracking_service.dart';
 import '../../services/location_service.dart';
+import '../../services/notification_service.dart';
 import '../../models/news_item.dart';
 import 'widgets/news_carousel.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +31,17 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
+      // 1. Minta izin notifikasi di HomeScreen saat UI dan Activity sudah stabil
+      await NotificationService.instance.requestPermission();
+
+      if (!mounted) return;
+
+      // Beri jeda agar OS Android menyelesaikan dialog pertama sebelum memunculkan dialog lokasi
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!mounted) return;
+
+      // 2. Inisialisasi GPS & minta izin lokasi
       final volcanoProvider = context.read<VolcanoProvider>();
       await volcanoProvider.autoDetectAndSetRegion();
 

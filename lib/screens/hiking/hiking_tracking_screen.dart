@@ -652,6 +652,15 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                               ),
                             ),
                           ),
+                          if (tracking.hasHistory)
+                            IconButton(
+                              tooltip: 'Reset Riwayat Tracking',
+                              onPressed: tracking.isStarting || tracking.isStopping
+                                  ? null
+                                  : () => _confirmResetTracking(context, tracking),
+                              icon: const Icon(Icons.restart_alt_rounded,
+                                  color: Color(0xFFDC2626), size: 22),
+                            ),
                           IconButton(
                             tooltip: 'Pusatkan ke Rinjani',
                             onPressed: () =>
@@ -755,6 +764,12 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                             strokeWidth: 4.0,
                                             color: _accentColor,
                                           ),
+                                          if (tracking.routePoints.length >= 2)
+                                            Polyline(
+                                              points: tracking.routePoints,
+                                              strokeWidth: 4.5,
+                                              color: const Color(0xFF2563EB),
+                                            ),
                                         ],
                                       ),
                                       MarkerLayer(
@@ -987,6 +1002,40 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                             ),
                           ),
 
+                          // Tombol Reset Tracking jika terdapat riwayat tracking
+                          if (tracking.hasHistory) ...[
+                            const SizedBox(height: 10),
+                            OutlinedButton.icon(
+                              onPressed: tracking.isStarting || tracking.isStopping
+                                  ? null
+                                  : () => _confirmResetTracking(context, tracking),
+                              icon: const Icon(
+                                Icons.restart_alt_rounded,
+                                size: 18,
+                                color: Color(0xFFDC2626),
+                              ),
+                              label: Text(
+                                'Reset Riwayat Tracking',
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFFDC2626),
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFFDC2626),
+                                backgroundColor: const Color(0xFFFEF2F2),
+                                side: const BorderSide(
+                                    color: Color(0xFFFECACA), width: 1.2),
+                                minimumSize: const Size.fromHeight(48),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            ),
+                          ],
+
                           const SizedBox(height: 10),
 
                           Text(
@@ -1060,6 +1109,137 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
       ),
     );
     if (confirmed == true) await tracking.stop();
+  }
+
+  /// Dialog konfirmasi untuk menghapus / reset riwayat tracking lokal
+  Future<void> _confirmResetTracking(
+    BuildContext context,
+    HikingTrackingService tracking,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        icon: Center(
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFEF2F2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.restart_alt_rounded,
+              color: Color(0xFFDC2626),
+              size: 28,
+            ),
+          ),
+        ),
+        title: Text(
+          'Reset Riwayat Tracking?',
+          textAlign: TextAlign.center,
+          style: AppFonts.plusJakartaSans(
+            color: _textDark,
+            fontWeight: FontWeight.w700,
+            fontSize: 17,
+          ),
+        ),
+        content: Text(
+          tracking.isActive
+              ? 'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.'
+              : 'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.',
+          textAlign: TextAlign.center,
+          style: AppFonts.plusJakartaSans(
+            color: _textMuted,
+            fontSize: 13.5,
+            height: 1.5,
+          ),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: _textDark,
+                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Batal',
+                    style: AppFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: _textDark,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFFDC2626),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Ya, Reset',
+                    style: AppFonts.plusJakartaSans(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await tracking.reset();
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle_rounded,
+                  color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Riwayat tracking berhasil di-reset.',
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF1E293B),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }
 

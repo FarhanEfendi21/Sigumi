@@ -17,6 +17,7 @@ import 'providers/assistant_provider.dart';
 import 'services/location_service.dart';
 import 'services/hiking_tracking_service.dart';
 import 'services/cloud_llm_service.dart';
+import 'services/vibration_alert_service.dart';
 import 'config/ollama_config.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,11 +50,6 @@ void main() async {
           debugPrint('[Notification] Tap notifikasi gunung ID: $volcanoId');
         },
       );
-
-      final token = await NotificationService.instance.getDeviceToken();
-      if (token != null) {
-        await NotificationService.instance.saveTokenToSupabase(token);
-      }
     }
   } catch (e) {
     debugPrint('[Firebase] Inisialisasi notifikasi error: $e');
@@ -68,6 +64,9 @@ void main() async {
       apiKey: OllamaConfig.apiKey,
     );
   }
+
+  // Inisialisasi Vibration Alert Service (getar saat radius 5 km dari puncak)
+  await VibrationAlertService().initialize();
 
   runApp(
     MultiProvider(

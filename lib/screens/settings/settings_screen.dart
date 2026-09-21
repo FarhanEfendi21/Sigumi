@@ -10,6 +10,7 @@ import '../../providers/volcano_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/localization_service.dart';
 import 'package:flutter/services.dart';
+import '../../services/vibration_alert_service.dart';
 
 /// Halaman Profil — mengikuti pedoman Apple Human Interface Guidelines (HIG).
 ///
@@ -120,6 +121,8 @@ class SettingsScreen extends StatelessWidget {
                       subtitle: context.tr('notif_subtitle'),
                       onTap: () {},
                     ),
+                    _ListDivider(),
+                    const _VibrationAlertRow(),
                     _ListDivider(),
                     _OfflineRow(provider: provider),
                     _ListDivider(),
@@ -692,6 +695,78 @@ class _VoiceAssistantRow extends StatelessWidget {
             onChanged: (val) {
               HapticFeedback.lightImpact();
               provider.setAudioGuidance(val);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Baris toggle peringatan getar saat radius 5 km dari puncak
+class _VibrationAlertRow extends StatefulWidget {
+  const _VibrationAlertRow();
+
+  @override
+  State<_VibrationAlertRow> createState() => _VibrationAlertRowState();
+}
+
+class _VibrationAlertRowState extends State<_VibrationAlertRow> {
+  bool _isEnabled = VibrationAlertService().isEnabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          _IconBadge(
+            icon: CupertinoIcons.waveform,
+            background: const Color(0xFFFF3B30), // iOS red — cocok bencana
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Peringatan Getar',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _isEnabled
+                      ? 'Aktif — getar saat radius \u22645 km dari puncak'
+                      : 'Nonaktif',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: context.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          CupertinoSwitch(
+            value: _isEnabled,
+            activeTrackColor: const Color(0xFFFF3B30),
+            onChanged: (val) async {
+              HapticFeedback.lightImpact();
+              await VibrationAlertService().setEnabled(val);
+              setState(() => _isEnabled = val);
+              // Test getar singkat saat toggle ON
+              if (val) {
+                await VibrationAlertService().testVibration();
+              }
             },
           ),
         ],

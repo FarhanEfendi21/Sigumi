@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'vibration_alert_service.dart';
 
 /// Status kesehatan GPS tracking
 enum GpsStatus {
@@ -186,17 +187,7 @@ class LocationService extends ChangeNotifier {
   /// ──────────────────────────────────────────────
   Future<void> initialize() async {
     try {
-      // Cek apakah location service aktif
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        _locationError = 'GPS tidak aktif. Aktifkan lokasi di pengaturan.';
-        _gpsStatus = GpsStatus.disabled;
-        _calculateLocalDistance(); // Fallback ke kalkulasi lokal
-        notifyListeners();
-        return;
-      }
-
-      // Cek & request permission
+      // 1. Cek & request izin lokasi (Runtime Permission)
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -214,6 +205,16 @@ class LocationService extends ChangeNotifier {
             'Izin lokasi diblokir permanen. Buka pengaturan untuk mengizinkan.';
         _gpsStatus = GpsStatus.denied;
         _calculateLocalDistance();
+        notifyListeners();
+        return;
+      }
+
+      // 2. Cek apakah layanan GPS diaktifkan di pengaturan perangkat
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _locationError = 'GPS tidak aktif. Aktifkan lokasi di pengaturan.';
+        _gpsStatus = GpsStatus.disabled;
+        _calculateLocalDistance(); // Fallback ke kalkulasi lokal
         notifyListeners();
         return;
       }
@@ -402,6 +403,10 @@ class LocationService extends ChangeNotifier {
     _activeVolcanoLng = lng;
     _activeVolcanoName = name;
 
+    // Reset state radius saat gunung aktif berganti
+    // agar alert bisa trigger ulang di gunung baru
+    VibrationAlertService().resetRadiusState();
+
     // Recalculate jarak ke gunung baru
     _calculateLocalDistance();
 
@@ -481,6 +486,12 @@ class LocationService extends ChangeNotifier {
       _zoneLevel = 1;
       _zoneLabel = 'Zona Aman';
     }
+
+    // ── Cek alert getar jika dalam radius 5 km ──
+    VibrationAlertService().checkAndAlert(
+      distanceKm: _distanceFromVolcano,
+      volcanoName: _activeVolcanoName,
+    );
   }
 
   /// Formula Haversine untuk jarak antara 2 titik GPS (km)
@@ -510,15 +521,6 @@ class LocationService extends ChangeNotifier {
   /// ──────────────────────────────────────────────
   Future<void> refreshLocation() async {
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        _locationError = 'GPS tidak aktif. Aktifkan lokasi di pengaturan.';
-        _gpsStatus = GpsStatus.disabled;
-        _calculateLocalDistance();
-        notifyListeners();
-        return;
-      }
-
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -535,6 +537,15 @@ class LocationService extends ChangeNotifier {
         _locationError =
             'Izin lokasi diblokir permanen. Buka pengaturan untuk mengizinkan.';
         _gpsStatus = GpsStatus.denied;
+        _calculateLocalDistance();
+        notifyListeners();
+        return;
+      }
+
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _locationError = 'GPS tidak aktif. Aktifkan lokasi di pengaturan.';
+        _gpsStatus = GpsStatus.disabled;
         _calculateLocalDistance();
         notifyListeners();
         return;
