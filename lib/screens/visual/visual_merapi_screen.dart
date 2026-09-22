@@ -179,6 +179,12 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
             volcano.id == 'merapi_001' ||
             volcano.id == VolcanoModel.kMerapiUuid ||
             volcano.name.toLowerCase().contains('merapi');
+        final volcanoKey = switch (volcano.name.toLowerCase()) {
+          final name when name.contains('merapi') => 'merapi',
+          final name when name.contains('agung') => 'agung',
+          final name when name.contains('rinjani') => 'rinjani',
+          _ => null,
+        };
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -226,10 +232,10 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                               !_isPlatformSupported
                                   ? _buildUnsupportedView()
                                   : _hasWebViewError
-                                      ? _buildErrorView()
-                                      : WebViewWidget(
-                                        controller: _webViewController!,
-                                      ),
+                                  ? _buildErrorView()
+                                  : WebViewWidget(
+                                    controller: _webViewController!,
+                                  ),
                         ),
 
                         // ── Loading Overlay ──
@@ -254,7 +260,9 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(alpha: 0.8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -271,18 +279,28 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black.withValues(alpha: 0.6),
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.15),
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.videocam_rounded, color: Colors.white, size: 14),
+                                    const Icon(
+                                      Icons.videocam_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      _merapiCameras[_selectedCameraIndex].location,
+                                      _merapiCameras[_selectedCameraIndex]
+                                          .location,
                                       style: AppFonts.plusJakartaSans(
                                         color: Colors.white,
                                         fontSize: 12,
@@ -299,11 +317,21 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                     child: Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.6),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.6,
+                                        ),
                                         shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                                        border: Border.all(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                        ),
                                       ),
-                                      child: const Icon(Icons.refresh_rounded, color: Colors.white, size: 16),
+                                      child: const Icon(
+                                        Icons.refresh_rounded,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
@@ -312,16 +340,29 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                     child: Container(
                                       padding: const EdgeInsets.all(8),
                                       decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.6),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.6,
+                                        ),
                                         shape: BoxShape.circle,
-                                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                                        border: Border.all(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.15,
+                                          ),
+                                        ),
                                       ),
-                                      child: const Icon(Icons.fullscreen_rounded, color: Colors.white, size: 16),
+                                      child: const Icon(
+                                        Icons.fullscreen_rounded,
+                                        color: Colors.white,
+                                        size: 16,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 8,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.redAccent,
                                       borderRadius: BorderRadius.circular(20),
@@ -329,10 +370,23 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                     child: Row(
                                       children: [
                                         Container(
-                                          width: 6,
-                                          height: 6,
-                                          decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                                        ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(duration: 800.ms, begin: 0.3, end: 1.0),
+                                              width: 6,
+                                              height: 6,
+                                              decoration: const BoxDecoration(
+                                                color: Colors.white,
+                                                shape: BoxShape.circle,
+                                              ),
+                                            )
+                                            .animate(
+                                              onPlay:
+                                                  (c) =>
+                                                      c.repeat(reverse: true),
+                                            )
+                                            .fade(
+                                              duration: 800.ms,
+                                              begin: 0.3,
+                                              end: 1.0,
+                                            ),
                                         const SizedBox(width: 6),
                                         Text(
                                           'LIVE',
@@ -361,71 +415,90 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
-                              children: _merapiCameras.asMap().entries.map((entry) {
-                                final i = entry.key;
-                                final camera = entry.value;
-                                final isSelected = _selectedCameraIndex == i;
-                                return GestureDetector(
-                                  onTap: () => _switchCamera(i),
-                                  child: AnimatedContainer(
-                                    duration: 300.ms,
-                                    margin: const EdgeInsets.only(right: 8),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: isSelected 
-                                          ? Colors.white 
-                                          : Colors.black.withValues(alpha: 0.6),
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(
-                                        color: isSelected 
-                                            ? Colors.white 
-                                            : Colors.white.withValues(alpha: 0.15),
-                                        width: 1,
+                              children:
+                                  _merapiCameras.asMap().entries.map((entry) {
+                                    final i = entry.key;
+                                    final camera = entry.value;
+                                    final isSelected =
+                                        _selectedCameraIndex == i;
+                                    return GestureDetector(
+                                      onTap: () => _switchCamera(i),
+                                      child: AnimatedContainer(
+                                        duration: 300.ms,
+                                        margin: const EdgeInsets.only(right: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 12,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color:
+                                              isSelected
+                                                  ? Colors.white
+                                                  : Colors.black.withValues(
+                                                    alpha: 0.6,
+                                                  ),
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                          border: Border.all(
+                                            color:
+                                                isSelected
+                                                    ? Colors.white
+                                                    : Colors.white.withValues(
+                                                      alpha: 0.15,
+                                                    ),
+                                            width: 1,
+                                          ),
+                                          boxShadow: [
+                                            if (isSelected)
+                                              BoxShadow(
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.2,
+                                                ),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              camera.icon,
+                                              size: 16,
+                                              color:
+                                                  isSelected
+                                                      ? const Color(0xFF1E1E2C)
+                                                      : Colors.white,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              camera.label,
+                                              style: AppFonts.plusJakartaSans(
+                                                color:
+                                                    isSelected
+                                                        ? const Color(
+                                                          0xFF1E1E2C,
+                                                        )
+                                                        : Colors.white,
+                                                fontSize: 13,
+                                                fontWeight:
+                                                    isSelected
+                                                        ? FontWeight.w800
+                                                        : FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                      boxShadow: [
-                                        if (isSelected)
-                                          BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.2),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                      ],
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(
-                                          camera.icon,
-                                          size: 16,
-                                          color: isSelected ? const Color(0xFF1E1E2C) : Colors.white,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          camera.label,
-                                          style: AppFonts.plusJakartaSans(
-                                            color: isSelected ? const Color(0xFF1E1E2C) : Colors.white,
-                                            fontSize: 13,
-                                            fontWeight: isSelected 
-                                                ? FontWeight.w800 
-                                                : FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                                    );
+                                  }).toList(),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  )
-                  .animate()
-                  .fadeIn(duration: 800.ms),
+                  ).animate().fadeIn(duration: 800.ms),
 
                   const SizedBox(height: 24),
                 ],
@@ -548,14 +621,14 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       const SizedBox(height: 32),
 
                       // ── Ringkasan Aktivitas Harian (dari volcano_summarizer) ──
-                      if (hasCctv)
+                      if (volcanoKey != null)
                         VolcanoLatestSummaryWithHistoryButton(
-                          volcanoKey: 'merapi',
+                          volcanoKey: volcanoKey,
                           limit: 30,
                           title: 'Laporan Aktivitas',
                         ),
 
-                      if (hasCctv) const SizedBox(height: 32),
+                      if (volcanoKey != null) const SizedBox(height: 32),
                       // ── Riwayat Erupsi ──
                       Text(
                         'Riwayat Erupsi',
@@ -569,8 +642,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       _buildEruptionHistoryContent(provider),
 
                       const SizedBox(height: 32),
-
-
                     ],
                   ),
                 ),
@@ -720,7 +791,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
       ),
     );
   }
-
 
   Widget _buildInfoGridCard({
     required IconData icon,
@@ -889,7 +959,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
         .fadeIn(delay: 300.ms, duration: 400.ms)
         .slideY(begin: 0.05, end: 0);
   }
-
 }
 
 // ─────────────────────────────────────────────
@@ -1034,4 +1103,3 @@ class _EruptionTimelineItem extends StatelessWidget {
     return n.toString();
   }
 }
-
