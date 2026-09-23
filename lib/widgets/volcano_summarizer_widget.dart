@@ -143,8 +143,6 @@ class VolcanoSummarizerCard extends StatelessWidget {
                   height: 1.5,
                   color: const Color(0xFF1E1E2C),
                 ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 12),
             ],
@@ -521,10 +519,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
   }
 
   void _openHistory(BuildContext context, VolcanoProvider provider) {
-    provider.fetchVolcanoSummaries(
-      widget.volcanoKey,
-      limit: widget.limit,
-    );
+    provider.fetchVolcanoSummaries(widget.volcanoKey, limit: widget.limit);
     _showHistoryBottomSheet(context, provider);
   }
 
