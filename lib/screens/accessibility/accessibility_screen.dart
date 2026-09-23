@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sigumi/config/fonts.dart';
@@ -391,6 +392,74 @@ class AccessibilityScreen extends StatelessWidget {
 
 
 
+
+                const SizedBox(height: 28),
+
+                // ═══════════════════════════════════════════════
+                // BAGIAN 3: PANDUAN AUDIO
+                // ═══════════════════════════════════════════════
+                _SectionHeader(
+                  title: 'Panduan Audio',
+                  icon: Icons.mic_rounded,
+                  color: tertiaryText,
+                ),
+                const SizedBox(height: 14),
+
+                _AccessCard(
+                  isHC: isHC,
+                  surfaceColor: surfaceColor,
+                  borderColor: borderColor,
+                  borderW: borderW,
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF5856D6).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          CupertinoIcons.mic_fill,
+                          color: Color(0xFF5856D6),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Panduan Audio',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: primaryText,
+                              ),
+                            ),
+                            Text(
+                              provider.audioGuidance
+                                  ? 'Aktif — Ucapkan "Halo Sigumi"'
+                                  : 'Nonaktif',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: tertiaryText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      CupertinoSwitch(
+                        value: provider.audioGuidance,
+                        activeTrackColor: accentColor,
+                        onChanged: (val) {
+                          HapticFeedback.lightImpact();
+                          provider.setAudioGuidance(val);
+                        },
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 260.ms),
 
                 const SizedBox(height: 40),
 

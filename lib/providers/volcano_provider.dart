@@ -176,6 +176,22 @@ class VolcanoProvider extends ChangeNotifier {
     _language = prefs.getString('language') ?? 'id';
     _colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
     _audioGuidance = prefs.getBool('audio_guidance') ?? false;
+
+    // Pulihkan region yang terakhir dipilih pengguna (sebelum GPS/data async selesai)
+    final savedRegion = prefs.getString('selected_region');
+    if (savedRegion != null && savedRegion.isNotEmpty) {
+      _selectedRegion = savedRegion;
+      // Set mock placeholder sesuai region tersimpan agar UI langsung tampil
+      if (_allVolcanoes.isEmpty) {
+        if (savedRegion == 'Bali') {
+          _volcano = VolcanoModel.mockAgung();
+        } else if (savedRegion == 'Lombok') {
+          _volcano = VolcanoModel.mockRinjani();
+        } else {
+          _volcano = VolcanoModel.mockMerapi();
+        }
+      }
+    }
     notifyListeners();
   }
 
@@ -480,17 +496,23 @@ class VolcanoProvider extends ChangeNotifier {
     _locationInitialized = true;
 
     if (_locationService.isUsingRealGps) {
-      final closest = _locationService.getClosestRegion();
       final detected = _locationService.detectRegion();
 
       if (detected != null) {
-        // Didalam radius 40km
+        // User berada dalam radius 40km dari salah satu gunung → auto-detect override
         _isRegionAutoDetected = true;
         setRegion(detected);
       } else {
-        // Diluar radius 40km, default ke yang terdekat tapi seolah manual
+        // User di luar radius 40km semua gunung:
+        // JANGAN override preferensi manual yang sudah disimpan pengguna.
+        // Hanya update LocationService agar hitung jarak ke gunung saat ini tetap akurat.
         _isRegionAutoDetected = false;
-        setRegion(closest);
+        _locationService.setActiveVolcano(
+          lat: _volcano.latitude,
+          lng: _volcano.longitude,
+          name: _volcano.name,
+        );
+        notifyListeners();
       }
     } else {
       _isRegionAutoDetected = false;
@@ -850,6 +872,9 @@ class VolcanoProvider extends ChangeNotifier {
 
   void setLanguage(String lang) async {
     _language = lang;
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(language: lang);
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('language', lang);
     if (_isAuthenticated) {
@@ -873,6 +898,9 @@ class VolcanoProvider extends ChangeNotifier {
 
   void setFontSize(double size) {
     _fontSize = size;
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(fontSize: size);
+    }
     if (_isAuthenticated) {
       try {
         _authRepo.updateProfileTable(fontSize: size);
@@ -887,6 +915,9 @@ class VolcanoProvider extends ChangeNotifier {
 
   void setHighContrast(bool value) {
     _highContrast = value;
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(highContrast: value);
+    }
     if (_isAuthenticated) {
       try {
         _authRepo.updateProfileTable(highContrast: value);
@@ -902,6 +933,9 @@ class VolcanoProvider extends ChangeNotifier {
   void setAudioGuidance(bool value) async {
     if (_audioGuidance == value) return;
     _audioGuidance = value;
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(audioGuidance: value);
+    }
     notifyListeners();
 
     try {
@@ -938,9 +972,17 @@ class VolcanoProvider extends ChangeNotifier {
 
   void setRegion(String region) {
     _selectedRegion = region;
+    if (_currentUser != null) {
+      _currentUser = _currentUser!.copyWith(region: region);
+    }
+
+    // Simpan ke SharedPreferences agar region tetap saat app dibuka ulang
+    SharedPreferences.getInstance().then(
+      (prefs) => prefs.setString('selected_region', region),
+    );
 
     // Prioritas 1: Gunakan data yang sudah ada di _allVolcanoes
-    // JANGAN reset ke mock â€” ini penyebab status kembali ke default!
+    // JANGAN reset ke mock — ini penyebab status kembali ke default!
     if (_allVolcanoes.isNotEmpty) {
       _updateSelectedVolcano();
     } else {
@@ -953,7 +995,7 @@ class VolcanoProvider extends ChangeNotifier {
       } else if (region == 'Lombok') {
         _volcano = VolcanoModel.mockRinjani();
       }
-      // Fetch data real segera â€” akan menimpa mock di atas
+      // Fetch data real segera — akan menimpa mock di atas
       Future.microtask(() => loadVolcanoes());
     }
 

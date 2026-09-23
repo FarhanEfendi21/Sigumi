@@ -13,8 +13,10 @@ import '../../services/localization_service.dart';
 import '../../services/hiking_tracking_service.dart';
 import '../../services/location_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/vibration_alert_service.dart';
 import '../../models/news_item.dart';
 import 'widgets/news_carousel.dart';
+import 'widgets/vibration_alert_modal.dart';
 import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -47,6 +49,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
+      // 3. Aktifkan VibrationAlertService & pasang callback untuk show modal
+      VibrationAlertService().setEnabled(true);
+      VibrationAlertService().onAlertTriggered = (volcanoName, distanceKm) {
+        // Pastikan mounted dan tidak ada dialog aktif sebelum show modal
+        if (!mounted) return;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          showVibrationAlertModal(
+            context: context,
+            volcanoName: volcanoName,
+            distanceKm: distanceKm,
+          );
+        });
+      };
+
       // Mulai background GPS tracking agar jarak realtime selalu aktif saat bergerak
       final locationService = context.read<LocationService>();
       locationService.startTracking(distanceFilterMeters: 25);
@@ -72,6 +89,13 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       });
     });
+  }
+
+  @override
+  void dispose() {
+    // Bersihkan callback saat HomeScreen di-dispose
+    VibrationAlertService().onAlertTriggered = null;
+    super.dispose();
   }
 
   @override

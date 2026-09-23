@@ -91,9 +91,6 @@ class SettingsScreen extends StatelessWidget {
                             AppRoutes.accessibility,
                           ),
                     ),
-                    _ListDivider(),
-                    _VoiceAssistantRow(provider: provider),
-                    _ListDivider(),
                     _ListRow(
                       icon: CupertinoIcons.globe,
                       iconBg: const Color(0xFF34C759),
@@ -292,17 +289,17 @@ class _ProfileHero extends StatelessWidget {
     final phone =
         user?.phone?.isNotEmpty == true
             ? user!.phone!
-            : (user?.email?.isNotEmpty == true
+            : (user?.email.isNotEmpty == true
                 ? user!.email
                 : 'Nomor belum ditambahkan');
 
     // 3. Lokasi yang ia pilih (Apple HIG: Inset Grouped Cell Value)
-    final selectedLocation =
-        user?.region?.isNotEmpty == true
+    // Utamakan provider.selectedRegion sebagai single source of truth real-time
+    final selectedLocation = provider.selectedRegion.isNotEmpty
+        ? provider.selectedRegion
+        : (user?.region?.isNotEmpty == true
             ? user!.region!
-            : (provider.selectedRegion.isNotEmpty
-                ? provider.selectedRegion
-                : 'Yogyakarta');
+            : 'Yogyakarta');
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -361,42 +358,219 @@ class _ProfileHero extends StatelessWidget {
             ),
           ),
 
-          // ── Baris Lokasi yang Dipilih ──
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Row(
-              children: [
-                Icon(
-                  CupertinoIcons.location_fill,
-                  size: 16,
-                  color: context.accentPrimary,
+          // ── Baris Lokasi yang Dipilih (Real-time & Interaktif) ──
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _showRegionPicker(context),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(16),
+              ),
+              splashColor: context.dividerColor.withValues(alpha: 0.3),
+              highlightColor: context.bgSecondary.withValues(alpha: 0.5),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                child: Row(
+                  children: [
+                    Icon(
+                      CupertinoIcons.location_fill,
+                      size: 16,
+                      color: context.accentPrimary,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Lokasi Terpilih',
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: context.textSecondary,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      selectedLocation,
+                      style: TextStyle(
+                        fontFamily: 'Plus Jakarta Sans',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimary,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      CupertinoIcons.chevron_right,
+                      size: 14,
+                      color: context.textTertiary,
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  'Lokasi Terpilih',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: context.textSecondary,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  selectedLocation,
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimary,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  void _showRegionPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        final regions = [
+          {
+            'name': 'Yogyakarta',
+            'volcano': 'Gunung Merapi',
+            'icon': Icons.landscape_rounded,
+          },
+          {
+            'name': 'Bali',
+            'volcano': 'Gunung Agung',
+            'icon': Icons.terrain_rounded,
+          },
+          {
+            'name': 'Lombok',
+            'volcano': 'Gunung Rinjani',
+            'icon': Icons.filter_hdr_rounded,
+          },
+        ];
+
+        return Container(
+          decoration: BoxDecoration(
+            color: context.bgSurface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(
+              color: context.borderColor,
+              width: context.borderWidth,
+            ),
+          ),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            12,
+            16,
+            MediaQuery.of(ctx).padding.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: context.textTertiary.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text(
+                'Pilih Lokasi Pemantauan',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: context.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Pilih wilayah gunung api yang ingin dipantau',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  color: context.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...regions.map((item) {
+                final name = item['name'] as String;
+                final volcano = item['volcano'] as String;
+                final icon = item['icon'] as IconData;
+                final isSelected = provider.selectedRegion == name;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? context.accentPrimary.withValues(alpha: 0.08)
+                        : context.bgSecondary,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isSelected
+                          ? context.accentPrimary
+                          : context.borderColor,
+                      width: isSelected ? 1.5 : context.borderWidth,
+                    ),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        provider.setRegion(name);
+                        Navigator.pop(ctx);
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              icon,
+                              size: 22,
+                              color: isSelected
+                                  ? context.accentPrimary
+                                  : context.textSecondary,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    name,
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: isSelected
+                                          ? context.accentPrimary
+                                          : context.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    volcano,
+                                    style: TextStyle(
+                                      fontFamily: 'Plus Jakarta Sans',
+                                      fontSize: 12,
+                                      color: context.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(
+                                CupertinoIcons.checkmark_alt_circle_fill,
+                                size: 22,
+                                color: context.accentPrimary,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 }
