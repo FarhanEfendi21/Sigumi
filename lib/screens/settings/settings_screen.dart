@@ -847,7 +847,6 @@ class _NotificationRowState extends State<_NotificationRow> {
           ),
           const SizedBox(width: 12),
           Expanded(
-<<<<<<< HEAD
             child: AnimatedOpacity(
               opacity: _isEnabled ? 1.0 : 0.45,
               duration: const Duration(milliseconds: 200),
@@ -893,7 +892,7 @@ class _NotificationRowState extends State<_NotificationRow> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _isEnabled ? 'Aktif' : 'Nonaktif',
+                    _isEnabled ? 'Aktif' : context.tr('disabled'),
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 13,
@@ -907,45 +906,15 @@ class _NotificationRowState extends State<_NotificationRow> {
                   ),
                 ],
               ),
-=======
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.tr('offline_data'),
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimary,
-                    letterSpacing: -0.2,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  provider.isOffline
-                      ? context.tr('offline_active')
-                      : context.tr('using_online'),
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
             ),
           ),
-          // CupertinoSwitch untuk tampilan yang tumpah/tepat seperti iOS
           CupertinoSwitch(
-            value: provider.isOffline,
-            activeTrackColor: context.accentPrimary,
-            onChanged: (val) {
+            value: _isEnabled,
+            activeTrackColor: const Color(0xFFFF9500),
+            onChanged: (val) async {
               HapticFeedback.lightImpact();
-              provider.toggleOffline();
+              await NotificationService.instance.setEnabled(val);
+              if (mounted) setState(() => _isEnabled = val);
             },
           ),
         ],
@@ -1001,16 +970,14 @@ class _VoiceAssistantRow extends StatelessWidget {
                   ),
                 ),
               ],
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
             ),
           ),
           CupertinoSwitch(
-            value: _isEnabled,
-            activeTrackColor: const Color(0xFFFF9500),
-            onChanged: (val) async {
+            value: provider.audioGuidance,
+            activeTrackColor: const Color(0xFF5856D6),
+            onChanged: (val) {
               HapticFeedback.lightImpact();
-              await NotificationService.instance.setEnabled(val);
-              if (mounted) setState(() => _isEnabled = val);
+              provider.setAudioGuidance(val);
             },
           ),
         ],
@@ -1088,7 +1055,6 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
           ),
           const SizedBox(width: 12),
           Expanded(
-<<<<<<< HEAD
             child: AnimatedOpacity(
               opacity: _isEnabled ? 1.0 : 0.45,
               duration: const Duration(milliseconds: 200),
@@ -1101,7 +1067,7 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
                     children: [
                       Flexible(
                         child: Text(
-                          'Peringatan Getar',
+                          context.trText('Peringatan Getar'),
                           style: TextStyle(
                             fontFamily: 'Plus Jakarta Sans',
                             fontSize: 16,
@@ -1115,7 +1081,6 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      // ── Tombol info: klik → dialog keterangan ──
                       Material(
                         color: Colors.transparent,
                         child: InkWell(
@@ -1135,7 +1100,9 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _isEnabled ? 'Aktif' : 'Nonaktif',
+                    _isEnabled
+                        ? context.tr('vibration_enabled')
+                        : context.tr('disabled'),
                     style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 13,
@@ -1146,33 +1113,6 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
                           : context.textTertiary,
                       height: 1.4,
                     ),
-=======
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.trText('Peringatan Getar'),
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.2,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _isEnabled
-                      ? context.tr('vibration_enabled')
-                      : context.tr('disabled'),
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
-                    height: 1.4,
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                   ),
                 ],
               ),

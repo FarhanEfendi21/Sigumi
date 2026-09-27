@@ -233,13 +233,12 @@ class AccessibilityScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-<<<<<<< HEAD
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Flexible(
                                   child: Text(
-                                    'Kontras Tinggi',
+                                    context.tr('contrast'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -270,15 +269,6 @@ class AccessibilityScreen extends StatelessWidget {
                                   ),
                                 ),
                               ],
-=======
-                            Text(
-                              context.tr('contrast'),
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: primaryText,
-                              ),
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                             ),
                             Text(
                               isHC
@@ -512,13 +502,12 @@ class AccessibilityScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-<<<<<<< HEAD
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Flexible(
                                   child: Text(
-                                    'Panduan Audio',
+                                    context.tr('audio_guidance'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -550,15 +539,6 @@ class AccessibilityScreen extends StatelessWidget {
                                   ),
                                 ),
                               ],
-=======
-                            Text(
-                              context.tr('audio_guide'),
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: primaryText,
-                              ),
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                             ),
                             Text(
                               provider.audioGuidance
@@ -785,11 +765,7 @@ class _InclusiveBanner extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-<<<<<<< HEAD
-              'Sigumi dirancang inklusif untuk semua pengguna',
-=======
               context.trText('SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.'),
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 height: 1.5,

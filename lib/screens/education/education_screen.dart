@@ -1,8 +1,5 @@
-<<<<<<< HEAD
 import 'package:flutter/cupertino.dart';
-=======
 import '../../services/localization_service.dart';
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';

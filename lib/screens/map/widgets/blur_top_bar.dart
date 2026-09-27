@@ -62,15 +62,6 @@ class BlurTopBar extends StatelessWidget {
                     child: BackButton(
                       color: context.textPrimary,
                       onPressed: onBack,
-<<<<<<< HEAD
-=======
-                      icon: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: context.textPrimary,
-                        size: 20,
-                      ),
-                      tooltip: context.trText('Kembali'),
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                     ),
                   ),
                 ),

@@ -9,6 +9,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:latlong2/latlong.dart' hide Path;
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/volcano_model.dart';
+import '../../models/eruption_history.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/volcano_summarizer_widget.dart';
 
@@ -625,8 +626,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                           title: context.tr('activity_report'),
                         ),
 
-<<<<<<< HEAD
-=======
                       if (volcanoKey != null) const SizedBox(height: 32),
                       // ── Riwayat Erupsi ──
                       Text(
@@ -640,7 +639,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       const SizedBox(height: 16),
                       _buildEruptionHistoryContent(provider),
 
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -853,9 +851,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
       ),
     );
   }
-<<<<<<< HEAD
-=======
-
   Widget _buildEruptionHistoryContent(VolcanoProvider provider) {
     if (provider.isLoadingEruptions) {
       return Container(
@@ -960,13 +955,20 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
         .fadeIn(delay: 300.ms, duration: 400.ms)
         .slideY(begin: 0.05, end: 0);
   }
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
 }
 
 
+class _EruptionTimelineItem extends StatelessWidget {
+  final EruptionHistory eruption;
+  final bool isLatest;
+  final bool isLast;
 
-<<<<<<< HEAD
-=======
+  const _EruptionTimelineItem({
+    required this.eruption,
+    required this.isLatest,
+    required this.isLast,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -1095,4 +1097,3 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     return n.toString();
   }
 }
->>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
