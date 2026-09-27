@@ -7,13 +7,13 @@ class SupabaseConfig {
   /// URL project Supabase - diutamakan dari Environment Variable (--dart-define)
   static const String url = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://rtwanteecrvydxyrgpii.supabase.co',
+    defaultValue: 'http://187.53.141.200:8000',
   );
 
   /// Anon/public key Supabase - diutamakan dari Environment Variable (--dart-define)
   static const String anonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0d2FudGVlY3J2eWR4eXJncGlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzU2NTQsImV4cCI6MjA5MDgxMTY1NH0.ofz33s1PLvEGu_rgnu1CTXt_IUKOi0Ppni_8rvCxKrU',
+    defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0d2FudGVlY3J2eWR4eXJncGlpIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTIzNTY1NCwiZXhwIjoyMDkwODExNjU0fQ.JVC38IwWJcllhnKvlfGjPoTN4kDadDBP8P53ck6Wq04',
   );
 
   /// Kredensial Database untuk mendengarkan status Real-Time (Project rtwanteecrvydxyrgpii)

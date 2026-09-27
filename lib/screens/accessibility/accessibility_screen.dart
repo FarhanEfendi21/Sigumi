@@ -7,6 +7,50 @@ import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/theme.dart';
 import '../../providers/volcano_provider.dart';
 
+// ── Helper: tampilkan dialog info aksesibilitas ───────────────
+void _showAccessInfo(
+  BuildContext context, {
+  required String title,
+  required String message,
+}) {
+  HapticFeedback.lightImpact();
+  showCupertinoDialog(
+    context: context,
+    builder: (ctx) => CupertinoAlertDialog(
+      title: Text(
+        title,
+        style: const TextStyle(
+          fontFamily: 'Plus Jakarta Sans',
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      content: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(
+          message,
+          style: const TextStyle(
+            fontFamily: 'Plus Jakarta Sans',
+            fontSize: 13,
+            height: 1.6,
+          ),
+        ),
+      ),
+      actions: [
+        CupertinoDialogAction(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text(
+            'Mengerti',
+            style: TextStyle(
+              fontFamily: 'Plus Jakarta Sans',
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 /// Halaman Aksesibilitas Eksklusif SIGUMI.
 ///
 /// Fitur:
@@ -188,13 +232,42 @@ class AccessibilityScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Kontras Tinggi',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: primaryText,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'Kontras Tinggi',
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: primaryText,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => _showAccessInfo(
+                                      context,
+                                      title: 'Kontras Tinggi',
+                                      message:
+                                          'Mengubah warna antarmuka ke skema hitam/putih dengan kontras WCAG AAA '
+                                          'agar teks dan elemen lebih mudah dibaca oleh pengguna dengan gangguan penglihatan.',
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Icon(
+                                        CupertinoIcons.info_circle,
+                                        size: 16,
+                                        color: tertiaryText,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             Text(
                               isHC
@@ -429,13 +502,43 @@ class AccessibilityScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Panduan Audio',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: primaryText,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'Panduan Audio',
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: primaryText,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => _showAccessInfo(
+                                      context,
+                                      title: 'Panduan Audio',
+                                      message:
+                                          'Aktifkan panduan suara interaktif dengan mengucapkan "Halo Sigumi". '
+                                          'Fitur ini membantu pengguna tunanetra atau low-vision menavigasi '
+                                          'aplikasi dan menerima peringatan bencana secara verbal.',
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Icon(
+                                        CupertinoIcons.info_circle,
+                                        size: 16,
+                                        color: tertiaryText,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             Text(
                               provider.audioGuidance
@@ -662,8 +765,7 @@ class _InclusiveBanner extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              'SIGUMI dirancang inklusif untuk semua pengguna — '
-              'termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.',
+              'Sigumi dirancang inklusif untuk semua pengguna',
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 height: 1.5,

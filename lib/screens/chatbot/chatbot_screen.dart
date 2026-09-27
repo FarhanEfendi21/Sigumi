@@ -11,13 +11,16 @@ import '../../services/location_service.dart';
 import '../../services/rule_based_fallback.dart';
 import '../../providers/volcano_provider.dart';
 import '../../providers/assistant_provider.dart';
+import '../../config/routes.dart';
 
 class ChatbotScreen extends StatefulWidget {
-  final bool showBackButton;
+  final bool? showBackButton;
+  final VoidCallback? onBack;
 
   const ChatbotScreen({
     super.key,
-    this.showBackButton = false,
+    this.showBackButton,
+    this.onBack,
   });
 
   @override
@@ -599,11 +602,27 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     final currentAppLanguage = context.watch<VolcanoProvider>().language;
     final quickActions = RuleBasedFallback.quickActionLabels[currentAppLanguage] ?? 
                          RuleBasedFallback.quickActionLabels['id']!;
+    final canPop = Navigator.of(context).canPop();
+    final shouldShowBack = widget.showBackButton ?? canPop;
 
     return Scaffold(
       backgroundColor: context.bgSecondary,
       appBar: AppBar(
-        automaticallyImplyLeading: widget.showBackButton,
+        automaticallyImplyLeading: shouldShowBack,
+        leading: shouldShowBack
+            ? BackButton(
+                color: context.textPrimary,
+                onPressed: () {
+                  if (widget.onBack != null) {
+                    widget.onBack!();
+                  } else if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    Navigator.of(context).pushReplacementNamed(AppRoutes.main);
+                  }
+                },
+              )
+            : null,
         backgroundColor: context.bgPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,

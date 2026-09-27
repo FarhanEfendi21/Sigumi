@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/supabase_config.dart';
 import '../repositories/auth_repository.dart';
+import '../services/notification_service.dart';
 
 /// Provider khusus untuk mengelola auth state dan session persistence
 ///
@@ -79,6 +80,13 @@ class AuthProvider extends ChangeNotifier {
         _isAuthenticated = true;
         _getUserData();
         _saveToLocalStorage();
+        // Link FCM token ke akun yang baru login
+        unawaited(() async {
+          final userId = _authRepo.currentUser?.id;
+          if (userId != null) {
+            await NotificationService.instance.syncTokenAfterLogin(userId);
+          }
+        }());
       } else if (state.event == AuthChangeEvent.signedOut) {
         _isAuthenticated = false;
         _userPhone = null;

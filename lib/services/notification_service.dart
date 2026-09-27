@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../widgets/in_app_notification.dart';
 
@@ -13,10 +14,52 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 class NotificationService {
-  NotificationService._();
+  static const String _prefKey = 'notifications_enabled';
+
+  final ValueNotifier<bool> isEnabledNotifier = ValueNotifier<bool>(true);
+  bool get isEnabled => isEnabledNotifier.value;
+
+  NotificationService._() {
+    _loadPreference();
+  }
   static final NotificationService instance = NotificationService._();
 
   Function(String? volcanoId)? _onNotificationClick;
+
+  /// Memuat status aktif notifikasi dari SharedPreferences
+  Future<void> _loadPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final val = prefs.getBool(_prefKey);
+      if (val != null) {
+        isEnabledNotifier.value = val;
+      }
+    } catch (e) {
+      debugPrint('[NotificationService] Error loading pref: $e');
+    }
+  }
+
+  /// Mengaktifkan atau menonaktifkan notifikasi secara real-time
+  Future<void> setEnabled(bool value) async {
+    isEnabledNotifier.value = value;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_prefKey, value);
+    } catch (e) {
+      debugPrint('[NotificationService] Error saving pref: $e');
+    }
+
+    if (value) {
+      await requestPermission();
+    } else {
+      try {
+        await _localNotifications.cancelAll();
+      } catch (e) {
+        debugPrint('[NotificationService] Error cancelling notifications: $e');
+      }
+    }
+    debugPrint('[NotificationService] Notifikasi ${value ? "DIAKTIFKAN" : "DINONAKTIFKAN"} realtime.');
+  }
 
   FirebaseMessaging? _fcmInstance;
   FirebaseMessaging? get _fcm {
@@ -88,9 +131,16 @@ class NotificationService {
       // 2. Inisialisasi plugin notifikasi lokal (untuk pop-up saat aplikasi sedang dibuka)
       const AndroidInitializationSettings androidSettings =
           AndroidInitializationSettings('@mipmap/launcher_icon');
+      const DarwinInitializationSettings iosSettings =
+          DarwinInitializationSettings(
+        requestAlertPermission: false,
+        requestBadgePermission: false,
+        requestSoundPermission: false,
+      );
 
       const InitializationSettings initSettings = InitializationSettings(
         android: androidSettings,
+        iOS: iosSettings,
       );
 
       await _localNotifications.initialize(
@@ -110,6 +160,10 @@ class NotificationService {
 
         // Listener saat app sedang Foreground (sedang aktif digunakan)
         FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+          if (!isEnabled) {
+            debugPrint('[FCM-FG] Notifikasi dilewati (user menonaktifkan notifikasi)');
+            return;
+          }
           debugPrint('[FCM-FG] Notifikasi masuk: ${message.notification?.title}');
           showLocalNotification(
             title: message.notification?.title ?? 'Peringatan Status Gunung',
@@ -146,8 +200,8 @@ class NotificationService {
   /// Dipanggil dari HomeScreen setelah UI siap & Activity Android stabil,
   /// menghindari crash NullPointerException saat app baru di-install.
   Future<bool> requestPermission() async {
-    if (_hasRequestedPermission) return true;
-    _hasRequestedPermission = true;
+    // Guard: skip hanya jika sudah granted sebelumnya
+    if (_hasRequestedPermission) return _hasRequestedPermission;
 
     try {
       bool granted = false;
@@ -157,7 +211,7 @@ class NotificationService {
       }
 
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        // Khusus Android 13+ (POST_NOTIFICATIONS)
+        // Step 1: Minta izin POST_NOTIFICATIONS via flutter_local_notifications (Android 13+)
         final androidPlugin = _localNotifications
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>();
@@ -165,6 +219,22 @@ class NotificationService {
           final bool? localGranted =
               await androidPlugin.requestNotificationsPermission();
           granted = localGranted ?? false;
+        }
+
+        // Step 2: Minta izin FCM agar Firebase dapat mengirim notifikasi
+        // Wajib di Android — tanpa ini FCM tidak akan deliver pesan
+        final messaging = _fcm;
+        if (messaging != null) {
+          final settings = await messaging.requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+          final fcmGranted = settings.authorizationStatus ==
+                  AuthorizationStatus.authorized ||
+              settings.authorizationStatus == AuthorizationStatus.provisional;
+          // Gunakan hasil FCM jika local plugin gagal deteksi
+          granted = granted || fcmGranted;
         }
       } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) {
         // Khusus iOS Push Notifications
@@ -181,6 +251,9 @@ class NotificationService {
               settings.authorizationStatus == AuthorizationStatus.provisional;
         }
       }
+
+      // Tandai sudah request HANYA jika granted, agar bisa retry jika ditolak
+      if (granted) _hasRequestedPermission = true;
 
       // Ambil dan simpan token FCM secara background tanpa memblokir alur UI izin lainnya
       unawaited(() async {
@@ -209,6 +282,11 @@ class NotificationService {
     int level = 2,
     String? volcanoName,
   }) async {
+    if (!isEnabled) {
+      debugPrint('[NotificationService] Notifikasi dilewati (user menonaktifkan notifikasi)');
+      return;
+    }
+
     // 1. Tampilkan In-App floating banner jika app sedang aktif di layar
     try {
       InAppNotification.show(
@@ -346,7 +424,9 @@ class NotificationService {
     }
   }
 
-  /// Simpan atau perbarui token ke tabel `user_notification_preferences` Supabase
+  /// Simpan atau perbarui token ke tabel `user_notification_preferences` Supabase.
+  /// Jika user belum login, token disimpan tanpa user_id dan akan di-update
+  /// via [syncTokenAfterLogin] setelah user berhasil login.
   Future<void> saveTokenToSupabase(String token, {String? userId}) async {
     try {
       final client = Supabase.instance.client;
@@ -360,9 +440,24 @@ class NotificationService {
         },
         onConflict: 'fcm_token',
       );
-      debugPrint('[FCM] ✅ Token berhasil disinkronkan ke Supabase');
+      debugPrint('[FCM] ✅ Token berhasil disinkronkan ke Supabase'
+          '${currentUserId != null ? " (user: $currentUserId)" : " (guest)"}');
     } catch (e) {
       debugPrint('[FCM] ⚠️ Gagal sinkronisasi token ke Supabase: $e');
+    }
+  }
+
+  /// Panggil setelah user login agar token FCM yang sudah ada
+  /// di-link ke akun yang baru saja masuk.
+  Future<void> syncTokenAfterLogin(String userId) async {
+    try {
+      final token = await getDeviceToken();
+      if (token != null) {
+        await saveTokenToSupabase(token, userId: userId);
+        debugPrint('[FCM] ✅ Token di-link ke user $userId setelah login');
+      }
+    } catch (e) {
+      debugPrint('[FCM] ⚠️ Gagal sync token setelah login: $e');
     }
   }
 }

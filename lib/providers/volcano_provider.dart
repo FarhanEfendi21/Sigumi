@@ -495,6 +495,11 @@ class VolcanoProvider extends ChangeNotifier {
     await _locationService.initialize();
     _locationInitialized = true;
 
+    // 1. Pastikan daftar gunung dari Supabase selalu dimuat saat startup
+    if (_allVolcanoes.isEmpty) {
+      await loadVolcanoes();
+    }
+
     if (_locationService.isUsingRealGps) {
       final detected = _locationService.detectRegion();
 
@@ -505,18 +510,43 @@ class VolcanoProvider extends ChangeNotifier {
       } else {
         // User di luar radius 40km semua gunung:
         // JANGAN override preferensi manual yang sudah disimpan pengguna.
-        // Hanya update LocationService agar hitung jarak ke gunung saat ini tetap akurat.
+        // Tetap pastikan target active volcano dan status MAGMA sinkron.
         _isRegionAutoDetected = false;
+        _updateSelectedVolcano();
         _locationService.setActiveVolcano(
           lat: _volcano.latitude,
           lng: _volcano.longitude,
           name: _volcano.name,
         );
+        await _syncMagmaStatusForCurrentVolcano();
         notifyListeners();
       }
     } else {
       _isRegionAutoDetected = false;
+      _updateSelectedVolcano();
+      await _syncMagmaStatusForCurrentVolcano();
       notifyListeners();
+    }
+  }
+
+  /// Menampilkan notifikasi mitigasi status gunung aktif saat aplikasi dibuka.
+  /// Menampilkan status terkini (misal: Merapi Level III Siaga) ke pengguna secara langsung.
+  void notifyActiveVolcanoStatus({bool onlyAlertLevels = true}) {
+    if (_volcano.name.isEmpty) return;
+
+    // Tampilkan jika status >= Level 2 (Waspada, Siaga, Awas) atau jika onlyAlertLevels = false
+    if (!onlyAlertLevels || _volcano.statusLevel >= 2) {
+      final levelName = _getLevelName(_volcano.statusLevel);
+      final roman = _getLevelRoman(_volcano.statusLevel);
+      final directive = _getMitigationDirective(_volcano.statusLevel);
+
+      NotificationService.instance.showLocalNotification(
+        title: _volcano.name,
+        body: 'Status Level $roman ($levelName). $directive',
+        payload: _volcano.id,
+        level: _volcano.statusLevel,
+        volcanoName: _volcano.name,
+      );
     }
   }
 

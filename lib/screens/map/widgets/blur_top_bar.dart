@@ -58,14 +58,9 @@ class BlurTopBar extends StatelessWidget {
                   alignment: Alignment.bottomLeft,
                   child: Padding(
                     padding: const EdgeInsets.only(left: 4, bottom: 4),
-                    child: IconButton(
+                    child: BackButton(
+                      color: context.textPrimary,
                       onPressed: onBack,
-                      icon: Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: context.textPrimary,
-                        size: 20,
-                      ),
-                      tooltip: 'Kembali',
                     ),
                   ),
                 ),

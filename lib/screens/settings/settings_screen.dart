@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../services/localization_service.dart';
 import 'package:flutter/services.dart';
 import '../../services/vibration_alert_service.dart';
+import '../../services/notification_service.dart';
 
 /// Halaman Profil — mengikuti pedoman Apple Human Interface Guidelines (HIG).
 ///
@@ -111,17 +112,9 @@ class SettingsScreen extends StatelessWidget {
                 _SectionHeader(label: context.tr('system_app')),
                 _GroupedList(
                   children: [
-                    _ListRow(
-                      icon: CupertinoIcons.bell,
-                      iconBg: const Color(0xFFFF9500),
-                      title: context.tr('notification'),
-                      subtitle: context.tr('notif_subtitle'),
-                      onTap: () {},
-                    ),
+                    const _NotificationRow(),
                     _ListDivider(),
                     const _VibrationAlertRow(),
-                    _ListDivider(),
-                    _OfflineRow(provider: provider),
                     _ListDivider(),
                     _ListRow(
                       icon: CupertinoIcons.info_circle,
@@ -750,11 +743,76 @@ class _IconBadge extends StatelessWidget {
 // BARIS KHUSUS
 // ══════════════════════════════════════════════════════════════════════════════
 
-/// Baris Data Offline dengan CupertinoSwitch asli
-class _OfflineRow extends StatelessWidget {
-  final VolcanoProvider provider;
+/// Baris toggle notifikasi sistem & mitigasi bencana secara real-time
+class _NotificationRow extends StatefulWidget {
+  const _NotificationRow();
 
-  const _OfflineRow({required this.provider});
+  @override
+  State<_NotificationRow> createState() => _NotificationRowState();
+}
+
+class _NotificationRowState extends State<_NotificationRow> {
+  bool _isEnabled = NotificationService.instance.isEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationService.instance.isEnabledNotifier.addListener(_onServiceChange);
+  }
+
+  @override
+  void dispose() {
+    NotificationService.instance.isEnabledNotifier.removeListener(_onServiceChange);
+    super.dispose();
+  }
+
+  void _onServiceChange() {
+    if (mounted) {
+      setState(() {
+        _isEnabled = NotificationService.instance.isEnabled;
+      });
+    }
+  }
+
+  void _showNotificationInfo() {
+    HapticFeedback.lightImpact();
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (ctx) => CupertinoAlertDialog(
+            title: const Text(
+              'Notifikasi Mitigasi',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(
+                'Menerima peringatan dini kenaikan level aktivitas gunung api dan arahan mitigasi kebencanaan secara langsung.',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  height: 1.6,
+                ),
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text(
+                  'Mengerti',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -762,113 +820,88 @@ class _OfflineRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          _IconBadge(
-            icon: CupertinoIcons.wifi_slash,
-            background: const Color(0xFF5856D6), // iOS purple
+          AnimatedOpacity(
+            opacity: _isEnabled ? 1.0 : 0.5,
+            duration: const Duration(milliseconds: 200),
+            child: _IconBadge(
+              icon: _isEnabled
+                  ? CupertinoIcons.bell_fill
+                  : CupertinoIcons.bell_slash_fill,
+              background: _isEnabled
+                  ? const Color(0xFFFF9500) // iOS orange
+                  : const Color(0xFF8E8E93),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Data Offline',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimary,
-                    letterSpacing: -0.2,
-                    height: 1.3,
+            child: AnimatedOpacity(
+              opacity: _isEnabled ? 1.0 : 0.45,
+              duration: const Duration(milliseconds: 200),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          context.tr('notification'),
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: _isEnabled
+                                ? context.textPrimary
+                                : context.textTertiary,
+                            letterSpacing: -0.2,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _showNotificationInfo,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              CupertinoIcons.info_circle,
+                              size: 16,
+                              color: context.textTertiary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  provider.isOffline
-                      ? 'Mode offline aktif'
-                      : 'Menggunakan data online',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
-                    height: 1.4,
+                  const SizedBox(height: 2),
+                  Text(
+                    _isEnabled ? 'Aktif' : 'Nonaktif',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 13,
+                      fontWeight:
+                          _isEnabled ? FontWeight.w500 : FontWeight.w400,
+                      color: _isEnabled
+                          ? const Color(0xFFFF9500)
+                          : context.textTertiary,
+                      height: 1.4,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // CupertinoSwitch untuk tampilan yang tumpah/tepat seperti iOS
-          CupertinoSwitch(
-            value: provider.isOffline,
-            activeTrackColor: context.accentPrimary,
-            onChanged: (val) {
-              HapticFeedback.lightImpact();
-              provider.toggleOffline();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Baris saklar Panduan Audio / Voice Assistant
-class _VoiceAssistantRow extends StatelessWidget {
-  final VolcanoProvider provider;
-
-  const _VoiceAssistantRow({required this.provider});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-      child: Row(
-        children: [
-          _IconBadge(
-            icon: CupertinoIcons.mic_fill,
-            background: const Color(0xFF5856D6),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Panduan Audio',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimary,
-                    letterSpacing: -0.2,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  provider.audioGuidance
-                      ? 'Aktif ("Halo Sigumi")'
-                      : 'Nonaktif',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           CupertinoSwitch(
-            value: provider.audioGuidance,
-            activeTrackColor: context.accentPrimary,
-            onChanged: (val) {
+            value: _isEnabled,
+            activeTrackColor: const Color(0xFFFF9500),
+            onChanged: (val) async {
               HapticFeedback.lightImpact();
-              provider.setAudioGuidance(val);
+              await NotificationService.instance.setEnabled(val);
+              if (mounted) setState(() => _isEnabled = val);
             },
           ),
         ],
@@ -888,46 +921,124 @@ class _VibrationAlertRow extends StatefulWidget {
 class _VibrationAlertRowState extends State<_VibrationAlertRow> {
   bool _isEnabled = VibrationAlertService().isEnabled;
 
+  void _showVibrationInfo() {
+    HapticFeedback.lightImpact();
+    showCupertinoDialog(
+      context: context,
+      builder:
+          (ctx) => CupertinoAlertDialog(
+            title: const Text(
+              'Peringatan Getar',
+              style: TextStyle(
+                fontFamily: 'Plus Jakarta Sans',
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(
+                'Ponsel akan bergetar otomatis saat kamu berada sekitar 5 km dari puncak sebagai tanda peringatan dini.',
+                style: TextStyle(
+                  fontFamily: 'Plus Jakarta Sans',
+                  fontSize: 13,
+                  height: 1.6,
+                ),
+              ),
+            ),
+            actions: [
+              CupertinoDialogAction(
+                child: const Text(
+                  'Mengerti',
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ],
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          _IconBadge(
-            icon: CupertinoIcons.waveform,
-            background: const Color(0xFFFF3B30), // iOS red — cocok bencana
+          AnimatedOpacity(
+            opacity: _isEnabled ? 1.0 : 0.5,
+            duration: const Duration(milliseconds: 200),
+            child: _IconBadge(
+              icon: CupertinoIcons.waveform,
+              background: _isEnabled
+                  ? const Color(0xFFFF3B30)
+                  : const Color(0xFF8E8E93),
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Peringatan Getar',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.2,
-                    height: 1.3,
+            child: AnimatedOpacity(
+              opacity: _isEnabled ? 1.0 : 0.45,
+              duration: const Duration(milliseconds: 200),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Peringatan Getar',
+                          style: TextStyle(
+                            fontFamily: 'Plus Jakarta Sans',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: _isEnabled
+                                ? context.textPrimary
+                                : context.textTertiary,
+                            letterSpacing: -0.2,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      // ── Tombol info: klik → dialog keterangan ──
+                      Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _showVibrationInfo,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(4),
+                            child: Icon(
+                              CupertinoIcons.info_circle,
+                              size: 16,
+                              color: context.textTertiary,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  _isEnabled
-                      ? 'Aktif — getar saat radius \u22645 km dari puncak'
-                      : 'Nonaktif',
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
-                    height: 1.4,
+                  const SizedBox(height: 2),
+                  Text(
+                    _isEnabled ? 'Aktif' : 'Nonaktif',
+                    style: TextStyle(
+                      fontFamily: 'Plus Jakarta Sans',
+                      fontSize: 13,
+                      fontWeight:
+                          _isEnabled ? FontWeight.w500 : FontWeight.w400,
+                      color: _isEnabled
+                          ? const Color(0xFFFF3B30)
+                          : context.textTertiary,
+                      height: 1.4,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           CupertinoSwitch(

@@ -17,6 +17,7 @@ import '../../services/vibration_alert_service.dart';
 import '../../models/news_item.dart';
 import 'widgets/news_carousel.dart';
 import 'widgets/vibration_alert_modal.dart';
+import 'widgets/mountain_pattern_painter.dart';
 import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -46,6 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
       // 2. Inisialisasi GPS & minta izin lokasi
       final volcanoProvider = context.read<VolcanoProvider>();
       await volcanoProvider.autoDetectAndSetRegion();
+
+      if (!mounted) return;
+
+      // 3. Tampilkan notifikasi mitigasi status gunung aktif saat aplikasi dibuka
+      volcanoProvider.notifyActiveVolcanoStatus();
 
       if (!mounted) return;
 
@@ -141,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     // Header
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                      clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
                         gradient:
                             isHighContrast
@@ -170,9 +176,29 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : null,
                         boxShadow: context.cardShadow,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack(
                         children: [
+                          // ── Mountain pattern background ─────────────
+                          if (!isHighContrast)
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: MountainPatternPainter(
+                                  farColor: const Color(0xFFD6E4FF)
+                                      .withValues(alpha: 0.55),
+                                  nearColor: const Color(0xFFBDD3FF)
+                                      .withValues(alpha: 0.35),
+                                  snowColor:
+                                      Colors.white.withValues(alpha: 0.80),
+                                ),
+                              ),
+                            ),
+                          // ── Konten header ───────────────────────────
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -615,9 +641,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
                             },
                           ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
+                  ),
+                ),
 
                     // Guest Login Prompt Banner
                     if (provider.isGuest)

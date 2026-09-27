@@ -72,7 +72,7 @@ class _MainNavigationState extends State<MainNavigation> {
       case 2:
         return const ReportScreen();
       case 3:
-        return const ChatbotScreen();
+        return const ChatbotScreen(showBackButton: false);
       case 4:
         return const SettingsScreen();
       default:

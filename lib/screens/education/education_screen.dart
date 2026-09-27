@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../../config/theme.dart';
 import '../../models/education_model.dart';
@@ -574,6 +576,324 @@ class _DisabilityEducationGridState extends State<_DisabilityEducationGrid> {
               subtitle:
                   'Panduan khusus difabel dan lansia untuk wilayah ${widget.selectedRegion}.',
               icon: Icons.accessibility_new,
+            ),
+          ),
+        ),
+
+        // ── Kartu fitur aksesibilitas ────────────────────────────────
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+          sliver: SliverToBoxAdapter(
+            child: Consumer<VolcanoProvider>(
+              builder: (context, provider, _) {
+                final isHC = provider.highContrast;
+                final accentColor =
+                    isHC ? SigumiTheme.hcSecondary : SigumiTheme.primaryBlue;
+                final surfaceColor =
+                    isHC ? SigumiTheme.hcSurface : Colors.white;
+                final borderColor =
+                    isHC ? SigumiTheme.hcBorder : const Color(0xFFE5E7EB);
+                final primaryText =
+                    isHC ? SigumiTheme.hcPrimary : const Color(0xFF1E1E2C);
+                final tertiaryText =
+                    isHC ? SigumiTheme.hcDivider : const Color(0xFF6B6B78);
+                final borderW = isHC ? 2.0 : 1.0;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Label seksi ──────────────────────────────────
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          Icon(Icons.tune_rounded,
+                              size: 14, color: tertiaryText),
+                          const SizedBox(width: 6),
+                          Text(
+                            'FITUR AKSESIBILITAS',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: tertiaryText,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // ── Kartu Kontras Tinggi ─────────────────────────
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: surfaceColor,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: borderColor, width: borderW),
+                        boxShadow: isHC
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(9),
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(Icons.contrast_rounded,
+                                color: accentColor, size: 20),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Kontras Tinggi',
+                                        style: AppFonts.plusJakartaSans(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryText,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          showCupertinoDialog(
+                                            context: context,
+                                            builder: (ctx) =>
+                                                CupertinoAlertDialog(
+                                              title: const Text(
+                                                'Kontras Tinggi',
+                                                style: TextStyle(
+                                                  fontFamily:
+                                                      'Plus Jakarta Sans',
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              content: const Padding(
+                                                padding:
+                                                    EdgeInsets.only(top: 8),
+                                                child: Text(
+                                                  'Mengubah warna antarmuka ke skema hitam/putih dengan kontras WCAG AAA agar teks dan elemen lebih mudah dibaca oleh pengguna dengan gangguan penglihatan.',
+                                                  style: TextStyle(
+                                                    fontFamily:
+                                                        'Plus Jakarta Sans',
+                                                    fontSize: 13,
+                                                    height: 1.6,
+                                                  ),
+                                                ),
+                                              ),
+                                              actions: [
+                                                CupertinoDialogAction(
+                                                  onPressed: () =>
+                                                      Navigator.pop(ctx),
+                                                  child: const Text(
+                                                    'Mengerti',
+                                                    style: TextStyle(
+                                                      fontFamily:
+                                                          'Plus Jakarta Sans',
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: Icon(
+                                            CupertinoIcons.info_circle,
+                                            size: 15,
+                                            color: tertiaryText,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  isHC
+                                      ? 'Aktif — hitam/putih WCAG AAA'
+                                      : 'Optimalkan keterbacaan warna',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: tertiaryText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          ShadSwitch(
+                            value: provider.highContrast,
+                            onChanged: (v) {
+                              HapticFeedback.mediumImpact();
+                              provider.setHighContrast(v);
+                            },
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(duration: 300.ms),
+
+                    // ── Kartu Panduan Audio ──────────────────────────
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: surfaceColor,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: borderColor, width: borderW),
+                        boxShadow: isHC
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(9),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF5856D6)
+                                  .withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              CupertinoIcons.mic_fill,
+                              color: Color(0xFF5856D6),
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        'Panduan Audio',
+                                        style: AppFonts.plusJakartaSans(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryText,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          showCupertinoDialog(
+                                            context: context,
+                                            builder: (ctx) =>
+                                                CupertinoAlertDialog(
+                                              title: const Text(
+                                                'Panduan Audio',
+                                                style: TextStyle(
+                                                  fontFamily:
+                                                      'Plus Jakarta Sans',
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                              content: const Padding(
+                                                padding:
+                                                    EdgeInsets.only(top: 8),
+                                                child: Text(
+                                                  'Aktifkan panduan suara interaktif dengan mengucapkan "Halo Sigumi". Fitur ini membantu pengguna tunanetra atau low-vision menavigasi aplikasi dan menerima peringatan bencana secara verbal.',
+                                                  style: TextStyle(
+                                                    fontFamily:
+                                                        'Plus Jakarta Sans',
+                                                    fontSize: 13,
+                                                    height: 1.6,
+                                                  ),
+                                                ),
+                                              ),
+                                              actions: [
+                                                CupertinoDialogAction(
+                                                  onPressed: () =>
+                                                      Navigator.pop(ctx),
+                                                  child: const Text(
+                                                    'Mengerti',
+                                                    style: TextStyle(
+                                                      fontFamily:
+                                                          'Plus Jakarta Sans',
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: Icon(
+                                            CupertinoIcons.info_circle,
+                                            size: 15,
+                                            color: tertiaryText,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  provider.audioGuidance
+                                      ? 'Aktif — Ucapkan "Halo Sigumi"'
+                                      : 'Nonaktif',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    color: tertiaryText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          CupertinoSwitch(
+                            value: provider.audioGuidance,
+                            activeTrackColor: accentColor,
+                            onChanged: (val) {
+                              HapticFeedback.lightImpact();
+                              provider.setAudioGuidance(val);
+                            },
+                          ),
+                        ],
+                      ),
+                    ).animate().fadeIn(delay: 80.ms, duration: 300.ms),
+                  ],
+                );
+              },
             ),
           ),
         ),

@@ -112,6 +112,36 @@ class _SplashScreenState extends State<SplashScreen> {
               ),
             ).animate().fadeIn(delay: 1400.ms, duration: 600.ms),
 
+            const SizedBox(height: 14),
+
+            // ── Footer credit minimalist ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(
+                  'assets/images/logo_undip.png',
+                  height: 20,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 7),
+                Container(
+                  width: 1,
+                  height: 14,
+                  color: SigumiTheme.textSecondary.withAlpha(60),
+                ),
+                const SizedBox(width: 7),
+                Text(
+                  'Universitas Diponegoro',
+                  style: AppFonts.plusJakartaSans(
+                    color: SigumiTheme.textSecondary.withAlpha(130),
+                    fontSize: 11,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
+            ).animate().fadeIn(delay: 1600.ms, duration: 600.ms),
+
             const Spacer(flex: 1),
           ],
         ),
