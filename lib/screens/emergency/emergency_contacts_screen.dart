@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -83,7 +84,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
           backgroundColor: Colors.white, // CLean white background
           appBar: AppBar(
             title: Text(
-              'Nomor Darurat',
+              context.tr('emergency_number').replaceAll('\n', ' '),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -125,8 +126,8 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                             height: 1.5,
                           ),
                           children: [
-                            const TextSpan(
-                              text: 'Menampilkan data darurat untuk area ',
+                            TextSpan(
+                              text: context.tr('showing_emergency_data'),
                             ),
                             TextSpan(
                               text: region,
@@ -135,8 +136,8 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                                 color: SigumiTheme.primaryBlue,
                               ),
                             ),
-                            const TextSpan(
-                              text: ' dan Nasional.',
+                            TextSpan(
+                              text: context.trText(' dan Nasional.'),
                             ),
                           ],
                         ),
@@ -197,7 +198,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                           // Btn Prev
                           _PaginationButton(
                             icon: Icons.arrow_back_ios_new_rounded,
-                            label: 'Seb',
+                            label: context.tr('previous'),
                             isActive: _currentPage > 1,
                             onTap: () {
                               if (_currentPage > 1) {
@@ -207,7 +208,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                           ),
                           // Indicator
                           Text(
-                            'Halaman $_currentPage dari $totalPages',
+                            '$_currentPage / $totalPages',
                             style: AppFonts.plusJakartaSans(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -217,7 +218,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                           // Btn Next
                           _PaginationButton(
                             icon: Icons.arrow_forward_ios_rounded,
-                            label: 'Sel',
+                            label: context.tr('next'),
                             isIconRight: true,
                             isActive: _currentPage < totalPages,
                             onTap: () {
@@ -337,7 +338,7 @@ class _EmergencyCard extends StatelessWidget {
               Clipboard.setData(ClipboardData(text: contact.phone));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('Nomor ter-copy: ${contact.phone}'),
+                  content: Text(context.tr('number_copied') + '${contact.phone}'),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -571,7 +572,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Belum Ada Data',
+              context.tr('no_data_yet'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -580,7 +581,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Data nomor darurat belum tersedia.',
+              context.trText('Data nomor darurat belum tersedia.'),
               textAlign: TextAlign.center,
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
@@ -593,7 +594,7 @@ class _EmptyState extends StatelessWidget {
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 16),
               label: Text(
-                'Muat Ulang',
+                context.trText('Muat Ulang'),
                 style: AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
               ),
               style: TextButton.styleFrom(
@@ -639,7 +640,7 @@ class _CallConfirmationSheet extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             Text(
-              'Hubungi Layanan?',
+              context.trText('Hubungi Layanan?'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -648,7 +649,7 @@ class _CallConfirmationSheet extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.',
+              context.trText('Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 color: Colors.grey.shade600,
@@ -713,7 +714,7 @@ class _CallConfirmationSheet extends StatelessWidget {
                       foregroundColor: Colors.grey.shade600,
                     ),
                     child: Text(
-                      'Batal',
+                      context.tr('cancel'),
                       style: AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -731,7 +732,7 @@ class _CallConfirmationSheet extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Panggil',
+                      context.trText('Panggil'),
                       style: AppFonts.plusJakartaSans(
                         fontWeight: FontWeight.w700,
                       ),

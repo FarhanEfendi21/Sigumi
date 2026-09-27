@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -126,7 +127,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Gagal memuat data. Periksa koneksi internet Anda.';
+          _error = context.trText('Gagal memuat data. Periksa koneksi internet Anda.');
           _isLoading = false;
         });
       }
@@ -344,7 +345,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                 left: 0,
                 right: 0,
                 child: BlurTopBar(
-                  title: 'Titik Evakuasi',
+                  title: context.tr('evacuation_point_title'),
                   isMapFocused: _isMapFocused,
                   onToggleFocus: () {
                     HapticFeedback.lightImpact();
@@ -366,7 +367,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                     children: [
                       ShadcnMapButton(
                         icon: Icons.my_location_rounded,
-                        tooltip: 'Lokasi Saya',
+                        tooltip: context.tr('your_location'),
                         onTap: () {
                           HapticFeedback.lightImpact();
                           locService.refreshLocation();
@@ -406,7 +407,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                             )
                           : ShadcnMapButton(
                               icon: Icons.refresh_rounded,
-                              tooltip: 'Perbarui Titik Terdekat',
+                              tooltip: context.tr('refresh_nearest'),
                               onTap: _refreshNearestShelter,
                             ),
                     ],
@@ -474,7 +475,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Lokasi Terdekat',
+                                            context.trText('Lokasi Terdekat'),
                                             style: AppFonts.plusJakartaSans(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w800,
@@ -488,7 +489,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                                             child: Row(
                                               children: [
                                                 _FilterChip(
-                                                  label: 'Semua',
+                                                  label: context.tr('all'),
                                                   count: _shelters.length,
                                                   isActive:
                                                       _activeFilter == null,
@@ -501,7 +502,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                                                 ),
                                                 const SizedBox(width: 8),
                                                 _FilterChip(
-                                                  label: 'Posko',
+                                                  label: context.trText('Posko'),
                                                   count: _shelters
                                                       .where((s) =>
                                                           s.isShelter)
@@ -517,7 +518,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                                                 ),
                                                 const SizedBox(width: 8),
                                                 _FilterChip(
-                                                  label: 'Faskes',
+                                                  label: context.trText('Faskes'),
                                                   count: _shelters
                                                       .where((s) => s
                                                           .isHealthFacility)
@@ -978,13 +979,13 @@ class _EvacuationCard extends StatelessWidget {
                         Row(
                           children: [
                             _TypeBadge(
-                              label: shelter.typeLabel,
+                              label: context.trText(shelter.typeLabel),
                               color: style.color,
                             ),
                             if (shelter.is24h) ...[
                               const SizedBox(width: 6),
                               _TypeBadge(
-                                label: '24 Jam',
+                                label: context.tr('open_24_hours'),
                                 color: Colors.green.shade600,
                                 icon: Icons.access_time_rounded,
                               ),
@@ -1036,7 +1037,7 @@ class _EvacuationCard extends StatelessWidget {
                                   size: 14, color: Colors.grey.shade400),
                               const SizedBox(width: 4),
                               Text(
-                                '${shelter.capacity} org',
+                                '${shelter.capacity} ${context.tr('people')}',
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 12,
                                   color: Colors.grey.shade400,
@@ -1142,12 +1143,12 @@ class _PaginationControls extends StatelessWidget {
         children: [
           _NavButton(
             icon: Icons.chevron_left_rounded,
-            label: 'Seb',
+            label: context.tr('previous'),
             enabled: hasPrev,
             onTap: onPrev,
           ),
           Text(
-            '$start–$end dari $totalItems',
+            '$start–$end ${context.tr('of')} $totalItems',
             style: AppFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -1156,7 +1157,7 @@ class _PaginationControls extends StatelessWidget {
           ),
           _NavButton(
             icon: Icons.chevron_right_rounded,
-            label: 'Sel',
+            label: context.tr('next'),
             isIconRight: true,
             enabled: hasNext,
             onTap: onNext,
@@ -1272,7 +1273,7 @@ class _DetailSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _TypeBadge(label: shelter.typeLabel, color: style.color),
+                      _TypeBadge(label: context.trText(shelter.typeLabel), color: style.color),
                       const SizedBox(height: 4),
                       Text(
                         shelter.name,
@@ -1301,14 +1302,14 @@ class _DetailSheet extends StatelessWidget {
                 if (shelter.address != null)
                   _DetailRow(
                     icon: Icons.location_on_outlined,
-                    label: 'Alamat',
+                    label: context.trText('Alamat'),
                     value: shelter.address!,
                     color: style.color,
                   ),
                 if (shelter.distanceFromUser != null)
                   _DetailRow(
                     icon: Icons.near_me_rounded,
-                    label: 'Jarak dari Anda',
+                    label: context.tr('distance_from_you'),
                     value: shelter.distanceLabel,
                     color: style.color,
                     highlighted: true,
@@ -1316,14 +1317,14 @@ class _DetailSheet extends StatelessWidget {
                 if (shelter.capacity != null)
                   _DetailRow(
                     icon: Icons.people_rounded,
-                    label: 'Kapasitas',
+                    label: context.trText('Kapasitas'),
                     value: '${shelter.capacity} orang',
                     color: style.color,
                   ),
                 if (shelter.notes != null)
                   _DetailRow(
                     icon: Icons.info_outline_rounded,
-                    label: 'Catatan',
+                    label: context.trText('Catatan'),
                     value: shelter.notes!,
                     color: style.color,
                   ),
@@ -1342,7 +1343,7 @@ class _DetailSheet extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'FASILITAS',
+                    context.trText('FASILITAS'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -1357,25 +1358,25 @@ class _DetailSheet extends StatelessWidget {
                     children: [
                       if (shelter.hasMedical)
                         _FacilityChip(
-                          label: 'Tenaga Medis',
+                          label: context.tr('medical_staff'),
                           icon: Icons.medical_services_outlined,
                           color: Colors.red.shade500,
                         ),
                       if (shelter.hasKitchen)
                         _FacilityChip(
-                          label: 'Dapur Umum',
+                          label: context.tr('public_kitchen'),
                           icon: Icons.restaurant_rounded,
                           color: Colors.orange.shade600,
                         ),
                       if (shelter.hasToilet)
                         _FacilityChip(
-                          label: 'MCK',
+                          label: context.trText('MCK'),
                           icon: Icons.wc_rounded,
                           color: Colors.blue.shade500,
                         ),
                       if (shelter.is24h)
                         _FacilityChip(
-                          label: 'Buka 24 Jam',
+                          label: context.tr('open_24_hours'),
                           icon: Icons.access_time_rounded,
                           color: Colors.green.shade600,
                         ),
@@ -1396,7 +1397,7 @@ class _DetailSheet extends StatelessWidget {
                   Expanded(
                     child: _ActionButton(
                       icon: Icons.call_rounded,
-                      label: 'Hubungi',
+                      label: context.tr('call'),
                       color: Colors.green.shade600,
                       onTap: () async {
                         final uri = Uri.parse('tel:${shelter.phone}');
@@ -1409,7 +1410,7 @@ class _DetailSheet extends StatelessWidget {
                 Expanded(
                   child: _ActionButton(
                     icon: Icons.directions_rounded,
-                    label: 'Arahkan (Maps)',
+                    label: context.tr('open_maps_directions'),
                     color: SigumiTheme.primaryBlue,
                     onTap: () async {
                       final query = Uri.encodeComponent(shelter.name);
@@ -1725,7 +1726,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Belum Ada Data',
+              context.tr('no_data_yet'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -1734,9 +1735,10 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              filter != null
-                  ? 'Tidak ditemukan ${filter == 'posko' ? 'posko' : 'fasilitas kesehatan'} untuk area ini.'
-                  : 'Tidak ditemukan titik evakuasi untuk area ini.',
+                  filter != null
+                  ? context.tr('no_results_for_filter')
+                      .replaceAll('{category}', context.trText(filter == 'posko' ? 'Posko' : 'Faskes'))
+                  : context.tr('no_evacuation_points'),
               textAlign: TextAlign.center,
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
@@ -1750,7 +1752,7 @@ class _EmptyState extends StatelessWidget {
                 onPressed: onReset,
                 icon: const Icon(Icons.filter_alt_off_rounded, size: 16),
                 label: Text(
-                  'Tampilkan Semua',
+                  context.trText('Tampilkan Semua'),
                   style:
                       AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
                 ),
@@ -1793,7 +1795,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Koneksi Bermasalah',
+              context.tr('connection_issue'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -1814,7 +1816,7 @@ class _ErrorState extends StatelessWidget {
             FilledButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Coba Lagi'),
+              label: Text(context.tr('try_again')),
               style: FilledButton.styleFrom(
                 backgroundColor: SigumiTheme.primaryBlue,
                 padding: const EdgeInsets.symmetric(
@@ -1930,7 +1932,7 @@ class _NearestShelterBanner extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'TERDEKAT',
+                          context.trText('TERDEKAT'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 9,
                             fontWeight: FontWeight.w800,

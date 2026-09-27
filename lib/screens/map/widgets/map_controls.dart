@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../services/localization_service.dart';
 import 'package:sigumi/config/theme_extensions.dart';
 
 class ShadcnMapButton extends StatefulWidget {
@@ -74,13 +75,13 @@ class MapControls extends StatelessWidget {
       children: [
         ShadcnMapButton(
           icon: Icons.landscape_rounded,
-          tooltip: 'Ke Merapi',
+          tooltip: context.trText('Ke Merapi'),
           onTap: onLocateMerapi,
         ),
         const SizedBox(height: 12),
         ShadcnMapButton(
           icon: Icons.my_location_rounded,
-          tooltip: 'Lokasi Saya',
+          tooltip: context.trText('Lokasi Saya'),
           onTap: onLocateUser,
         ),
       ],

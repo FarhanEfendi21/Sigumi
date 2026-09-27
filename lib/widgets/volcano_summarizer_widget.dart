@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../config/fonts.dart';
 import '../../models/volcano_summarizer.dart';
 import '../../providers/volcano_provider.dart';
+import '../../services/localization_service.dart';
 
 /// Widget untuk menampilkan ringkasan aktivitas gunung dari tabel volcano_summarizer
 class VolcanoSummarizerCard extends StatelessWidget {
@@ -163,39 +164,44 @@ class VolcanoSummarizerCard extends StatelessWidget {
                   children: [
                     if (summary.weather != null)
                       _buildWeatherItem(
+                        context: context,
                         icon: Icons.cloud_rounded,
-                        label: 'Cuaca',
+                        label: context.tr('weather'),
                         value: summary.weather!,
                       ),
                     if (summary.windDirection != null) ...[
                       const SizedBox(height: 6),
                       _buildWeatherItem(
+                        context: context,
                         icon: Icons.air_rounded,
-                        label: 'Arah Angin',
+                        label: context.tr('wind_direction'),
                         value: summary.windDirection!,
                       ),
                     ],
                     if (summary.windSpeedText != null) ...[
                       const SizedBox(height: 6),
                       _buildWeatherItem(
+                        context: context,
                         icon: Icons.speed_rounded,
-                        label: 'Kecepatan Angin',
+                        label: context.tr('wind_speed'),
                         value: summary.windSpeedText!,
                       ),
                     ],
                     if (summary.temperatureRange != null) ...[
                       const SizedBox(height: 6),
                       _buildWeatherItem(
+                        context: context,
                         icon: Icons.thermostat_rounded,
-                        label: 'Suhu',
+                        label: context.tr('temperature'),
                         value: summary.temperatureRange!,
                       ),
                     ],
                     if (summary.humidityRange != null) ...[
                       const SizedBox(height: 6),
                       _buildWeatherItem(
+                        context: context,
                         icon: Icons.opacity_rounded,
-                        label: 'Kelembaban',
+                        label: context.tr('humidity'),
                         value: summary.humidityRange!,
                       ),
                     ],
@@ -212,7 +218,7 @@ class VolcanoSummarizerCard extends StatelessWidget {
                   if (summary.author != null)
                     Expanded(
                       child: Text(
-                        'Sumber: ${summary.author}',
+                      '${context.tr('source')}: ${summary.author}',
                         style: AppFonts.plusJakartaSans(
                           fontSize: 10,
                           color: Colors.grey.shade600,
@@ -237,7 +243,7 @@ class VolcanoSummarizerCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          'Detail',
+                          context.tr('details'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -255,6 +261,7 @@ class VolcanoSummarizerCard extends StatelessWidget {
   }
 
   Widget _buildWeatherItem({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required String value,
@@ -264,7 +271,7 @@ class VolcanoSummarizerCard extends StatelessWidget {
         Icon(icon, size: 14, color: Colors.grey.shade700),
         const SizedBox(width: 6),
         Text(
-          '$label: ',
+          '${context.trText(label)}: ',
           style: AppFonts.plusJakartaSans(
             fontSize: 11,
             fontWeight: FontWeight.w600,
@@ -326,7 +333,7 @@ class _VolcanoSummarizerListSectionState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.title ?? 'Ringkasan Aktivitas Harian',
+              widget.title ?? context.tr('daily_activity_summary'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -351,7 +358,7 @@ class _VolcanoSummarizerListSectionState
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Memuat data ringkasan...',
+                        context.tr('loading_summary'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -379,7 +386,7 @@ class _VolcanoSummarizerListSectionState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Belum ada data ringkasan aktivitas',
+                        context.tr('no_activity_summary'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 12,
                           color: Colors.amber.shade900,
@@ -470,7 +477,7 @@ class _VolcanoLatestSummaryCardState extends State<VolcanoLatestSummaryCard> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Belum ada data ringkasan terbaru',
+                    context.tr('no_recent_summary'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 12,
                       color: Colors.grey.shade700,
@@ -537,7 +544,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
               children: [
                 Expanded(
                   child: Text(
-                    widget.title ?? 'Laporan Aktivitas',
+                    widget.title ?? context.tr('activity_report'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -573,7 +580,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Riwayat',
+                            context.tr('history'),
                             style: AppFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -606,7 +613,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Memuat data ringkasan...',
+                        context.tr('loading_summary'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -634,7 +641,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Belum ada data ringkasan terbaru',
+                      context.tr('no_recent_summary'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 12,
                           color: Colors.grey.shade700,
@@ -684,7 +691,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Riwayat Aktivitas 30 Hari',
+                              context.tr('activity_history_30_days'),
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -693,7 +700,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Lihat catatan dan tren pengamatan harian',
+                              context.tr('view_observation_trends'),
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 11,
                                 color: const Color(0xFF8E8E9E),
@@ -758,7 +765,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Riwayat Aktivitas',
+                              context.tr('activity_history'),
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -783,7 +790,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Ringkasan aktivitas gunung harian (30 hari terakhir)',
+                          context.tr('daily_activity_summary_30_days'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -818,7 +825,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
-                                      'Memuat riwayat...',
+                                      context.tr('loading_history'),
                                       style: AppFonts.plusJakartaSans(
                                         fontSize: 12,
                                         color: Colors.grey.shade600,
@@ -853,7 +860,7 @@ class _VolcanoLatestSummaryWithHistoryButtonState
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          'Belum ada data riwayat aktivitas',
+                                          context.tr('no_activity_history'),
                                           style: AppFonts.plusJakartaSans(
                                             fontSize: 12,
                                             color: Colors.amber.shade900,

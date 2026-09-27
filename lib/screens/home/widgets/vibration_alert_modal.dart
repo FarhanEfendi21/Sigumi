@@ -1,3 +1,4 @@
+import '../../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
@@ -362,7 +363,7 @@ class _VibrationAlertModalState extends State<VibrationAlertModal>
             context,
             icon: Icons.landscape_rounded,
             iconColor: const Color(0xFFE65100),
-            label: 'Gunung',
+            label: context.trText('Gunung'),
             value: widget.volcanoName,
             isBold: true,
           ),
@@ -381,7 +382,7 @@ class _VibrationAlertModalState extends State<VibrationAlertModal>
             context,
             icon: CupertinoIcons.location_north_fill,
             iconColor: _appleRed,
-            label: 'Jarak Terdeteksi',
+            label: context.tr('detected_distance'),
             valueWidget: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
@@ -413,7 +414,7 @@ class _VibrationAlertModalState extends State<VibrationAlertModal>
             context,
             icon: CupertinoIcons.shield_lefthalf_fill,
             iconColor: const Color(0xFFFF9500),
-            label: 'Tingkat Bahaya',
+            label: context.tr('danger_level'),
             value: 'KRB III (Kritis)',
             valueColor: _appleRed,
             isBold: true,

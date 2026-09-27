@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:sigumi/config/theme_extensions.dart';
+import '../../../services/localization_service.dart';
 
 class BlurTopBar extends StatelessWidget {
   final String title;
@@ -65,7 +66,7 @@ class BlurTopBar extends StatelessWidget {
                         color: context.textPrimary,
                         size: 20,
                       ),
-                      tooltip: 'Kembali',
+                      tooltip: context.trText('Kembali'),
                     ),
                   ),
                 ),
@@ -85,7 +86,9 @@ class BlurTopBar extends StatelessWidget {
                         size: 26,
                       ),
                       tooltip:
-                          isMapFocused ? 'Keluar Layar Penuh' : 'Lihat Layar Penuh',
+                          isMapFocused
+                              ? context.trText('Keluar Layar Penuh')
+                              : context.trText('Lihat Layar Penuh'),
                     ),
                   ),
                 ),

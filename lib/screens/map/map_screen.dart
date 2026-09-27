@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -159,7 +160,7 @@ class _MapScreenState extends State<MapScreen>
         action:
             showRetry
                 ? SnackBarAction(
-                  label: 'Coba Lagi',
+                  label: context.tr('try_again'),
                   textColor: context.bgPrimary,
                   onPressed: () {
                     final ls = context.read<LocationService>();
@@ -669,7 +670,7 @@ class _MapScreenState extends State<MapScreen>
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                volcano.statusLabel,
+                                dialogContext.trText(volcano.statusLabel),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -701,7 +702,7 @@ class _MapScreenState extends State<MapScreen>
                                     ),
                                     const SizedBox(width: 5),
                                     Text(
-                                      'Dipantau Sigumi',
+                                      dialogContext.trText('Dipantau Sigumi'),
                                       style: AppFonts.plusJakartaSans(
                                         fontSize: 10,
                                         fontWeight: FontWeight.w700,
@@ -742,7 +743,7 @@ class _MapScreenState extends State<MapScreen>
                           child: _buildInfoCard(
                             dialogContext,
                             icon: Icons.height_rounded,
-                            label: 'Ketinggian',
+                            label: dialogContext.trText('Ketinggian'),
                             value: '${volcano.elevation.toInt()} m',
                             color: Colors.blue,
                           ),
@@ -752,7 +753,7 @@ class _MapScreenState extends State<MapScreen>
                           child: _buildInfoCard(
                             dialogContext,
                             icon: Icons.location_on_rounded,
-                            label: 'Koordinat',
+                            label: dialogContext.trText('Koordinat'),
                             value:
                                 '${volcano.latitude.toStringAsFixed(2)}°, '
                                 '${volcano.longitude.toStringAsFixed(2)}°',
@@ -968,7 +969,7 @@ class _MapScreenState extends State<MapScreen>
                                 child: _buildInfoCard(
                                   dialogContext,
                                   icon: Icons.height_rounded,
-                                  label: 'Ketinggian',
+                                  label: context.trText('Ketinggian'),
                                   value: '${volcano.elevation.toInt()} m dpl',
                                   color: Colors.blue.shade400,
                                 ),
@@ -1010,7 +1011,7 @@ class _MapScreenState extends State<MapScreen>
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    'Gunung ini belum masuk dalam pemantauan aktif Sigumi.',
+                                    dialogContext.trText('Gunung ini belum masuk dalam pemantauan aktif Sigumi.'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 12,
                                       color: dialogContext.warningColor,
@@ -1078,7 +1079,7 @@ class _MapScreenState extends State<MapScreen>
               ),
               const SizedBox(width: 6),
               Text(
-                'Status',
+                ctx.trText('Status'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
@@ -1089,7 +1090,7 @@ class _MapScreenState extends State<MapScreen>
           ),
           const SizedBox(height: 6),
           Text(
-            shortLabel,
+            ctx.trText(shortLabel),
             style: AppFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -1165,7 +1166,7 @@ class _MapScreenState extends State<MapScreen>
       builder: (context, provider, locationService, _) {
         final distance = locationService.distanceFromVolcano;
         final zoneLevel = locationService.zoneLevel;
-        final zoneLabel = locationService.zoneLabel;
+        final zoneLabel = context.trText(locationService.zoneLabel);
 
         final userPos = LatLng(
           locationService.userLat,
@@ -1288,7 +1289,7 @@ class _MapScreenState extends State<MapScreen>
                 left: 0,
                 right: 0,
                 child: BlurTopBar(
-                  title: 'Peta Risiko',
+                  title: context.tr('risk_map'),
                   isMapFocused: _isMapFocused,
                   onToggleFocus: () {
                     setState(() {
@@ -1343,7 +1344,7 @@ class _MapScreenState extends State<MapScreen>
                         left: 16,
                         child: ShadcnMapButton(
                           icon: Icons.health_and_safety_rounded,
-                          tooltip: 'Posko & Faskes',
+                          tooltip: context.tr('posko_faskes'),
                           onTap:
                               () => Navigator.pushNamed(
                                 context,
@@ -1453,7 +1454,7 @@ class _MapScreenState extends State<MapScreen>
             ],
           ),
           child: Text(
-            'Lokasi Anda',
+            context.trText('Lokasi Anda'),
             style: AppFonts.plusJakartaSans(
               fontSize: 9,
               fontWeight: FontWeight.w700,

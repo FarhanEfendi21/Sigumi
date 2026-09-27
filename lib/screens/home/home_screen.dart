@@ -230,7 +230,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           const SizedBox(width: 4),
                                           Text(
-                                            'Offline',
+                                            context.tr('offline_active'),
                                             style: TextStyle(
                                               color: context.warningColor,
                                               fontSize: 11,
@@ -629,7 +629,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     // ── Fitur Pariwisata Section ──
                     _HomeSectionHeader(
                       title: context.tr('tourism_section'),
-                      actionText: 'Lihat Semua',
+                      actionText: context.tr('see_all'),
                       onActionTap:
                           () => Navigator.pushNamed(context, AppRoutes.tourism),
                     ),
@@ -643,7 +643,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     // ── Fitur Tracking Pendakian Section ──
                     _HomeSectionHeader(
                       title: context.tr('hiking_tracking_section'),
-                      actionText: 'Buka Peta',
+                      actionText: context.tr('open_map'),
                       onActionTap:
                           () => Navigator.pushNamed(
                             context,
@@ -676,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: _FeaturedMenuCard(
                                 icon: Icons.alt_route_rounded,
                                 label: context.tr('evacuation_point'),
-                                subtitle: 'Titik & jalur evakuasi terdekat',
+                                subtitle: context.tr('evacuation_point_sub'),
                                 color: Colors.green,
                                 onTap:
                                     () => Navigator.pushNamed(
@@ -690,7 +690,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: _FeaturedMenuCard(
                                 icon: Icons.videocam_rounded,
                                 label: context.tr('cctv_monitoring'),
-                                subtitle: 'Pantau kondisi gunung live',
+                                subtitle: context.tr('cctv_monitoring_sub'),
                                 color: Colors.teal,
                                 onTap:
                                     () => Navigator.pushNamed(
@@ -778,7 +778,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: _FullWidthMenuCard(
                         icon: Icons.accessibility_new_rounded,
                         label: context.tr('accessibility'),
-                        subtitle: 'Mode kontras tinggi & buta warna',
+                        subtitle: context.tr('accessibility_sub'),
                         color: Colors.brown,
                         onTap:
                             () => Navigator.pushNamed(
@@ -887,7 +887,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Padding(
                               padding: const EdgeInsets.symmetric(vertical: 40),
                               child: Text(
-                                'Belum ada berita',
+                                context.tr('no_news'),
                                 style: AppFonts.plusJakartaSans(
                                   color: SigumiTheme.textSecondary,
                                 ),
@@ -964,7 +964,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 3),
               Text(
-                'dari puncak',
+                context.tr('from_summit'),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 11,
@@ -1326,7 +1326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                                 const SizedBox(width: 3),
                                                 Text(
-                                                  'Lokasi Anda',
+                                                  context.tr('your_location'),
                                                   style: TextStyle(
                                                     fontSize: 9,
                                                     fontWeight: FontWeight.w600,
@@ -1799,7 +1799,7 @@ class _HikingSpotlightCard extends StatelessWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                'Tracking Pendakian',
+                                context.tr('hiking_tracking_section'),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
@@ -2223,7 +2223,7 @@ class _GuestLoginBannerState extends State<_GuestLoginBanner> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Masuk ke Akun',
+                          context.tr('login_to_account'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
@@ -2234,7 +2234,7 @@ class _GuestLoginBannerState extends State<_GuestLoginBanner> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          'Akses laporan, AI, dan fitur lengkap',
+                          context.trText('Akses laporan, AI, dan fitur lengkap'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -2279,7 +2279,7 @@ class _GuestLoginBannerState extends State<_GuestLoginBanner> {
                               ],
                     ),
                     child: Text(
-                      'Masuk',
+                      context.tr('login'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -2412,17 +2412,17 @@ class _TourismBannerCard extends StatelessWidget {
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
-                        children: const [
+                        children: [
                           Text(
-                            'Jelajah',
+                            context.tr('explore_tourism'),
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          SizedBox(width: 4),
-                          Icon(
+                          const SizedBox(width: 4),
+                          const Icon(
                             Icons.arrow_forward_rounded,
                             color: Colors.white,
                             size: 14,

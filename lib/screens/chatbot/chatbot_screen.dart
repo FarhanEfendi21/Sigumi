@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:sigumi/services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
@@ -153,7 +154,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   const SizedBox(height: 20),
 
                   Text(
-                    'Izin Akses Mikrofon',
+                    dialogContext.trText('Izin Akses Mikrofon'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -164,7 +165,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   const SizedBox(height: 12),
 
                   Text(
-                    'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.',
+                    dialogContext.trText('Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 14,
                       color: dialogContext.textTertiary,
@@ -182,7 +183,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                       backgroundColor: dialogContext.accentPrimary,
                       onPressed: () => Navigator.of(dialogContext).pop(true),
                       child: Text(
-                        'Izinkan Akses',
+                        dialogContext.trText('Izinkan Akses'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -200,7 +201,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                       height: 48,
                       onPressed: () => Navigator.of(dialogContext).pop(false),
                       child: Text(
-                        'Nanti Saja',
+                        dialogContext.trText('Nanti Saja'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
@@ -246,7 +247,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               const SizedBox(height: 20),
 
               Text(
-                'Akses Mikrofon Ditolak',
+                dialogContext.trText('Akses Mikrofon Ditolak'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -257,7 +258,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               const SizedBox(height: 12),
 
               Text(
-                'Fitur voice input memerlukan akses ke mikrofon.\n\nAnda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.',
+                dialogContext.trText('Fitur voice input memerlukan akses ke mikrofon.\n\nAnda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 14,
                   color: dialogContext.textTertiary,
@@ -274,7 +275,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   backgroundColor: dialogContext.accentPrimary,
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: Text(
-                    'Mengerti',
+                    dialogContext.trText('Mengerti'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -520,7 +521,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       case 'en': return 'Listening...';
       case 'jv': return 'Ngrungokake...';
       case 'ba': return 'Mirengang...';
-      case 'sas': return 'Mendengaq...';
+      case 'sa': return 'Mendengaq...';
       default: return 'Mendengarkan...';
     }
   }
@@ -530,7 +531,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       case 'en': return 'Please speak clearly';
       case 'jv': return 'Tulung ngomong sing cetha';
       case 'ba': return 'Durus mabaos sane tatas';
-      case 'sas': return 'Silaq bebaos saq jelas';
+      case 'sa': return 'Silaq bebaos saq jelas';
       default: return 'Silakan bicara dengan jelas';
     }
   }
@@ -540,7 +541,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       case 'en': return 'Ask Si Gumi...';
       case 'jv': return 'Takon Si Gumi...';
       case 'ba': return 'Takon Si Gumi...';
-      case 'sas': return 'Betakon Si Gumi...';
+      case 'sa': return 'Betakon Si Gumi...';
       default: return 'Tanya Si Gumi...';
     }
   }
@@ -550,7 +551,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
       case 'en': return 'Listening to voice...';
       case 'jv': return 'Ngrungokake swara...';
       case 'ba': return 'Mirengang swara...';
-      case 'sas': return 'Mendengaq suare...';
+      case 'sa': return 'Mendengaq suare...';
       default: return 'Mendengarkan suara...';
     }
   }
@@ -613,7 +614,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Tanya Si Gumi',
+              context.tr('ask_sigumi').replaceAll('\n', ' '),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -648,7 +649,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                       .fade(duration: 800.ms, begin: 0.3, end: 1.0),
                   const SizedBox(width: 4),
                   Text(
-                    'Aktif',
+                    context.trText('Aktif'),
                     style: AppFonts.plusJakartaSans(
                       color: context.successColor,
                       fontSize: 10,
@@ -847,8 +848,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
   /// Widget overlay saat bot sedang membacakan respons via TTS
   Widget _buildBotSpeakingOverlay(String appLanguage) {
-    final speakingText = appLanguage == 'en' ? 'Si Gumi is speaking...' : 'Si Gumi sedang berbicara...';
-    final tapToStopText = appLanguage == 'en' ? 'Tap to stop' : 'Ketuk untuk berhenti';
+    final speakingText = context.trText('Si Gumi sedang berbicara...');
+    final tapToStopText = context.trText('Ketuk untuk berhenti');
 
     return Container(
       width: double.infinity,
@@ -1220,7 +1221,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            'Pesan Suara',
+                            context.trText('Pesan Suara'),
                             style: AppFonts.plusJakartaSans(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -1268,7 +1269,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    'Dengarkan',
+                                    context.trText('Dengarkan'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,

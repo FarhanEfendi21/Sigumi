@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -256,7 +257,7 @@ class _HikingUnavailableView extends StatelessWidget {
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
-                        'Tracking Pendakian',
+                        context.trText('Tracking Pendakian'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -330,7 +331,7 @@ class _HikingUnavailableView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'Anda Tidak Berada di\nWilayah Pendakian',
+                    context.trText('Anda Tidak Berada di\nWilayah Pendakian'),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 24,
@@ -347,7 +348,7 @@ class _HikingUnavailableView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
-                    'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.',
+                    context.trText('Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.'),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 13.5,
@@ -373,7 +374,7 @@ class _HikingUnavailableView extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Kembali',
+                      context.trText('Kembali'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -444,7 +445,7 @@ class _HikingLoginGate extends StatelessWidget {
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
-                        'Tracking Pendakian',
+                        context.trText('Tracking Pendakian'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -487,7 +488,7 @@ class _HikingLoginGate extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'Masuk untuk Mulai\nTracking Pendakian',
+                    context.trText('Masuk untuk Mulai\nTracking Pendakian'),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 24,
@@ -503,7 +504,7 @@ class _HikingLoginGate extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
-                    'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.',
+                    context.trText('Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.'),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 13.5,
@@ -531,7 +532,7 @@ class _HikingLoginGate extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Masuk Akun',
+                      context.trText('Masuk Akun'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -554,7 +555,7 @@ class _HikingLoginGate extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      'Kembali',
+                      context.trText('Kembali'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -642,10 +643,10 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                 color: _textDark, size: 20),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
-                          const Expanded(
+                            Expanded(
                             child: Text(
-                              'Tracking Pendakian',
-                              style: TextStyle(
+                              context.trText('Tracking Pendakian'),
+                              style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: _textDark,
@@ -654,7 +655,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                           ),
                           if (tracking.hasHistory)
                             IconButton(
-                              tooltip: 'Reset Riwayat Tracking',
+                              tooltip: context.trText('Reset Riwayat Tracking'),
                               onPressed: tracking.isStarting || tracking.isStopping
                                   ? null
                                   : () => _confirmResetTracking(context, tracking),
@@ -662,14 +663,14 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                   color: Color(0xFFDC2626), size: 22),
                             ),
                           IconButton(
-                            tooltip: 'Pusatkan ke Rinjani',
+                            tooltip: context.trText('Pusatkan ke Rinjani'),
                             onPressed: () =>
                                 _mapController.move(_rinjaniCenter, 12.5),
                             icon: const Icon(Icons.terrain_rounded,
                                 color: _textDark, size: 20),
                           ),
                           IconButton(
-                            tooltip: 'Lokasi saya',
+                            tooltip: context.trText('Lokasi saya'),
                             onPressed: () =>
                                 _mapController.move(userPoint, 15),
                             icon: const Icon(Icons.my_location_rounded,
@@ -697,8 +698,8 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                             ),
                           ],
                         ),
-                        child: const Text(
-                          'GUNUNG RINJANI · 3.726 MDPL',
+                        child: Text(
+                          context.trText('GUNUNG RINJANI · 3.726 MDPL'),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -785,7 +786,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                                           context)
                                                       .showSnackBar(SnackBar(
                                                     content: Text(
-                                                        '${w.name} (${w.altitude})'),
+                                                        '${context.trText(w.name)} (${context.trText(w.altitude)})'),
                                                     duration: const Duration(
                                                         seconds: 2),
                                                     backgroundColor:
@@ -907,16 +908,16 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                           ),
                                         ],
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.route_rounded,
+                                          const Icon(Icons.route_rounded,
                                               color: _accentColor,
                                               size: 13),
-                                          SizedBox(width: 5),
+                                          const SizedBox(width: 5),
                                           Text(
-                                            'Jalur Sembalun',
-                                            style: TextStyle(
+                                            context.trText('Jalur Sembalun'),
+                                            style: const TextStyle(
                                               color: _textDark,
                                               fontSize: 11,
                                               fontWeight: FontWeight.w700,
@@ -973,12 +974,12 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                             ),
                             label: Text(
                               tracking.isStarting
-                                  ? 'Menyiapkan GPS...'
+                                  ? context.trText('Menyiapkan GPS...')
                                   : tracking.isStopping
-                                      ? 'Menyelesaikan...'
+                                      ? context.trText('Menyelesaikan...')
                                       : tracking.isActive
-                                          ? 'Selesaikan Pendakian'
-                                          : 'Mulai Tracking',
+                                          ? context.trText('Selesaikan Pendakian')
+                                          : context.trText('Mulai Tracking'),
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
@@ -1015,7 +1016,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                 color: Color(0xFFDC2626),
                               ),
                               label: Text(
-                                'Reset Riwayat Tracking',
+                                context.trText('Reset Riwayat Tracking'),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
@@ -1039,7 +1040,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                           const SizedBox(height: 10),
 
                           Text(
-                            'Lokasi tersinkron ke Posko SAR selama tracking aktif.',
+                            context.trText('Lokasi tersinkron ke Posko SAR selama tracking aktif.'),
                             textAlign: TextAlign.center,
                             style: AppFonts.plusJakartaSans(
                               fontSize: 12,
@@ -1070,7 +1071,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content:
-            Text(tracking.error ?? 'Tracking belum dapat dimulai.'),
+            Text(tracking.error ?? context.trText('Tracking belum dapat dimulai.')),
         backgroundColor: const Color(0xFF1E293B),
       ),
     );
@@ -1087,23 +1088,23 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text('Selesaikan tracking?',
+        title: Text(context.tr('finish_tracking'),
             style: TextStyle(color: _textDark, fontWeight: FontWeight.w700)),
-        content: const Text(
-          'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.',
+        content: Text(
+          context.trText('Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.'),
           style: TextStyle(color: _textMuted),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal',
+            child: Text(context.tr('cancel'),
                 style: TextStyle(color: _textMuted)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFFDC2626)),
-            child: const Text('Selesaikan'),
+            child: Text(context.trText('Selesaikan')),
           ),
         ],
       ),
@@ -1139,7 +1140,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
           ),
         ),
         title: Text(
-          'Reset Riwayat Tracking?',
+          context.trText('Reset Riwayat Tracking?'),
           textAlign: TextAlign.center,
           style: AppFonts.plusJakartaSans(
             color: _textDark,
@@ -1149,8 +1150,8 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
         ),
         content: Text(
           tracking.isActive
-              ? 'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.'
-              : 'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.',
+              ? context.trText('Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.')
+              : context.trText('Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.'),
           textAlign: TextAlign.center,
           style: AppFonts.plusJakartaSans(
             color: _textMuted,
@@ -1174,7 +1175,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                     ),
                   ),
                   child: Text(
-                    'Batal',
+                    context.tr('cancel'),
                     style: AppFonts.plusJakartaSans(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -1196,7 +1197,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                     ),
                   ),
                   child: Text(
-                    'Ya, Reset',
+                    context.trText('Ya, Reset'),
                     style: AppFonts.plusJakartaSans(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
@@ -1222,7 +1223,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                   color: Colors.white, size: 20),
               const SizedBox(width: 8),
               Text(
-                'Riwayat tracking berhasil di-reset.',
+                context.trText('Riwayat tracking berhasil di-reset.'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -1260,10 +1261,10 @@ class _HikingStatusBanner extends StatelessWidget {
     final isActive = tracking.isActive;
 
     final statusText = isActive
-        ? 'Tracking aktif'
+        ? context.trText('Tracking aktif')
         : location.gpsStatus == GpsStatus.active
-            ? 'GPS siap · Rinjani'
-            : 'Menunggu GPS...';
+            ? context.trText('GPS siap · Rinjani')
+            : context.trText('Menunggu GPS...');
 
     final coordText =
         '${location.userLat.toStringAsFixed(5)}, ${location.userLng.toStringAsFixed(5)}';
@@ -1361,7 +1362,7 @@ class _HikingStatsGrid extends StatelessWidget {
       children: [
         Expanded(
           child: _HikingStatTile(
-            label: 'Durasi',
+            label: context.trText('Durasi'),
             value: duration,
             icon: Icons.timer_outlined,
           ),
@@ -1369,7 +1370,7 @@ class _HikingStatsGrid extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _HikingStatTile(
-            label: 'Jarak',
+            label: context.trText('Jarak'),
             value: '${tracking.distanceKm.toStringAsFixed(2)} km',
             icon: Icons.route_rounded,
           ),
@@ -1377,7 +1378,7 @@ class _HikingStatsGrid extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _HikingStatTile(
-            label: 'Titik GPS',
+            label: context.tr('gps_point'),
             value: '${tracking.pointsRecorded}',
             icon: Icons.pin_drop_outlined,
           ),

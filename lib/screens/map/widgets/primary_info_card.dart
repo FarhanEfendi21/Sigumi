@@ -1,3 +1,4 @@
+import '../../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:sigumi/config/theme_extensions.dart';
@@ -20,11 +21,11 @@ class PrimaryInfoCard extends StatelessWidget {
     required this.zoneLevel,
   });
 
-  String get _statusText {
-    if (distance <= 5.0) return 'Zona Bahaya';
-    if (distance <= 10.0) return 'Zona Waspada';
-    if (distance <= 15.0) return 'Zona Perhatian';
-    return 'Zona Aman';
+  String _statusText(BuildContext context) {
+    if (distance <= 5.0) return context.tr('danger_zone');
+    if (distance <= 10.0) return context.tr('warning_zone');
+    if (distance <= 15.0) return context.tr('caution_zone');
+    return context.tr('safe_zone');
   }
 
   Color get _statusColor {
@@ -84,8 +85,8 @@ class PrimaryInfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _statusText,
-                      key: ValueKey<String>(_statusText),
+                      _statusText(context),
+                      key: ValueKey<String>(_statusText(context)),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,

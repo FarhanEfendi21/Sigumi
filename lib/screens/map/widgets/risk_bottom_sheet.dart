@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:sigumi/config/theme_extensions.dart';
 import '../../../config/routes.dart';
+import '../../../services/localization_service.dart';
 
 // Semantic Colors for Status
 class StatusColor {
@@ -76,7 +77,7 @@ class RiskBottomSheet extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Jarak Keselamatan',
+                        context.trText('Jarak Keselamatan'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -84,7 +85,7 @@ class RiskBottomSheet extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        zoneLabel,
+                        context.trText(zoneLabel),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -158,7 +159,7 @@ class RiskBottomSheet extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        'Lihat Rute Evakuasi',
+                        context.trText('Lihat Rute Evakuasi'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -203,8 +204,13 @@ class RiskBottomSheet extends StatelessWidget {
   }
 
   Widget _kmLabel(BuildContext context, String text) {
+    final label = text == '0 km (Pusat)'
+        ? '0 km (${context.trText('Pusat')})'
+        : text == '20+ km (Aman)'
+            ? '20+ km (${context.trText('Aman')})'
+            : text;
     return Text(
-      text,
+      context.trText(label),
       style: AppFonts.plusJakartaSans(
         fontSize: 11,
         color: context.textTertiary,
@@ -213,4 +219,3 @@ class RiskBottomSheet extends StatelessWidget {
     );
   }
 }
-

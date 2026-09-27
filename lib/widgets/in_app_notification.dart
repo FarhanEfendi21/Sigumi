@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../config/globals.dart';
+import '../services/localization_service.dart';
 
 /// Overlay banner notifikasi in-app dengan hierarki tipografi clean & minimalis.
 class InAppNotification {
@@ -240,7 +241,7 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner>
                                                 BorderRadius.circular(6),
                                           ),
                                           child: Text(
-                                            tokens.label,
+                                            context.trText(tokens.label),
                                             style:
                                                 GoogleFonts.plusJakartaSans(
                                               fontSize: 9.5,
@@ -252,7 +253,7 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner>
                                         ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          'LEVEL ${tokens.roman}',
+                                          '${context.trText('Level')} ${tokens.roman}',
                                           style:
                                               GoogleFonts.plusJakartaSans(
                                             fontSize: 10,
@@ -263,7 +264,7 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner>
                                         ),
                                         const Spacer(),
                                         Text(
-                                          'Realtime',
+                                          context.trText('Realtime'),
                                           style:
                                               GoogleFonts.plusJakartaSans(
                                             fontSize: 10.5,

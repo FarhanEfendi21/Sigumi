@@ -42,15 +42,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// Tampilkan date picker untuk tanggal lahir
   Future<void> _pickDateOfBirth() async {
     final now = DateTime.now();
+    final language = context.read<VolcanoProvider>().language;
     final picked = await showDatePicker(
       context: context,
       initialDate: DateTime(now.year - 20, now.month, now.day),
       firstDate: DateTime(1920),
       lastDate: now,
-      helpText: 'Pilih Tanggal Lahir',
-      cancelText: 'Batal',
-      confirmText: 'Pilih',
-      locale: const Locale('id', 'ID'),
+      helpText: context.tr('select_birth_date'),
+      cancelText: context.tr('cancel'),
+      confirmText: context.tr('select'),
+      locale: Locale(language == 'id' ? 'id' : 'en'),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -79,12 +80,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool valid = true;
 
     setState(() {
-      _nameError = name.isEmpty ? 'Nama lengkap harus diisi.' : null;
-      _phoneError = phone.isEmpty ? 'Nomor telepon harus diisi.' : null;
+      _nameError = name.isEmpty ? context.trText('Nama lengkap harus diisi.') : null;
+      _phoneError = phone.isEmpty ? context.trText('Nomor telepon harus diisi.') : null;
       _passwordError = password.isEmpty
-          ? 'Kata sandi harus diisi.'
+          ? context.trText('Kata sandi harus diisi.')
           : password.length < 6
-              ? 'Kata sandi minimal 6 karakter.'
+              ? context.trText('Kata sandi minimal 6 karakter.')
               : null;
     });
 
@@ -121,12 +122,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (success) {
       // Tampilkan dialog sukses sebelum pindah ke Login
+      // Gunakan read (bukan watch) karena dipanggil di luar build()
+      final lang = context.read<VolcanoProvider>().language;
       SigumiDialog.show(
         context: context,
-        title: context.tr('reg_success_title'),
-        message: context.tr('reg_success_msg'),
+        title: LocalizationService.translate('reg_success_title', lang),
+        message: LocalizationService.translate('reg_success_msg', lang),
         type: SigumiDialogType.success,
-        buttonText: context.tr('login_now'),
+        buttonText: LocalizationService.translate('login_now', lang),
         onConfirm: () {
           // Pindah ke halaman Login (pop current register screen)
           Navigator.pop(context);
@@ -140,9 +143,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
+    final lang = context.read<VolcanoProvider>().language;
     SigumiDialog.show(
       context: context,
-      title: context.tr('reg_fail_title'),
+      title: LocalizationService.translate('reg_fail_title', lang),
       message: message,
       type: SigumiDialogType.error,
     );
@@ -315,7 +319,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             const SizedBox(width: 12),
                                             Text(
                                               _selectedDateOfBirth != null
-                                                  ? DateFormat('dd MMMM yyyy', 'id').format(_selectedDateOfBirth!)
+                                                  ? DateFormat('dd MMMM yyyy', provider.language == 'id' ? 'id' : 'en').format(_selectedDateOfBirth!)
                                                   : context.tr('dob_hint'),
                                               style: AppFonts.plusJakartaSans(
                                                 fontSize: 14,

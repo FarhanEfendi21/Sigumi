@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../config/fonts.dart';
 import '../../models/news_item.dart';
+import '../../services/localization_service.dart';
 
 class NewsDetailScreen extends StatelessWidget {
   const NewsDetailScreen({super.key});
@@ -16,7 +17,7 @@ class NewsDetailScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          'Detail Berita',
+          context.trText('Detail Berita'),
           style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -262,7 +263,7 @@ class NewsDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Bagikan Berita',
+                                context.trText('Bagikan Berita'),
                                 style: AppFonts.plusJakartaSans(
                                   color: const Color(0xFF0F172A),
                                   fontSize: 15,

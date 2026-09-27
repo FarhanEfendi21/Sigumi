@@ -258,12 +258,12 @@ class _LoginPromptSheet extends StatelessWidget {
   static const Map<int, _LockedTabInfo> _tabInfo = {
     2: _LockedTabInfo(
       icon: Icons.edit_note_rounded,
-      label: 'Laporan',
+      label: 'Lapor Kejadian',
       desc: 'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.',
     ),
     3: _LockedTabInfo(
       icon: Icons.chat_bubble_rounded,
-      label: 'Chatbot AI',
+      label: 'Tanya Si Gumi',
       desc: 'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.',
     ),
     4: _LockedTabInfo(
@@ -340,7 +340,7 @@ class _LoginPromptSheet extends StatelessWidget {
                 Icon(Icons.lock_rounded, size: 13, color: context.warningColor),
                 const SizedBox(width: 5),
                 Text(
-                  'Perlu Login',
+                  context.tr('need_login'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -354,9 +354,7 @@ class _LoginPromptSheet extends StatelessWidget {
           const SizedBox(height: 14),
 
           // Title
-          Text(
-            info.label,
-            style: AppFonts.plusJakartaSans(
+          Text(context.trText(info.label), style: AppFonts.plusJakartaSans(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: context.textPrimary,
@@ -367,7 +365,7 @@ class _LoginPromptSheet extends StatelessWidget {
 
           // Description
           Text(
-            info.desc,
+            context.trText(info.desc),
             textAlign: TextAlign.center,
             style: AppFonts.plusJakartaSans(
               fontSize: 14,
@@ -417,7 +415,7 @@ class _LoginPromptSheet extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.login_rounded, size: 20),
                 label: Text(
-                  'Masuk ke Akun',
+                  context.tr('login_to_account'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -455,7 +453,7 @@ class _LoginPromptSheet extends StatelessWidget {
               ),
               icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
               label: Text(
-                'Buat Akun Baru',
+                context.tr('create_new_account'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -470,7 +468,7 @@ class _LoginPromptSheet extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'Lanjut sebagai Tamu',
+              context.tr('continue_as_guest'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 color: context.textTertiary,

@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
@@ -153,7 +154,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka tautan kamera')),
+          SnackBar(content: Text(context.tr('cannot_open_camera_link'))),
         );
       }
     }
@@ -256,7 +257,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                   ),
                                   const SizedBox(height: 20),
                                   Text(
-                                    'Menghubungkan ke Kamera...',
+                                    context.trText('Menghubungkan ke Kamera...'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -389,7 +390,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                             ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          'LIVE',
+                                          context.trText('LIVE'),
                                           style: AppFonts.plusJakartaSans(
                                             color: Colors.white,
                                             fontSize: 10,
@@ -550,7 +551,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
+                                          context.trText('Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.'),
                                           style: AppFonts.plusJakartaSans(
                                             fontSize: 12,
                                             color: Colors.blue.shade700,
@@ -571,7 +572,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
 
                       // ── Informasi Terkini ──
                       Text(
-                        'Informasi Terkini',
+                        context.trText('Informasi Terkini'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -590,25 +591,25 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                             children: [
                               _buildInfoGridCard(
                                 icon: Icons.thermostat_rounded,
-                                title: 'Suhu Kawah',
+                                title: context.tr('crater_temp'),
                                 value: '${volcano.temperature ?? '-'}°C',
                                 color: Colors.orange,
                               ),
                               _buildInfoGridCard(
                                 icon: Icons.air_rounded,
-                                title: 'Arah Angin',
+                                title: context.tr('wind_direction'),
                                 value: volcano.windDirection ?? '-',
                                 color: Colors.blue,
                               ),
                               _buildInfoGridCard(
                                 icon: Icons.speed_rounded,
-                                title: 'Kecepatan',
+                                title: context.tr('wind_speed'),
                                 value: '${volcano.windSpeed ?? '-'} km/h',
                                 color: Colors.teal,
                               ),
                               _buildInfoGridCard(
                                 icon: Icons.height_rounded,
-                                title: 'Elevasi',
+                                title: context.tr('elevation'),
                                 value: '${volcano.elevation} mdpl',
                                 color: Colors.indigo,
                               ),
@@ -625,13 +626,13 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                         VolcanoLatestSummaryWithHistoryButton(
                           volcanoKey: volcanoKey,
                           limit: 30,
-                          title: 'Laporan Aktivitas',
+                          title: context.tr('activity_report'),
                         ),
 
                       if (volcanoKey != null) const SizedBox(height: 32),
                       // ── Riwayat Erupsi ──
                       Text(
-                        'Riwayat Erupsi',
+                        context.trText('Riwayat Erupsi'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -686,7 +687,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'CCTV Tidak Tersedia',
+                  context.trText('CCTV Tidak Tersedia'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -697,7 +698,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.',
+                    context.trText('Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.'),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 11,
@@ -747,7 +748,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Gagal memuat siaran',
+                  context.trText('Gagal memuat siaran'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -756,7 +757,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Periksa koneksi internet kamu',
+                  context.trText('Periksa koneksi internet kamu'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 11,
                     color: const Color(0xFF9E9EAE),
@@ -775,7 +776,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      'Coba Lagi',
+                      context.tr('try_again'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -873,7 +874,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Memuat riwayat erupsi...',
+                context.trText('Memuat riwayat erupsi...'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 12,
                   color: const Color(0xFF9E9EAE),
@@ -909,7 +910,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'Belum Ada Riwayat Erupsi',
+                  context.trText('Belum Ada Riwayat Erupsi'),
                   textAlign: TextAlign.center,
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
@@ -919,8 +920,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Data historis erupsi gunung akan ditampilkan di sini '
-                  'setelah diinput oleh admin PVMBG/BPPTKG.',
+                  context.trText('Data historis erupsi gunung akan ditampilkan di sini setelah diinput oleh admin PVMBG/BPPTKG.'),
                   textAlign: TextAlign.center,
                   style: AppFonts.plusJakartaSans(
                     fontSize: 11,
@@ -1060,12 +1060,12 @@ class _EruptionTimelineItem extends StatelessWidget {
                     children: [
                       if (eruption.hasCasualties)
                         _buildStatBadge(
-                          '${eruption.casualties} korban jiwa',
+                          '${eruption.casualties} ${context.trText('korban jiwa')}',
                           Colors.red,
                         ),
                       if (eruption.hasEvacuees)
                         _buildStatBadge(
-                          '${_formatNumber(eruption.evacuees)} mengungsi',
+                          '${_formatNumber(eruption.evacuees)} ${context.trText('mengungsi')}',
                           Colors.orange,
                         ),
                     ],
