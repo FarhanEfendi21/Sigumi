@@ -5,6 +5,7 @@ import 'package:sigumi/config/fonts.dart';
 import '../providers/volcano_provider.dart';
 import '../config/theme.dart';
 import '../config/routes.dart';
+import '../services/localization_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -68,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             // Subtitle text
             Text(
-                  'Sistem Informasi Gunung Berapi\nMitigasi Bencana',
+                  context.trText('Sistem Informasi Gunung Berapi\nMitigasi Bencana'),
                   textAlign: TextAlign.center,
                   style: AppFonts.plusJakartaSans(
                     color: SigumiTheme.primaryBlue.withAlpha(160),

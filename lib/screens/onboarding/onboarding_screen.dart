@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -19,9 +20,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   int _currentPage = 0;
   bool _isButtonPressed = false;
 
-  final List<OnboardingData> _pages = [
+  List<OnboardingData> get _pages => [
     OnboardingData(
-      title: 'Selamat Datang di SIGUMI',
+      title: context.tr('welcome_to_sigumi'),
       description:
           'Sistem Informasi Gunung Berapi & Mitigasi Bencana yang membantu Anda tetap aman dan terinformasi.',
       icon: Icons.volcano_rounded,
@@ -29,7 +30,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       imagePath: 'assets/onboarding/onboarding 1.png',
     ),
     OnboardingData(
-      title: 'Status Real-time',
+      title: context.tr('realtime_status'),
       description:
           'Dapatkan pemantauan aktivitas gunung berapi secara langsung dan instan berkat integrasi data MAGMA.',
       icon: Icons.sensors_rounded,
@@ -37,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       imagePath: 'assets/onboarding/onboarding 2.png',
     ),
     OnboardingData(
-      title: 'Pilih Bahasa Anda',
+      title: context.tr('choose_your_language'),
       description:
           'SIGUMI mendukung berbagai bahasa daerah untuk memudahkan akses informasi bagi semua kalangan.',
       icon: Icons.translate_rounded,
@@ -84,7 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: TextButton(
                     onPressed: _finishOnboarding,
                     child: Text(
-                      'Lewati',
+                      context.trText('Lewati'),
                       style: AppFonts.plusJakartaSans(
                         color: SigumiTheme.primaryBlue,
                         fontWeight: FontWeight.w600,
@@ -397,31 +398,31 @@ class _LanguageSelectionPage extends StatelessWidget {
               Column(
                 children: [
                   _LangCard(
-                    title: 'Bahasa Indonesia',
+                    title: context.tr('lang_id'),
                     code: 'id',
                     isSelected: provider.language == 'id',
                   ),
                   const SizedBox(height: 12),
                   _LangCard(
-                    title: 'English (US)',
+                    title: context.tr('lang_en_us'),
                     code: 'en',
                     isSelected: provider.language == 'en',
                   ),
                   const SizedBox(height: 12),
                   _LangCard(
-                    title: 'Basa Jawa',
+                    title: context.tr('lang_jv'),
                     code: 'jv',
                     isSelected: provider.language == 'jv',
                   ),
                   const SizedBox(height: 12),
                   _LangCard(
-                    title: 'Basa Bali',
+                    title: context.tr('lang_ba'),
                     code: 'ba',
                     isSelected: provider.language == 'ba',
                   ),
                   const SizedBox(height: 12),
                   _LangCard(
-                    title: 'Basa Sasak',
+                    title: context.tr('lang_sa'),
                     code: 'sa',
                     isSelected: provider.language == 'sa',
                   ),

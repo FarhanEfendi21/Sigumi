@@ -46,8 +46,8 @@ class LanguageSettingsScreen extends StatelessWidget {
                 _buildSectionHeader(context.tr('available_languages')),
                 const SizedBox(height: 16),
                 _LanguageOptionCard(
-                      title: 'Bahasa Indonesia',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Indonesia',
+                      title: context.tr('lang_id'),
+                      subtitle: context.tr('lang_id_sub'),
                       flag: '🇮🇩',
                       isSelected: currentLanguage == 'id',
                       onTap: () => provider.setLanguage('id'),
@@ -58,7 +58,7 @@ class LanguageSettingsScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _LanguageOptionCard(
                       title: 'English',
-                      subtitle: 'Use the application in English',
+                      subtitle: context.tr('lang_en_sub'),
                       flag: '🇬🇧',
                       isSelected: currentLanguage == 'en',
                       onTap: () => provider.setLanguage('en'),
@@ -68,8 +68,8 @@ class LanguageSettingsScreen extends StatelessWidget {
                     .slideX(begin: -0.05, end: 0),
                 const SizedBox(height: 12),
                 _LanguageOptionCard(
-                      title: 'Basa Jawa',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Jawa',
+                      title: context.tr('lang_jv'),
+                      subtitle: context.tr('lang_jv_sub'),
                       flag: '☕',
                       isSelected: currentLanguage == 'jv',
                       onTap: () => provider.setLanguage('jv'),
@@ -79,8 +79,8 @@ class LanguageSettingsScreen extends StatelessWidget {
                     .slideX(begin: -0.05, end: 0),
                 const SizedBox(height: 12),
                 _LanguageOptionCard(
-                      title: 'Basa Bali',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Bali',
+                      title: context.tr('lang_ba'),
+                      subtitle: context.tr('lang_ba_sub'),
                       flag: '🌴',
                       isSelected: currentLanguage == 'ba',
                       onTap: () => provider.setLanguage('ba'),
@@ -90,8 +90,8 @@ class LanguageSettingsScreen extends StatelessWidget {
                     .slideX(begin: -0.05, end: 0),
                 const SizedBox(height: 12),
                 _LanguageOptionCard(
-                      title: 'Basa Sasak',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Sasak',
+                      title: context.tr('lang_sa'),
+                      subtitle: context.tr('lang_sa_sub'),
                       flag: '🏔️',
                       isSelected: currentLanguage == 'sa',
                       onTap: () => provider.setLanguage('sa'),

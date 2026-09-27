@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../../config/theme.dart';
 import '../../models/education_model.dart';
+import '../../services/localization_service.dart';
 
 class EducationDetailScreen extends StatelessWidget {
   final String title;
@@ -98,7 +99,7 @@ class EducationDetailScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      'PANDUAN MATERI',
+                      context.trText('PANDUAN MATERI'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
@@ -259,7 +260,7 @@ class _SectionWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Tahukah Kamu?',
+                          context.trText('Tahukah Kamu?'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -302,7 +303,7 @@ class _SectionWidget extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Peringatan Penting',
+                          context.trText('Peringatan Penting'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -338,4 +339,3 @@ class _SectionWidget extends StatelessWidget {
     );
   }
 }
-

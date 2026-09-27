@@ -96,7 +96,7 @@ class SettingsScreen extends StatelessWidget {
                       icon: CupertinoIcons.globe,
                       iconBg: const Color(0xFF34C759),
                       title: context.tr('language'),
-                      subtitle: _getLanguageName(provider.language),
+                      subtitle: _getLanguageName(context, provider.language),
                       onTap:
                           () => Navigator.pushNamed(
                             context,
@@ -145,12 +145,19 @@ class SettingsScreen extends StatelessWidget {
 
   // ── Dialog konfirmasi logout ──────────────────────────────────────
   void _confirmLogout(BuildContext context) {
+    // Gunakan read (bukan watch) karena dipanggil di luar build()
+    final lang = context.read<VolcanoProvider>().language;
+    final confirmTitle = LocalizationService.translate('logout_confirm_title', lang);
+    final confirmMsg = LocalizationService.translate('logout_confirm_msg', lang);
+    final cancelLabel = LocalizationService.translate('cancel', lang);
+    final logoutLabel = LocalizationService.translate('logout', lang);
+
     showCupertinoDialog(
       context: context,
       builder:
           (_) => CupertinoAlertDialog(
             title: Text(
-              context.tr('logout_confirm_title'),
+              confirmTitle,
               style: const TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.w700,
@@ -159,7 +166,7 @@ class SettingsScreen extends StatelessWidget {
             content: Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                context.tr('logout_confirm_msg'),
+                confirmMsg,
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 13,
@@ -170,7 +177,7 @@ class SettingsScreen extends StatelessWidget {
             actions: [
               CupertinoDialogAction(
                 child: Text(
-                  context.tr('cancel'),
+                  cancelLabel,
                   style: const TextStyle(fontFamily: 'Plus Jakarta Sans'),
                 ),
                 onPressed: () => Navigator.pop(context),
@@ -178,7 +185,7 @@ class SettingsScreen extends StatelessWidget {
               CupertinoDialogAction(
                 isDestructiveAction: true,
                 child: Text(
-                  context.tr('logout'),
+                  logoutLabel,
                   style: const TextStyle(
                     fontFamily: 'Plus Jakarta Sans',
                     fontWeight: FontWeight.w700,
@@ -195,7 +202,7 @@ class SettingsScreen extends StatelessWidget {
                     if (context.mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Gagal keluar: $e')),
+                        SnackBar(content: Text(context.tr('logout_failed') + '$e')),
                       );
                     }
                   }
@@ -208,12 +215,18 @@ class SettingsScreen extends StatelessWidget {
 
   // ── Dialog tentang SIGUMI ─────────────────────────────────────────
   void _showAbout(BuildContext context) {
+    // Gunakan read (bukan watch) karena dipanggil di luar build()
+    final lang = context.read<VolcanoProvider>().language;
+    final aboutTitle = LocalizationService.translate('about_sigumi', lang);
+    final aboutDesc = LocalizationService.translate('about_desc', lang);
+    final closeLabel = LocalizationService.translate('close', lang);
+
     showCupertinoModalPopup(
       context: context,
       builder:
           (_) => CupertinoActionSheet(
             title: Text(
-              context.tr('about_sigumi'),
+              aboutTitle,
               style: const TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontWeight: FontWeight.w700,
@@ -221,7 +234,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             message: Text(
-              context.tr('about_desc'),
+              aboutDesc,
               style: TextStyle(
                 fontFamily: 'Plus Jakarta Sans',
                 fontSize: 13,
@@ -230,7 +243,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             cancelButton: CupertinoActionSheetAction(
               child: Text(
-                context.tr('close'),
+                closeLabel,
                 style: const TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontWeight: FontWeight.w600,
@@ -243,20 +256,20 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // ── Helper untuk mendapatkan nama bahasa ─────────────────────────
-  String _getLanguageName(String languageCode) {
+  String _getLanguageName(BuildContext context, String languageCode) {
     switch (languageCode.toLowerCase()) {
       case 'id':
-        return 'Bahasa Indonesia';
+        return context.tr('lang_id');
       case 'en':
         return 'English';
       case 'jv':
-        return 'Basa Jawa';
+        return context.tr('lang_jv');
       case 'ba':
-        return 'Basa Bali';
+        return context.tr('lang_ba');
       case 'sa':
-        return 'Basa Sasak';
+        return context.tr('lang_sa');
       default:
-        return 'Bahasa Indonesia';
+        return context.tr('lang_id');
     }
   }
 }
@@ -372,7 +385,7 @@ class _ProfileHero extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      'Lokasi Terpilih',
+                      context.trText('Lokasi Terpilih'),
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
                         fontSize: 14,
@@ -459,7 +472,7 @@ class _ProfileHero extends StatelessWidget {
                 ),
               ),
               Text(
-                'Pilih Lokasi Pemantauan',
+                context.trText('Pilih Lokasi Pemantauan'),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 17,
@@ -469,7 +482,7 @@ class _ProfileHero extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Pilih wilayah gunung api yang ingin dipantau',
+                context.trText('Pilih wilayah gunung api yang ingin dipantau'),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 13,
@@ -834,6 +847,7 @@ class _NotificationRowState extends State<_NotificationRow> {
           ),
           const SizedBox(width: 12),
           Expanded(
+<<<<<<< HEAD
             child: AnimatedOpacity(
               opacity: _isEnabled ? 1.0 : 0.45,
               duration: const Duration(milliseconds: 200),
@@ -893,6 +907,101 @@ class _NotificationRowState extends State<_NotificationRow> {
                   ),
                 ],
               ),
+=======
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.tr('offline_data'),
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary,
+                    letterSpacing: -0.2,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  provider.isOffline
+                      ? context.tr('offline_active')
+                      : context.tr('using_online'),
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: context.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // CupertinoSwitch untuk tampilan yang tumpah/tepat seperti iOS
+          CupertinoSwitch(
+            value: provider.isOffline,
+            activeTrackColor: context.accentPrimary,
+            onChanged: (val) {
+              HapticFeedback.lightImpact();
+              provider.toggleOffline();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Baris saklar Panduan Audio / Voice Assistant
+class _VoiceAssistantRow extends StatelessWidget {
+  final VolcanoProvider provider;
+
+  const _VoiceAssistantRow({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+      child: Row(
+        children: [
+          _IconBadge(
+            icon: CupertinoIcons.mic_fill,
+            background: const Color(0xFF5856D6),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.tr('audio_guide'),
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: context.textPrimary,
+                    letterSpacing: -0.2,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  provider.audioGuidance
+                      ? context.trText('Aktif ("Halo Sigumi")')
+                      : context.tr('disabled'),
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: context.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
             ),
           ),
           CupertinoSwitch(
@@ -979,6 +1088,7 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
           ),
           const SizedBox(width: 12),
           Expanded(
+<<<<<<< HEAD
             child: AnimatedOpacity(
               opacity: _isEnabled ? 1.0 : 0.45,
               duration: const Duration(milliseconds: 200),
@@ -1036,6 +1146,33 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
                           : context.textTertiary,
                       height: 1.4,
                     ),
+=======
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.trText('Peringatan Getar'),
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _isEnabled
+                      ? context.tr('vibration_enabled')
+                      : context.tr('disabled'),
+                  style: TextStyle(
+                    fontFamily: 'Plus Jakarta Sans',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: context.textSecondary,
+                    height: 1.4,
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                   ),
                 ],
               ),
@@ -1089,7 +1226,7 @@ class _LogoutRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                'Keluar',
+                context.tr('logout'),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 16,
@@ -1124,7 +1261,7 @@ class _GuestProfileView extends StatelessWidget {
         scrolledUnderElevation: 0,
         centerTitle: true,
         title: Text(
-          'Profil',
+          context.tr('nav_profile'),
           style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
             color: context.textPrimary,
@@ -1172,7 +1309,7 @@ class _GuestProfileView extends StatelessWidget {
 
               // ── Label Guest ─────────────────────────────────────────
               Text(
-                'Mode Tamu',
+                context.trText('Mode Tamu'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -1183,7 +1320,7 @@ class _GuestProfileView extends StatelessWidget {
               const SizedBox(height: 8),
 
               Text(
-                'Anda sedang menjelajahi SIGUMI\nsebagai tamu tanpa akun.',
+                context.trText('Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.'),
                 textAlign: TextAlign.center,
                 style: AppFonts.plusJakartaSans(
                   fontSize: 14,
@@ -1211,7 +1348,7 @@ class _GuestProfileView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Dengan akun, Anda bisa:',
+                      context.trText('Dengan akun, Anda bisa:'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -1254,7 +1391,7 @@ class _GuestProfileView extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item.$2,
+                                    context.trText(item.$2),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -1262,7 +1399,7 @@ class _GuestProfileView extends StatelessWidget {
                                     ),
                                   ),
                                   Text(
-                                    item.$3,
+                                    context.trText(item.$3),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 12,
                                       color: SettingsScreen._labelSecondary,
@@ -1314,7 +1451,7 @@ class _GuestProfileView extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.login_rounded, size: 20),
                     label: Text(
-                      'Masuk ke Akun',
+                      context.tr('login_to_account'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -1347,7 +1484,7 @@ class _GuestProfileView extends StatelessWidget {
                   ),
                   icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
                   label: Text(
-                    'Buat Akun Baru',
+                    context.tr('create_new_account'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -1360,7 +1497,7 @@ class _GuestProfileView extends StatelessWidget {
 
               // ── Label versi ─────────────────────────────────────────
               Text(
-                'SIGUMI v1.0.0',
+                context.trText('SIGUMI v1.0.0'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 12,
                   color: SettingsScreen._labelTertiary,

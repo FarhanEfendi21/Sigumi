@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -70,7 +71,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Gagal membuka kamera: $e',
+              '${context.trText('Gagal membuka kamera:')} $e',
               style: AppFonts.plusJakartaSans(color: Colors.white),
             ),
             backgroundColor: Colors.redAccent,
@@ -98,7 +99,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Pilih kategori dan isi deskripsi terlebih dahulu',
+              context.trText('Pilih kategori dan isi deskripsi terlebih dahulu'),
               style: AppFonts.plusJakartaSans(color: Colors.white),
             ),
             backgroundColor: Colors.orange.shade700,
@@ -127,7 +128,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Laporan hanya dapat dikirim dari dalam radius ${AppConstants.reportMaxRadius.toInt()} km.',
+              '${context.trText('Laporan hanya dapat dikirim dari dalam radius')} ${AppConstants.reportMaxRadius.toInt()} km.',
               style: AppFonts.plusJakartaSans(color: Colors.white),
             ),
             backgroundColor: Colors.redAccent,
@@ -259,7 +260,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      'Laporan Berhasil!',
+                      context.trText('Laporan Berhasil!'),
                       textAlign: TextAlign.center,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 18,
@@ -269,7 +270,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.',
+                      context.trText('Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.'),
                       textAlign: TextAlign.center,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 14,
@@ -325,7 +326,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Gagal mengirim laporan: ${e.toString()}',
+                    '${context.trText('Gagal mengirim laporan:')} ${e.toString()}',
                     style: AppFonts.plusJakartaSans(color: Colors.white),
                   ),
                 ),
@@ -386,7 +387,7 @@ class _ReportScreenState extends State<ReportScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: widget.showBackButton,
         title: Text(
-          'Lapor Kejadian',
+          context.trText('Lapor Kejadian'),
           style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -446,8 +447,8 @@ class _ReportScreenState extends State<ReportScreen> {
                       children: [
                         Text(
                           isWithinRadius
-                              ? 'Lokasi Laporan Valid'
-                              : 'Di Luar Radius Pelaporan',
+                              ? context.trText('Lokasi Laporan Valid')
+                              : context.trText('Di Luar Radius Pelaporan'),
                           style: AppFonts.plusJakartaSans(
                             fontWeight: FontWeight.w700,
                             fontSize: 14,
@@ -456,7 +457,7 @@ class _ReportScreenState extends State<ReportScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Jarak Anda: ${userDistance.toStringAsFixed(1)} km dari ${loc.nearestVolcanoName}',
+                          '${context.trText('Jarak Anda:')} ${userDistance.toStringAsFixed(1)} km ${context.trText('dari')} ${loc.nearestVolcanoName}',
                           style: AppFonts.plusJakartaSans(
                             fontSize: 12,
                             color: context.textSecondary,
@@ -473,8 +474,8 @@ class _ReportScreenState extends State<ReportScreen> {
 
             // ── Kategori Kejadian ──
             _buildSectionTitle(
-              'Kategori Kejadian',
-              subtitle: 'Pilih satu atau lebih kejadian yang terjadi',
+              context.trText('Kategori Kejadian'),
+              subtitle: context.tr('select_incident'),
             ),
             const SizedBox(height: 14),
             Opacity(
@@ -521,7 +522,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                   ),
                                 ),
                                 child: Text(
-                                  cat,
+                                  context.trText(cat),
                                   style: AppFonts.plusJakartaSans(
                                     fontSize: 13,
                                     fontWeight:
@@ -548,8 +549,8 @@ class _ReportScreenState extends State<ReportScreen> {
 
             // ── Foto Lampiran ──
             _buildSectionTitle(
-              'Foto Kondisi Saat Ini',
-              subtitle: 'Bantu tim verifikasi dengan bukti visual',
+              context.trText('Foto Kondisi Saat Ini'),
+              subtitle: context.tr('help_verification'),
             ),
             const SizedBox(height: 14),
             Opacity(
@@ -644,7 +645,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      'Ambil foto dari kamera',
+                                      context.trText('Ambil foto dari kamera'),
                                       style: AppFonts.plusJakartaSans(
                                         color: context.textPrimary,
                                         fontWeight: FontWeight.w600,
@@ -653,7 +654,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Foto langsung dari kamera untuk verifikasi',
+                                      context.trText('Foto langsung dari kamera untuk verifikasi'),
                                       style: AppFonts.plusJakartaSans(
                                         color: context.textTertiary,
                                         fontSize: 12,
@@ -673,8 +674,8 @@ class _ReportScreenState extends State<ReportScreen> {
 
             // ── Deskripsi ──
             _buildSectionTitle(
-              'Deskripsi Laporan',
-              subtitle: 'Ceritakan detail kejadian dengan singkat dan jelas',
+              context.trText('Deskripsi Laporan'),
+              subtitle: context.tr('tell_incident_detail'),
             ),
             const SizedBox(height: 14),
             Opacity(
@@ -755,7 +756,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                 const Icon(Icons.send_rounded, size: 20),
                                 const SizedBox(width: 10),
                                 Text(
-                                  'Kirim Laporan',
+                                  context.trText('Kirim Laporan'),
                                   style: AppFonts.plusJakartaSans(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,

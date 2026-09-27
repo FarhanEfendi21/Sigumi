@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -188,7 +189,7 @@ class TourismDetailScreen extends StatelessWidget {
                       Expanded(
                         child: _InfoCard(
                           icon: Icons.schedule_rounded,
-                          label: 'Jam Buka',
+                          label: context.tr('opening_hours'),
                           value: destination.openHours,
                           color: SigumiTheme.primaryBlue,
                         ),
@@ -197,7 +198,7 @@ class TourismDetailScreen extends StatelessWidget {
                       Expanded(
                         child: _InfoCard(
                           icon: Icons.confirmation_number_outlined,
-                          label: 'Tiket Masuk',
+                          label: context.tr('entry_ticket'),
                           value: destination.formattedFee,
                           color:
                               destination.entryFee == 0
@@ -211,8 +212,8 @@ class TourismDetailScreen extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Deskripsi
-                  const Text(
-                    'Tentang Tempat Ini',
+                  Text(
+                    context.trText('Tentang Tempat Ini'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -367,8 +368,8 @@ class _AddressRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Alamat',
+                Text(
+                  context.trText('Alamat'),
                   style: TextStyle(
                     fontSize: 10,
                     color: SigumiTheme.textSecondary,
@@ -432,13 +433,13 @@ class _OpenMapsButton extends StatelessWidget {
               ),
             ],
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.map_rounded, color: Colors.white, size: 20),
-              SizedBox(width: 10),
+              const Icon(Icons.map_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
               Text(
-                'Buka di Google Maps',
+                context.trText('Buka di Google Maps'),
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 15,

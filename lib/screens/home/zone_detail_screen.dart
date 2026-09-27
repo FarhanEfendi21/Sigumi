@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
@@ -102,7 +103,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
             foregroundColor: Colors.white,
             elevation: 0,
             title: Text(
-              'Status Zona',
+              context.trText('Status Zona'),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -113,7 +114,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: IconButton(
-                  tooltip: 'Perbarui data status',
+                  tooltip: context.trText('Perbarui data status'),
                   icon: provider.isRefreshing
                       ? const SizedBox(
                           width: 20,
@@ -172,8 +173,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                               const SizedBox(width: 6),
                               Text(
                                 volcanoLevel == 4
-                                    ? 'AWAS — SIAGA PENUH'
-                                    : 'SIAGA — TINGKATKAN KEWASPADAAN',
+                                    ? context.trText('AWAS — SIAGA PENUH')
+                                    : context.trText('SIAGA — TINGKATKAN KEWASPADAAN'),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
@@ -187,7 +188,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                       ],
                       // Zone name
                       Text(
-                        provider.zoneLabel,
+                        context.trText(provider.zoneLabel),
                         textAlign: TextAlign.center,
                         style: AppFonts.plusJakartaSans(
                           fontSize: isHighAlert ? 23 : 20,
@@ -199,7 +200,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${distance.toStringAsFixed(1)} km dari puncak ${volcano.name}',
+                        '${distance.toStringAsFixed(1)} km ${context.tr('from_summit')} ${volcano.name}',
                         textAlign: TextAlign.center,
                         style: AppFonts.plusJakartaSans(
                           fontSize: 13,
@@ -223,25 +224,25 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                       _buildSectionCard(
                         icon: Icons.my_location_rounded,
                         iconColor: zoneColor,
-                        title: 'Posisi Anda Saat Ini',
+                        title: context.tr('current_position'),
                         child: Column(
                           children: [
                             _buildInfoRow(
-                              'Jarak dari Puncak',
+                              context.trText('Jarak dari Puncak'),
                               '${distance.toStringAsFixed(1)} km',
                               Icons.straighten_rounded,
                             ),
                             const Divider(height: 20),
                             _buildInfoRow(
-                              'Zona Saat Ini',
-                              provider.zoneLabel,
+                              context.trText('Zona Saat Ini'),
+                              context.trText(provider.zoneLabel),
                               Icons.shield_outlined,
                               valueColor: zoneColor,
                             ),
                             const Divider(height: 20),
                             _buildInfoRow(
-                              'Status Gunung',
-                              volcano.statusLabel,
+                              context.trText('Status Gunung'),
+                              context.trText(volcano.statusLabel),
                               Icons.landscape_rounded,
                               valueColor: SigumiTheme.getStatusColor(
                                 volcanoLevel,
@@ -251,7 +252,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                             ),
                             const Divider(height: 20),
                             _buildInfoRow(
-                              'Terakhir Diperbarui',
+                              context.trText('Terakhir Diperbarui'),
                               _formatTime(volcano.lastUpdate),
                               Icons.update_rounded,
                             ),
@@ -263,7 +264,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                       Padding(
                         padding: const EdgeInsets.only(top: 6, left: 2),
                         child: Text(
-                          'Sumber: MAGMA Indonesia',
+                          context.trText('Sumber: MAGMA Indonesia'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 11,
                             color: isHC ? SigumiTheme.hcPrimary : const Color(0xFF9E9EAE),
@@ -286,7 +287,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
 
                       Center(
                         child: Text(
-                          'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD',
+                          context.trText('Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 11,
                             color: const Color(0xFF9E9EAE),
@@ -335,7 +336,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Pembagian Zona KRB',
+                      context.trText('Pembagian Zona KRB'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -350,7 +351,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Kawasan Rawan Bencana berdasarkan jarak dari puncak',
+                      context.trText('Kawasan Rawan Bencana berdasarkan jarak dari puncak'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 12,
                         color: const Color(0xFF6B6B78),
@@ -394,8 +395,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
             children: [
               _buildZoneCard(
                 level: 4,
-                title: 'Zona Bahaya',
-                subtitle: 'KRB III — Radius ≤ 5 km',
+                title: context.tr('danger_zone'),
+                subtitle: context.tr('krb_3'),
                 description: _getKrbDesc(volcanoKey, 3),
                 isActive: zoneLevel == 4,
                 isHighAlert: isHighAlert,
@@ -405,8 +406,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
               ),
               _buildZoneCard(
                 level: 3,
-                title: 'Zona Waspada',
-                subtitle: 'KRB II — Radius 5–10 km',
+                title: context.tr('warning_zone'),
+                subtitle: context.tr('krb_2'),
                 description: _getKrbDesc(volcanoKey, 2),
                 isActive: zoneLevel == 3,
                 isHighAlert: isHighAlert,
@@ -416,8 +417,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
               ),
               _buildZoneCard(
                 level: 2,
-                title: 'Zona Perhatian',
-                subtitle: 'KRB I — Radius 10–15 km',
+                title: context.tr('caution_zone'),
+                subtitle: context.tr('krb_1'),
                 description: _getKrbDesc(volcanoKey, 1),
                 isActive: zoneLevel == 2,
                 isHighAlert: isHighAlert,
@@ -427,8 +428,8 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
               ),
               _buildZoneCard(
                 level: 1,
-                title: 'Zona Aman',
-                subtitle: 'Di luar KRB — Radius > 15 km',
+                title: context.tr('safe_zone'),
+                subtitle: context.tr('out_of_krb'),
                 description:
                     'Di luar kawasan rawan bencana langsung. Tetap pantau '
                     'informasi dan waspadai dampak sekunder.',
@@ -537,7 +538,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        title,
+                        context.trText(title),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: titleFontWeight,
@@ -561,7 +562,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                               : null,
                         ),
                         child: Text(
-                          'Anda',
+                          context.trText('Anda'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -574,7 +575,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  subtitle,
+                  context.trText(subtitle),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
@@ -583,7 +584,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  context.trText(description),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 11,
                     color: const Color(0xFF6B6B78),
@@ -696,20 +697,21 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
 
   String _formatTime(DateTime dt) {
     final localDt = dt.toLocal();
+    final language = context.read<VolcanoProvider>().language;
     final months = [
       '',
       'Jan',
       'Feb',
       'Mar',
       'Apr',
-      'Mei',
+      language == 'en' ? 'May' : 'Mei',
       'Jun',
       'Jul',
-      'Agu',
+      language == 'en' ? 'Aug' : 'Agu',
       'Sep',
-      'Okt',
+      language == 'en' ? 'Oct' : 'Okt',
       'Nov',
-      'Des',
+      language == 'en' ? 'Dec' : 'Des',
     ];
     return '${localDt.day} ${months[localDt.month]} ${localDt.year}, '
         '${localDt.hour.toString().padLeft(2, '0')}:'

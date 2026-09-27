@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -86,7 +87,7 @@ class AccessibilityScreen extends StatelessWidget {
             centerTitle: true,
             iconTheme: IconThemeData(color: primaryText),
             title: Text(
-              'Aksesibilitas Inklusif',
+              context.tr('accessibility'),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
@@ -119,7 +120,7 @@ class AccessibilityScreen extends StatelessWidget {
                 // BAGIAN 1: TAMPILAN VISUAL
                 // ═══════════════════════════════════════════════
                 _SectionHeader(
-                  title: 'Tampilan Visual',
+                  title: context.tr('visual_display'),
                   icon: Icons.visibility_outlined,
                   color: tertiaryText,
                 ),
@@ -138,7 +139,7 @@ class AccessibilityScreen extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            'Ukuran Teks',
+                            context.tr('text_size'),
                             style: AppFonts.plusJakartaSans(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
@@ -202,7 +203,7 @@ class AccessibilityScreen extends StatelessWidget {
                             fontSize: 14 * provider.fontSize,
                             color: secondaryText,
                           ),
-                          child: const Text('Contoh Teks Dinamis SIGUMI'),
+                          child: Text(context.tr('dynamic_text_example')),
                         ),
                       ),
                     ],
@@ -232,6 +233,7 @@ class AccessibilityScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+<<<<<<< HEAD
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -268,6 +270,15 @@ class AccessibilityScreen extends StatelessWidget {
                                   ),
                                 ),
                               ],
+=======
+                            Text(
+                              context.tr('contrast'),
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: primaryText,
+                              ),
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                             ),
                             Text(
                               isHC
@@ -298,7 +309,7 @@ class AccessibilityScreen extends StatelessWidget {
                 // BAGIAN 2: MODE BUTA WARNA
                 // ═══════════════════════════════════════════════
                 _SectionHeader(
-                  title: 'Mode Buta Warna',
+                  title: context.tr('color_blind_mode'),
                   icon: Icons.palette_outlined,
                   color: tertiaryText,
                 ),
@@ -306,8 +317,7 @@ class AccessibilityScreen extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 14),
                   child: Text(
-                    'Sesuaikan warna status MAGMA agar mudah dibaca '
-                    'bagi pengguna dengan gangguan penglihatan warna.',
+                    context.trText('Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 12,
                       color: tertiaryText,
@@ -362,7 +372,7 @@ class AccessibilityScreen extends StatelessWidget {
                             ),
                           ),
                           ShadSelect<String>(
-                            placeholder: const Text('Pilih Mode'),
+                            placeholder: Text(context.tr('select_mode')),
                             initialValue: cbMode,
                             onChanged: (v) {
                               if (v != null) {
@@ -387,7 +397,7 @@ class AccessibilityScreen extends StatelessWidget {
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(32, 6, 6, 6),
                                 child: Text(
-                                  'Mode Buta Warna',
+                                  context.tr('color_blind_mode'),
                                   style: AppFonts.plusJakartaSans(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
@@ -402,7 +412,7 @@ class AccessibilityScreen extends StatelessWidget {
                                     children: [
                                       Icon(opt.icon, size: 16, color: accentColor),
                                       const SizedBox(width: 8),
-                                      Text(opt.label, style: AppFonts.plusJakartaSans()),
+                                  Text(context.trText(opt.label), style: AppFonts.plusJakartaSans()),
                                     ],
                                   ),
                                 ),
@@ -427,7 +437,7 @@ class AccessibilityScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Preview Status MAGMA',
+                              context.trText('Preview Status MAGMA'),
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -472,7 +482,7 @@ class AccessibilityScreen extends StatelessWidget {
                 // BAGIAN 3: PANDUAN AUDIO
                 // ═══════════════════════════════════════════════
                 _SectionHeader(
-                  title: 'Panduan Audio',
+                  title: context.tr('audio_guide'),
                   icon: Icons.mic_rounded,
                   color: tertiaryText,
                 ),
@@ -502,6 +512,7 @@ class AccessibilityScreen extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+<<<<<<< HEAD
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -539,6 +550,15 @@ class AccessibilityScreen extends StatelessWidget {
                                   ),
                                 ),
                               ],
+=======
+                            Text(
+                              context.tr('audio_guide'),
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: primaryText,
+                              ),
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                             ),
                             Text(
                               provider.audioGuidance
@@ -569,7 +589,7 @@ class AccessibilityScreen extends StatelessWidget {
                 // Footer
                 Center(
                   child: Text(
-                    'SIGUMI · Aksesibilitas Inklusif',
+                    context.trText('SIGUMI · Aksesibilitas Inklusif'),
                     style: AppFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -765,7 +785,11 @@ class _InclusiveBanner extends StatelessWidget {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
+<<<<<<< HEAD
               'Sigumi dirancang inklusif untuk semua pengguna',
+=======
+              context.trText('SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.'),
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 height: 1.5,

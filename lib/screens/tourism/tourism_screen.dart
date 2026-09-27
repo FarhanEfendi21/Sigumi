@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -45,7 +46,7 @@ class _TourismScreenState extends State<TourismScreen> {
             onPressed: () {},
             backgroundColor: SigumiTheme.primaryBlue,
             icon: const Icon(Icons.map_rounded, color: Colors.white, size: 20),
-            label: const Text('Peta Wisata', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+            label: Text(context.tr('tourism_map'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
             elevation: 4,
           ),
           body: RefreshIndicator(
@@ -86,7 +87,7 @@ class _TourismScreenState extends State<TourismScreen> {
                 // ── Section Header: Destinasi ─────────────────
                 SliverToBoxAdapter(
                   child: _SectionHeader(
-                    title: 'Destinasi Wisata',
+                    title: context.tr('tourism_destination'),
                     subtitle: _destinationSubtitle(
                       tourismProvider.filteredDestinations.length,
                       tourismProvider.selectedCategory,
@@ -269,7 +270,9 @@ class _SliverHeader extends StatelessWidget {
                               ),
                               const SizedBox(width: 5),
                               Text(
-                                isAutoDetected ? 'Lokasi Anda' : 'Daerah Pilihan',
+                                isAutoDetected
+                                    ? context.trText('Lokasi Anda')
+                                    : context.trText('Daerah Pilihan'),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 11,
@@ -317,7 +320,7 @@ class _SliverHeader extends StatelessWidget {
             title: Opacity(
               opacity: (1.0 - opacity).clamp(0.0, 1.0),
               child: Text(
-                'Wisata $region',
+                '${context.tr('tourism_section')} $region',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -369,8 +372,8 @@ class _CategoryFilter extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Kategori Pilihan',
+          Text(
+            context.trText('Kategori Pilihan'),
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -521,13 +524,13 @@ class _AgendaSection extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Agenda Mendatang',
-                      style: TextStyle(
+                      context.trText('Agenda Mendatang'),
+                      style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: SigumiTheme.textPrimary,
@@ -536,8 +539,8 @@ class _AgendaSection extends StatelessWidget {
                     ),
                     SizedBox(height: 2),
                     Text(
-                      'Pertunjukan, festival, & ritual budaya',
-                      style: TextStyle(
+                      context.trText('Pertunjukan, festival, & ritual budaya'),
+                      style: const TextStyle(
                         fontSize: 12,
                         color: SigumiTheme.textSecondary,
                         fontWeight: FontWeight.w400,
@@ -767,7 +770,7 @@ class _EmptyAgenda extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Belum ada agenda mendatang',
+        context.trText('Belum ada agenda mendatang'),
         style: TextStyle(
           fontSize: 13,
           color: SigumiTheme.textSecondary.withAlpha(160),
@@ -1006,7 +1009,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              'Belum ada destinasi',
+              context.trText('Belum ada destinasi'),
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -1015,7 +1018,7 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Coba pilih kategori lain',
+              context.trText('Coba pilih kategori lain'),
               style: TextStyle(
                 fontSize: 13,
                 color: SigumiTheme.textSecondary.withAlpha(120),

@@ -40,11 +40,11 @@ class _LoginScreenState extends State<LoginScreen> {
     bool valid = true;
 
     setState(() {
-      _phoneError = phone.isEmpty ? 'Nomor telepon harus diisi.' : null;
+      _phoneError = phone.isEmpty ? context.trText('Nomor telepon harus diisi.') : null;
       _passwordError = password.isEmpty
-          ? 'Kata sandi harus diisi.'
+          ? context.trText('Kata sandi harus diisi.')
           : password.length < 6
-              ? 'Kata sandi minimal 6 karakter.'
+              ? context.trText('Kata sandi minimal 6 karakter.')
               : null;
     });
 
@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     SigumiDialog.show(
       context: context,
-      title: 'Gagal Masuk',
+      title: context.tr('login_failed'),
       message: message,
       type: SigumiDialogType.error,
     );

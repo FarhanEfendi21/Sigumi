@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../config/fonts.dart';
 import '../config/theme.dart';
+import '../services/localization_service.dart';
 
 enum SigumiDialogType { success, error, info }
 
@@ -129,7 +130,7 @@ class SigumiDialog extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  buttonText ?? 'Oke',
+                  buttonText ?? context.trText('Oke'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

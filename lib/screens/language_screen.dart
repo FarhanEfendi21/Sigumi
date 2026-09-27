@@ -87,7 +87,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                 _LanguageCard(
                       flag: '🇬🇧',
                       title: 'English',
-                      subtitle: 'Use the app in English',
+                      subtitle: context.tr('lang_en_sub'),
                       isSelected: _selected == 'en',
                       onTap: () => setState(() => _selected = 'en'),
                     )
@@ -99,8 +99,8 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
                 _LanguageCard(
                       flag: '🇮🇩',
-                      title: 'Bahasa Indonesia',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Indonesia',
+                      title: context.tr('lang_id'),
+                      subtitle: context.tr('lang_id_sub'),
                       isSelected: _selected == 'id',
                       onTap: () => setState(() => _selected = 'id'),
                     )
@@ -112,8 +112,8 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
                 _LanguageCard(
                       flag: '☕',
-                      title: 'Basa Jawa',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Jawa',
+                      title: context.tr('lang_jv'),
+                      subtitle: context.tr('lang_jv_sub'),
                       isSelected: _selected == 'jv',
                       onTap: () => setState(() => _selected = 'jv'),
                     )
@@ -125,8 +125,8 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
                 _LanguageCard(
                       flag: '🌴',
-                      title: 'Basa Bali',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Bali',
+                      title: context.tr('lang_ba'),
+                      subtitle: context.tr('lang_ba_sub'),
                       isSelected: _selected == 'ba',
                       onTap: () => setState(() => _selected = 'ba'),
                     )
@@ -138,8 +138,8 @@ class _LanguageScreenState extends State<LanguageScreen> {
 
                 _LanguageCard(
                       flag: '🏔️',
-                      title: 'Basa Sasak',
-                      subtitle: 'Gunakan aplikasi dalam Bahasa Sasak',
+                      title: context.tr('lang_sa'),
+                      subtitle: context.tr('lang_sa_sub'),
                       isSelected: _selected == 'sa',
                       onTap: () => setState(() => _selected = 'sa'),
                     )

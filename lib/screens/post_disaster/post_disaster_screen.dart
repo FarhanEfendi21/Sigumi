@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -92,7 +93,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = 'Gagal memuat data. Periksa koneksi internet.';
+          _error = context.trText('Gagal memuat data. Periksa koneksi internet.');
           _isLoading = false;
         });
       }
@@ -348,7 +349,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
                   size: 48, color: Colors.red.shade400),
             ),
             const SizedBox(height: 20),
-            Text('Koneksi Bermasalah',
+            Text(context.tr('connection_issue'),
                 style: AppFonts.plusJakartaSans(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
@@ -364,7 +365,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
             FilledButton.icon(
               onPressed: () => _loadShelters(forceReload: true),
               icon: const Icon(Icons.refresh_rounded, size: 18),
-              label: const Text('Coba Lagi'),
+              label: Text(context.tr('try_again')),
               style: FilledButton.styleFrom(
                 backgroundColor: SigumiTheme.primaryBlue,
                 padding: const EdgeInsets.symmetric(
@@ -395,13 +396,13 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
                 color: SigumiTheme.primaryBlue.withValues(alpha: 0.4)),
           ),
           const SizedBox(height: 16),
-          Text('Belum Ada Data',
+          Text(context.tr('no_data_yet'),
               style: AppFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: Colors.grey.shade700)),
           const SizedBox(height: 6),
-          Text('Tidak ada posko atau fasilitas\nuntuk kategori ini.',
+          Text(context.tr('no_facility_desc'),
               textAlign: TextAlign.center,
               style: AppFonts.plusJakartaSans(
                   fontSize: 13,
@@ -586,11 +587,11 @@ class ShelterCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(children: [
-                          _Badge(label: shelter.typeLabel, color: st.color),
+                          _Badge(label: context.trText(shelter.typeLabel), color: st.color),
                           if (shelter.is24h) ...[
                             const SizedBox(width: 6),
                             _Badge(
-                              label: '24 Jam',
+                              label: context.trText('24 Jam'),
                               color: Colors.green.shade600,
                               icon: Icons.access_time_rounded,
                             ),
@@ -638,7 +639,7 @@ class ShelterCard extends StatelessWidget {
                                 size: 13, color: Colors.grey.shade400),
                             const SizedBox(width: 3),
                             Text(
-                              '${shelter.capacity} org',
+                              '${shelter.capacity} ${context.tr('people')}',
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 12,
                                 color: Colors.grey.shade400,
@@ -736,7 +737,7 @@ class _DetailSheet extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Badge(label: shelter.typeLabel, color: style.color),
+                    _Badge(label: context.trText(shelter.typeLabel), color: style.color),
                     const SizedBox(height: 4),
                     Text(
                       shelter.name,
@@ -764,26 +765,26 @@ class _DetailSheet extends StatelessWidget {
               if (shelter.address != null)
                 _DetailRow(
                     icon: Icons.location_on_outlined,
-                    label: 'Alamat',
+                    label: context.trText('Alamat'),
                     value: shelter.address!,
                     color: style.color),
               if (shelter.distanceFromUser != null)
                 _DetailRow(
                     icon: Icons.near_me_rounded,
-                    label: 'Jarak dari Anda',
+                    label: context.tr('distance_from_you'),
                     value: shelter.distanceLabel,
                     color: style.color,
                     highlighted: true),
               if (shelter.capacity != null)
                 _DetailRow(
                     icon: Icons.people_rounded,
-                    label: 'Kapasitas',
-                    value: '${shelter.capacity} orang',
+                    label: context.trText('Kapasitas'),
+                    value: '${shelter.capacity} ${context.tr('people')}',
                     color: style.color),
               if (shelter.notes != null)
                 _DetailRow(
                     icon: Icons.info_outline_rounded,
-                    label: 'Catatan',
+                    label: context.trText('Catatan'),
                     value: shelter.notes!,
                     color: style.color),
             ]),
@@ -799,7 +800,7 @@ class _DetailSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('FASILITAS',
+                  Text(context.trText('FASILITAS'),
                       style: AppFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -809,22 +810,22 @@ class _DetailSheet extends StatelessWidget {
                   Wrap(spacing: 8, runSpacing: 8, children: [
                     if (shelter.hasMedical)
                       _FacilityChip(
-                          label: 'Tenaga Medis',
+                          label: context.tr('medical_staff'),
                           icon: Icons.medical_services_outlined,
                           color: Colors.red.shade500),
                     if (shelter.hasKitchen)
                       _FacilityChip(
-                          label: 'Dapur Umum',
+                          label: context.tr('public_kitchen'),
                           icon: Icons.restaurant_rounded,
                           color: Colors.orange.shade600),
                     if (shelter.hasToilet)
                       _FacilityChip(
-                          label: 'MCK',
+                          label: context.trText('MCK'),
                           icon: Icons.wc_rounded,
                           color: Colors.blue.shade500),
                     if (shelter.is24h)
                       _FacilityChip(
-                          label: 'Buka 24 Jam',
+                          label: context.tr('open_24_hours'),
                           icon: Icons.access_time_rounded,
                           color: Colors.green.shade600),
                   ]),
@@ -842,7 +843,7 @@ class _DetailSheet extends StatelessWidget {
                 Expanded(
                   child: _ActionBtn(
                     icon: Icons.call_rounded,
-                    label: 'Hubungi',
+                    label: context.trText('Hubungi'),
                     color: Colors.green.shade600,
                     onTap: () async {
                       final uri = Uri.parse('tel:${shelter.phone}');
@@ -855,7 +856,7 @@ class _DetailSheet extends StatelessWidget {
               Expanded(
                 child: _ActionBtn(
                   icon: Icons.map_rounded,
-                  label: 'Buka Maps',
+                  label: context.tr('open_maps'),
                   color: SigumiTheme.primaryBlue,
                   onTap: () async {
                     final query = Uri.encodeComponent(shelter.name);

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import 'package:flutter/cupertino.dart';
+=======
+import '../../services/localization_service.dart';
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -19,8 +23,8 @@ class EducationScreen extends StatelessWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
-            'Edukasi Bencana',
+            title: Text(
+            context.trText('Edukasi Bencana'),
             style: AppFonts.plusJakartaSans(
               fontWeight: FontWeight.w700,
               fontSize: 20,
@@ -44,10 +48,10 @@ class EducationScreen extends StatelessWidget {
               fontWeight: FontWeight.w600,
               fontSize: 14,
             ),
-            tabs: const [
-              Tab(text: 'Umum'),
-              Tab(text: 'Anak-Anak'),
-              Tab(text: 'Difabel'),
+            tabs: [
+              Tab(text: context.trText('Umum')),
+              Tab(text: context.tr('kids_education')),
+              Tab(text: context.tr('accessibility')),
             ],
           ),
         ),
@@ -122,7 +126,7 @@ class _GeneralEducationGridState extends State<_GeneralEducationGrid> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Gagal memuat data edukasi.';
+          _error = context.trText('Gagal memuat data edukasi.');
           _isLoading = false;
         });
       }
@@ -138,7 +142,7 @@ class _GeneralEducationGridState extends State<_GeneralEducationGrid> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           sliver: SliverToBoxAdapter(
             child: _AnimatedHeader(
-              title: 'Panduan Edukasi Umum',
+              title: context.tr('general_education_guide'),
               subtitle:
                   'Menampilkan panduan kesiapsiagaan bencana untuk wilayah ${widget.selectedRegion}.',
               icon: Icons.menu_book,
@@ -166,7 +170,7 @@ class _GeneralEducationGridState extends State<_GeneralEducationGrid> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: _loadEducations,
-                    child: const Text('Coba Lagi'),
+                    child: Text(context.tr('try_again')),
                   ),
                 ],
               ),
@@ -409,7 +413,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Gagal memuat data edukasi anak-anak.';
+          _error = context.trText('Gagal memuat data edukasi anak-anak.');
           _isLoading = false;
         });
       }
@@ -425,7 +429,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           sliver: SliverToBoxAdapter(
             child: _AnimatedHeader(
-              title: 'Edukasi Anak-Anak 🧒',
+              title: context.tr('kids_education'),
               subtitle:
                   'Panduan kesiapsiagaan bencana anak-anak untuk wilayah ${widget.selectedRegion}.',
               icon: Icons.child_care,
@@ -453,7 +457,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: _loadEducations,
-                    child: const Text('Coba Lagi'),
+                    child: Text(context.tr('try_again')),
                   ),
                 ],
               ),
@@ -556,7 +560,7 @@ class _DisabilityEducationGridState extends State<_DisabilityEducationGrid> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = 'Gagal memuat data edukasi difabel.';
+          _error = context.trText('Gagal memuat data edukasi difabel.');
           _isLoading = false;
         });
       }
@@ -572,7 +576,7 @@ class _DisabilityEducationGridState extends State<_DisabilityEducationGrid> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           sliver: SliverToBoxAdapter(
             child: _AnimatedHeader(
-              title: 'Aksesibilitas & Inklusi ♿',
+              title: context.tr('accessibility_inclusion'),
               subtitle:
                   'Panduan khusus difabel dan lansia untuk wilayah ${widget.selectedRegion}.',
               icon: Icons.accessibility_new,
@@ -918,7 +922,7 @@ class _DisabilityEducationGridState extends State<_DisabilityEducationGrid> {
                   const SizedBox(height: 12),
                   ElevatedButton(
                     onPressed: _loadEducations,
-                    child: const Text('Coba Lagi'),
+                    child: Text(context.tr('try_again')),
                   ),
                 ],
               ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../providers/assistant_provider.dart';
+import '../services/localization_service.dart';
 
 class SigumiAssistantOverlay extends StatelessWidget {
   const SigumiAssistantOverlay({super.key});
@@ -23,15 +24,15 @@ class SigumiAssistantOverlay extends StatelessWidget {
 
         switch (provider.state) {
           case AssistantState.listeningCommand:
-            statusText = 'Mendengarkan...';
+            statusText = context.trText('Mendengarkan...');
             icon = Icons.mic;
             break;
           case AssistantState.processing:
-            statusText = 'Memproses...';
+            statusText = context.trText('Memproses...');
             icon = Icons.autorenew;
             break;
           case AssistantState.speaking:
-            statusText = 'Berbicara...';
+            statusText = context.trText('Berbicara...');
             icon = Icons.graphic_eq;
             break;
           default:
@@ -101,8 +102,8 @@ class SigumiAssistantOverlay extends StatelessWidget {
                       const SizedBox(height: 40),
                       
                       // Cancel instruction
-                      const Text(
-                        'Ketuk untuk batal',
+                      Text(
+                        context.trText('Ketuk untuk batal'),
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       ).animate().fadeIn(delay: 500.ms),
                     ],

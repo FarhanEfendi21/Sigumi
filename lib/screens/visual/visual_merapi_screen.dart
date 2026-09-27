@@ -1,3 +1,4 @@
+import '../../services/localization_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
@@ -149,7 +150,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tidak dapat membuka tautan kamera')),
+          SnackBar(content: Text(context.tr('cannot_open_camera_link'))),
         );
       }
     }
@@ -252,7 +253,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                   ),
                                   const SizedBox(height: 20),
                                   Text(
-                                    'Menghubungkan ke Kamera...',
+                                    context.trText('Menghubungkan ke Kamera...'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
@@ -385,7 +386,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                             ),
                                         const SizedBox(width: 6),
                                         Text(
-                                          'LIVE',
+                                          context.trText('LIVE'),
                                           style: AppFonts.plusJakartaSans(
                                             color: Colors.white,
                                             fontSize: 10,
@@ -546,7 +547,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
+                                          context.trText('Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.'),
                                           style: AppFonts.plusJakartaSans(
                                             fontSize: 12,
                                             color: Colors.blue.shade700,
@@ -567,7 +568,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
 
                       // ── Informasi Terkini ──
                       Text(
-                        'Informasi Terkini',
+                        context.trText('Informasi Terkini'),
                         style: AppFonts.plusJakartaSans(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -586,25 +587,25 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                             children: [
                               _buildInfoGridCard(
                                 icon: Icons.thermostat_rounded,
-                                title: 'Suhu Kawah',
+                                title: context.tr('crater_temp'),
                                 value: '${volcano.temperature ?? '-'}°C',
                                 color: Colors.orange,
                               ),
                               _buildInfoGridCard(
                                 icon: Icons.air_rounded,
-                                title: 'Arah Angin',
+                                title: context.tr('wind_direction'),
                                 value: volcano.windDirection ?? '-',
                                 color: Colors.blue,
                               ),
                               _buildInfoGridCard(
                                 icon: Icons.speed_rounded,
-                                title: 'Kecepatan',
+                                title: context.tr('wind_speed'),
                                 value: '${volcano.windSpeed ?? '-'} km/h',
                                 color: Colors.teal,
                               ),
                               _buildInfoGridCard(
                                 icon: Icons.height_rounded,
-                                title: 'Elevasi',
+                                title: context.tr('elevation'),
                                 value: '${volcano.elevation} mdpl',
                                 color: Colors.indigo,
                               ),
@@ -621,9 +622,25 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                         VolcanoLatestSummaryWithHistoryButton(
                           volcanoKey: volcanoKey,
                           limit: 30,
-                          title: 'Laporan Aktivitas',
+                          title: context.tr('activity_report'),
                         ),
 
+<<<<<<< HEAD
+=======
+                      if (volcanoKey != null) const SizedBox(height: 32),
+                      // ── Riwayat Erupsi ──
+                      Text(
+                        context.trText('Riwayat Erupsi'),
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E1E2C),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildEruptionHistoryContent(provider),
+
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -669,7 +686,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'CCTV Tidak Tersedia',
+                  context.trText('CCTV Tidak Tersedia'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -680,7 +697,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Text(
-                    'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.',
+                    context.trText('Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.'),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 11,
@@ -730,7 +747,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Gagal memuat siaran',
+                  context.trText('Gagal memuat siaran'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -739,7 +756,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Periksa koneksi internet kamu',
+                  context.trText('Periksa koneksi internet kamu'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 11,
                     color: const Color(0xFF9E9EAE),
@@ -758,7 +775,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      'Coba Lagi',
+                      context.tr('try_again'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
@@ -836,7 +853,246 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
       ),
     );
   }
+<<<<<<< HEAD
+=======
+
+  Widget _buildEruptionHistoryContent(VolcanoProvider provider) {
+    if (provider.isLoadingEruptions) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Center(
+          child: Column(
+            children: [
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                context.trText('Memuat riwayat erupsi...'),
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: const Color(0xFF9E9EAE),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (!provider.hasEruptionHistory) {
+      return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
+            ),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF3F4F6),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.volcano_rounded,
+                    size: 28,
+                    color: Color(0xFFB0B0BE),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  context.trText('Belum Ada Riwayat Erupsi'),
+                  textAlign: TextAlign.center,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF6B6B78),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  context.trText('Data historis erupsi gunung akan ditampilkan di sini setelah diinput oleh admin PVMBG/BPPTKG.'),
+                  textAlign: TextAlign.center,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: const Color(0xFF9E9EAE),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          )
+          .animate()
+          .fadeIn(delay: 300.ms, duration: 400.ms)
+          .slideY(begin: 0.05, end: 0);
+    }
+
+    final eruptions = provider.eruptionHistory;
+    return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Column(
+            children: List.generate(
+              eruptions.length,
+              (i) => _EruptionTimelineItem(
+                eruption: eruptions[i],
+                isLatest: i == 0,
+                isLast: i == eruptions.length - 1,
+              ),
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(delay: 300.ms, duration: 400.ms)
+        .slideY(begin: 0.05, end: 0);
+  }
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
 }
 
 
 
+<<<<<<< HEAD
+=======
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: isLatest ? Colors.white : const Color(0xFFE5E7EB),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isLatest ? Colors.redAccent : const Color(0xFFD1D5DB),
+                  width: 3,
+                ),
+              ),
+            ),
+            if (!isLast)
+              Container(width: 2, height: 56, color: const Color(0xFFF3F4F6)),
+          ],
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      eruption.year.toString(),
+                      style: AppFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 14,
+                        color:
+                            isLatest
+                                ? Colors.redAccent
+                                : const Color(0xFF1E1E2C),
+                      ),
+                    ),
+                    if (eruption.veiLabel != null) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withAlpha(15),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.red.withAlpha(30)),
+                        ),
+                        child: Text(
+                          eruption.veiLabel!,
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.red.shade700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  eruption.description,
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 13,
+                    height: 1.5,
+                    color: const Color(0xFF6B6B78),
+                  ),
+                ),
+                if (eruption.hasCasualties || eruption.hasEvacuees) ...[
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if (eruption.hasCasualties)
+                        _buildStatBadge(
+                          '${eruption.casualties} ${context.trText('korban jiwa')}',
+                          Colors.red,
+                        ),
+                      if (eruption.hasEvacuees)
+                        _buildStatBadge(
+                          '${_formatNumber(eruption.evacuees)} ${context.trText('mengungsi')}',
+                          Colors.orange,
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withAlpha(12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: AppFonts.plusJakartaSans(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  String _formatNumber(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}jt';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(0)}rb';
+    return n.toString();
+  }
+}
+>>>>>>> b721fc2f3502ed8b52cd99fd687ef454aa8aacff
