@@ -11,6 +11,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../config/fonts.dart';
 import '../../models/shelter_model.dart';
 import '../../providers/volcano_provider.dart';
@@ -241,7 +242,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
         final userPos = LatLng(locService.userLat, locService.userLng);
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: context.bgPrimary,
           // Agar peta terlihat sampai belakang status/app bar
           extendBodyBehindAppBar: true, 
           body: Stack(
@@ -879,15 +880,11 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive
-              ? SigumiTheme.primaryBlue
-              : Colors.white,
+          color: isActive ? context.accentPrimary : context.bgSurface,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isActive
-                ? SigumiTheme.primaryBlue
-                : Colors.grey.shade200,
-            width: 1.5,
+            color: isActive ? context.accentPrimary : context.borderColor,
+            width: context.borderWidth,
           ),
         ),
         child: Row(
@@ -898,7 +895,11 @@ class _FilterChip extends StatelessWidget {
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
-                color: isActive ? Colors.white : Colors.grey.shade600,
+                color: isActive && context.isHighContrast
+                    ? context.bgPrimary
+                    : isActive
+                        ? Colors.white
+                        : context.textPrimary,
               ),
             ),
             const SizedBox(width: 6),
@@ -906,8 +907,10 @@ class _FilterChip extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
                 color: isActive
-                    ? Colors.white.withAlpha(50)
-                    : Colors.grey.shade200,
+                    ? (context.isHighContrast
+                        ? context.bgPrimary.withValues(alpha: 0.16)
+                        : Colors.white.withAlpha(50))
+                    : context.bgSecondary,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Text(
@@ -915,7 +918,11 @@ class _FilterChip extends StatelessWidget {
                 style: AppFonts.plusJakartaSans(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: isActive ? Colors.white : Colors.grey.shade500,
+                  color: isActive && context.isHighContrast
+                      ? context.bgPrimary
+                      : isActive
+                          ? Colors.white
+                          : context.textPrimary,
                 ),
               ),
             ),
@@ -948,9 +955,9 @@ class _EvacuationCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200, width: 1.5),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(5),
@@ -999,7 +1006,7 @@ class _EvacuationCard extends StatelessWidget {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1A1A1A),
+                            color: context.textPrimary,
                             height: 1.25,
                           ),
                         ),
@@ -1009,7 +1016,7 @@ class _EvacuationCard extends StatelessWidget {
                             shelter.address!,
                             style: AppFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: Colors.grey.shade500,
+                              color: context.textSecondary,
                               height: 1.4,
                             ),
                             maxLines: 2,
@@ -1034,13 +1041,13 @@ class _EvacuationCard extends StatelessWidget {
                             if (shelter.capacity != null) ...[
                               const SizedBox(width: 12),
                               Icon(Icons.people_outline_rounded,
-                                  size: 14, color: Colors.grey.shade400),
+                                  size: 14, color: context.textTertiary),
                               const SizedBox(width: 4),
                               Text(
                                 '${shelter.capacity} ${context.tr('people')}',
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 12,
-                                  color: Colors.grey.shade400,
+                                  color: context.textTertiary,
                                 ),
                               ),
                             ],
@@ -1068,9 +1075,9 @@ class _EvacuationCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.bgSurface,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                        border: Border.all(color: context.borderColor, width: context.borderWidth),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withAlpha(5),
@@ -1079,10 +1086,10 @@ class _EvacuationCard extends StatelessWidget {
                           )
                         ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.map_outlined,
                         size: 16,
-                        color: Color(0xFF1A1A1A),
+                        color: context.textPrimary,
                       ),
                     ),
                   ),
@@ -1134,9 +1141,9 @@ class _PaginationControls extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1234,8 +1241,8 @@ class _DetailSheet extends StatelessWidget {
     final style = _ShelterStyle.of(shelter.type);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: context.bgSurface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
@@ -1652,7 +1659,7 @@ class _ShimmerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -1715,13 +1722,13 @@ class _EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: context.bgSurface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.home_work_outlined,
                 size: 48,
-                color: Colors.grey.shade300,
+                color: context.textTertiary,
               ),
             ),
             const SizedBox(height: 20),
@@ -1730,7 +1737,7 @@ class _EmptyState extends StatelessWidget {
               style: AppFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A1A1A),
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -1742,7 +1749,7 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
-                color: Colors.grey.shade500,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),

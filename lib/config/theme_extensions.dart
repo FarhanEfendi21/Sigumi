@@ -8,6 +8,10 @@ import 'theme.dart';
 extension ThemeContextExtension on BuildContext {
   bool get isHighContrast => watch<VolcanoProvider>().highContrast;
 
+  /// Resolve hard-coded brand colors without losing the current palette.
+  Color contrastColor(Color standard, {Color? highContrast}) =>
+      isHighContrast ? (highContrast ?? SigumiTheme.hcPrimary) : standard;
+
   // Background colors
   Color get bgPrimary =>
       isHighContrast ? SigumiTheme.hcBackground : Colors.white;

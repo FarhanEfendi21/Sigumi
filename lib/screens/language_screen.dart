@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
+import '../config/theme_extensions.dart';
 import '../config/routes.dart';
 import '../providers/volcano_provider.dart';
 import '../services/localization_service.dart';
@@ -25,10 +26,13 @@ class _LanguageScreenState extends State<LanguageScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.bgPrimary,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: SigumiTheme.backgroundGradient,
+        decoration: context.isHighContrast
+            ? BoxDecoration(color: context.bgPrimary)
+            : SigumiTheme.backgroundGradient,
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -41,13 +45,13 @@ class _LanguageScreenState extends State<LanguageScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: SigumiTheme.primaryBlue.withAlpha(20),
+                        color: context.accentPrimary.withValues(alpha: 0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.language_rounded,
                         size: 44,
-                        color: SigumiTheme.primaryBlue,
+                        color: context.accentPrimary,
                       ),
                     )
                     .animate()
@@ -67,7 +71,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                   style: AppFonts.plusJakartaSans(
                     fontSize: 26,
                     fontWeight: FontWeight.w700,
-                    color: SigumiTheme.primaryBlue,
+                    color: context.accentPrimary,
                   ),
                 ).animate().fadeIn(delay: 150.ms, duration: 500.ms),
 
@@ -77,7 +81,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                   context.tr('choose_language'),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 15,
-                    color: SigumiTheme.textSecondary,
+                    color: context.textSecondary,
                   ),
                 ).animate().fadeIn(delay: 250.ms, duration: 500.ms),
 
@@ -155,12 +159,15 @@ class _LanguageScreenState extends State<LanguageScreen> {
                       height: 54,
                       child: DecoratedBox(
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
+                          gradient: context.isHighContrast ? null : const LinearGradient(
                             colors: [
                               SigumiTheme.primaryBlue,
                               Color(0xFF2A3E9A),
                             ],
                           ),
+                          color: context.isHighContrast
+                              ? context.accentPrimary
+                              : null,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
@@ -175,7 +182,9 @@ class _LanguageScreenState extends State<LanguageScreen> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             shadowColor: Colors.transparent,
-                            foregroundColor: Colors.white,
+                            foregroundColor: context.isHighContrast
+                                ? context.bgPrimary
+                                : Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
@@ -235,11 +244,11 @@ class _LanguageCard extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.bgSurface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? SigumiTheme.primaryBlue : SigumiTheme.divider,
-            width: isSelected ? 2.0 : 1.0,
+            color: isSelected ? context.accentPrimary : context.borderColor,
+            width: context.borderWidth,
           ),
           boxShadow: [
             if (isSelected)
@@ -273,8 +282,8 @@ class _LanguageCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color:
                           isSelected
-                              ? SigumiTheme.primaryBlue
-                              : SigumiTheme.textBody,
+                              ? context.accentPrimary
+                              : context.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -282,7 +291,7 @@ class _LanguageCard extends StatelessWidget {
                     subtitle,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: SigumiTheme.textSecondary,
+                      color: context.textSecondary,
                     ),
                   ),
                 ],
@@ -295,21 +304,23 @@ class _LanguageCard extends StatelessWidget {
               height: 26,
               decoration: BoxDecoration(
                 color:
-                    isSelected ? SigumiTheme.primaryBlue : Colors.transparent,
+                    isSelected ? context.accentPrimary : Colors.transparent,
                 shape: BoxShape.circle,
                 border: Border.all(
                   color:
                       isSelected
-                          ? SigumiTheme.primaryBlue
-                          : SigumiTheme.divider,
+                          ? context.accentPrimary
+                          : context.borderColor,
                   width: 2,
                 ),
               ),
               child:
                   isSelected
-                      ? const Icon(
+                      ? Icon(
                         Icons.check_rounded,
-                        color: Colors.white,
+                        color: context.isHighContrast
+                            ? context.bgPrimary
+                            : Colors.white,
                         size: 16,
                       )
                       : null,

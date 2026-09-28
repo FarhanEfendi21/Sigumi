@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/tourism_destination.dart';
 
 /// Halaman detail destinasi wisata.
@@ -41,26 +42,31 @@ class TourismDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final heroColor = context.isHighContrast ? context.bgPrimary : _catColor;
+    final heroForeground =
+        context.isHighContrast ? context.accentSecondary : Colors.white;
     return Scaffold(
-      backgroundColor: SigumiTheme.background,
+      backgroundColor: context.bgPrimary,
       body: CustomScrollView(
         slivers: [
           // ── Hero App Bar ──────────────────────────────────
           SliverAppBar(
             expandedHeight: 260,
             pinned: true,
-            backgroundColor: _catColor,
+            backgroundColor: heroColor,
             leading: Padding(
               padding: const EdgeInsets.all(8),
               child: Material(
-                color: Colors.black.withAlpha(40),
+                color: context.isHighContrast
+                    ? context.bgSurface
+                    : Colors.black.withAlpha(40),
                 borderRadius: BorderRadius.circular(10),
                 child: InkWell(
                   onTap: () => Navigator.pop(context),
                   borderRadius: BorderRadius.circular(10),
-                  child: const Icon(
+                  child: Icon(
                     Icons.arrow_back_rounded,
-                    color: Colors.white,
+                    color: heroForeground,
                     size: 22,
                   ),
                 ),
@@ -73,10 +79,9 @@ class TourismDetailScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      _catColor,
-                      _catColor.withAlpha(200),
-                    ],
+                    colors: context.isHighContrast
+                        ? [context.bgPrimary, context.bgPrimary]
+                        : [_catColor, _catColor.withAlpha(200)],
                   ),
                 ),
                 child: Stack(
@@ -106,16 +111,20 @@ class TourismDetailScreen extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withAlpha(30),
+                                color: context.isHighContrast
+                                    ? context.bgSurface
+                                    : Colors.white.withAlpha(30),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: Colors.white.withAlpha(50),
+                                  color: context.isHighContrast
+                                      ? context.borderColor
+                                      : Colors.white.withAlpha(50),
                                 ),
                               ),
                               child: Text(
                                 destination.category,
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: heroForeground,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -126,8 +135,8 @@ class TourismDetailScreen extends StatelessWidget {
                             // Nama destinasi
                             Text(
                               destination.name,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: heroForeground,
                                 fontSize: 26,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -0.3,
@@ -151,7 +160,7 @@ class TourismDetailScreen extends StatelessWidget {
                                         : half
                                         ? Icons.star_half_rounded
                                         : Icons.star_outline_rounded,
-                                    color: const Color(0xFFFFD623),
+                                    color: context.accentSecondary,
                                     size: 16,
                                   );
                                 }),
@@ -159,7 +168,7 @@ class TourismDetailScreen extends StatelessWidget {
                                 Text(
                                   '${destination.rating.toStringAsFixed(1)} / 5.0',
                                   style: TextStyle(
-                                    color: Colors.white.withAlpha(220),
+                                    color: heroForeground,
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -191,7 +200,7 @@ class TourismDetailScreen extends StatelessWidget {
                           icon: Icons.schedule_rounded,
                           label: context.tr('opening_hours'),
                           value: destination.openHours,
-                          color: SigumiTheme.primaryBlue,
+                          color: context.accentPrimary,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -200,10 +209,9 @@ class TourismDetailScreen extends StatelessWidget {
                           icon: Icons.confirmation_number_outlined,
                           label: context.tr('entry_ticket'),
                           value: destination.formattedFee,
-                          color:
-                              destination.entryFee == 0
-                                  ? SigumiTheme.statusNormal
-                                  : _catColor,
+                          color: destination.entryFee == 0
+                              ? context.successColor
+                              : context.accentPrimary,
                         ),
                       ),
                     ],
@@ -217,16 +225,16 @@ class TourismDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: SigumiTheme.textPrimary,
+                      color: context.textPrimary,
                       letterSpacing: -0.2,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     destination.description,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: SigumiTheme.textBody,
+                      color: context.textSecondary,
                       height: 1.65,
                     ),
                   ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
@@ -278,9 +286,12 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: SigumiTheme.surface,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: SigumiTheme.divider.withAlpha(180)),
+        border: Border.all(
+          color: context.borderColor,
+          width: context.borderWidth,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(5),
@@ -294,7 +305,9 @@ class _InfoCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withAlpha(18),
+              color: context.isHighContrast
+                  ? context.bgPrimary
+                  : color.withAlpha(18),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 18),
@@ -306,9 +319,9 @@ class _InfoCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: SigumiTheme.textSecondary,
+                    color: context.textSecondary,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.3,
                   ),
@@ -316,10 +329,10 @@ class _InfoCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
-                    color: SigumiTheme.textPrimary,
+                    color: context.textPrimary,
                     height: 1.3,
                   ),
                 ),
@@ -344,9 +357,12 @@ class _AddressRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: SigumiTheme.surface,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: SigumiTheme.divider.withAlpha(180)),
+        border: Border.all(
+          color: context.borderColor,
+          width: context.borderWidth,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,12 +370,14 @@ class _AddressRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: SigumiTheme.primaryBlue.withAlpha(15),
+              color: context.isHighContrast
+                  ? context.bgPrimary
+                  : context.accentPrimary.withAlpha(15),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(
+            child: Icon(
               Icons.place_rounded,
-              color: SigumiTheme.primaryBlue,
+              color: context.accentPrimary,
               size: 18,
             ),
           ),
@@ -372,7 +390,7 @@ class _AddressRow extends StatelessWidget {
                   context.trText('Alamat'),
                   style: TextStyle(
                     fontSize: 10,
-                    color: SigumiTheme.textSecondary,
+                    color: context.textSecondary,
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.3,
                   ),
@@ -380,9 +398,9 @@ class _AddressRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   address,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: SigumiTheme.textBody,
+                    color: context.textSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -410,6 +428,9 @@ class _OpenMapsButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final actionColor = context.accentPrimary;
+    final actionForeground =
+        context.isHighContrast ? context.bgPrimary : Colors.white;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -419,7 +440,8 @@ class _OpenMapsButton extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            color: context.isHighContrast ? actionColor : null,
+            gradient: context.isHighContrast ? null : LinearGradient(
               colors: [catColor, catColor.withAlpha(200)],
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
@@ -436,12 +458,12 @@ class _OpenMapsButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.map_rounded, color: Colors.white, size: 20),
+              Icon(Icons.map_rounded, color: actionForeground, size: 20),
               const SizedBox(width: 10),
               Text(
                 context.trText('Buka di Google Maps'),
                 style: TextStyle(
-                  color: Colors.white,
+                  color: actionForeground,
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.2,

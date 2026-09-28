@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/education_model.dart';
 
 /// Halaman detail untuk konten edukasi yang berasal dari tabel `public.educations`.
@@ -34,21 +35,21 @@ class EducationDetailFromDbScreen extends StatelessWidget {
     final color = _accentColor;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.bgPrimary,
       body: CustomScrollView(
         slivers: [
           // ── Hero Header ───────────────────────────────────────────────
           SliverAppBar(
             expandedHeight: item.imageUrl != null ? 260 : 180,
             pinned: true,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black87,
+            backgroundColor: context.bgSurface,
+            foregroundColor: context.textPrimary,
             elevation: 0,
             leading: Padding(
               padding: const EdgeInsets.all(8),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: context.bgSurface,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -58,7 +59,7 @@ class EducationDetailFromDbScreen extends StatelessWidget {
                   ],
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+                  icon: Icon(Icons.arrow_back, color: context.textPrimary, size: 20),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
@@ -85,8 +86,8 @@ class EducationDetailFromDbScreen extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.white.withValues(alpha: 0.15),
-                          Colors.white,
+                          context.bgPrimary.withValues(alpha: 0.15),
+                          context.bgPrimary,
                         ],
                         stops: const [0.45, 0.78, 1.0],
                       ),
@@ -130,7 +131,7 @@ class EducationDetailFromDbScreen extends StatelessWidget {
                       fontSize: 26,
                       fontWeight: FontWeight.w800,
                       height: 1.25,
-                      color: Colors.black87,
+                      color: context.textPrimary,
                     ),
                   ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
 
@@ -168,7 +169,7 @@ class EducationDetailFromDbScreen extends StatelessWidget {
                 style: AppFonts.plusJakartaSans(
                   fontSize: 15.5,
                   height: 1.75,
-                  color: Colors.black87.withValues(alpha: 0.85),
+                  color: context.textPrimary,
                 ),
               ).animate().fadeIn(delay: 150.ms, duration: 500.ms),
             ),

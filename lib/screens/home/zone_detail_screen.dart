@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 
 /// ZoneDetailScreen — Halaman detail status zona bencana.
@@ -84,7 +85,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
 
         // Warna dari JARAK user (zoneLevel), bukan status gunung
         final headerColor = _getHeaderColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
-        final pageBg = _getPageBgColor(zoneLevel);
+        final pageBg = isHC ? context.bgPrimary : _getPageBgColor(zoneLevel);
 
         final mq = MediaQuery.of(context);
         final screenW = mq.size.width;
@@ -100,7 +101,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
           backgroundColor: pageBg,
           appBar: AppBar(
             backgroundColor: headerColor,
-            foregroundColor: Colors.white,
+            foregroundColor: isHC ? context.bgPrimary : Colors.white,
             elevation: 0,
             title: Text(
               context.trText('Status Zona'),
@@ -222,18 +223,21 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                     children: [
                       // ── Position Info ──
                       _buildSectionCard(
+                        context: context,
                         icon: Icons.my_location_rounded,
                         iconColor: zoneColor,
                         title: context.tr('current_position'),
                         child: Column(
                           children: [
                             _buildInfoRow(
+                              context,
                               context.trText('Jarak dari Puncak'),
                               '${distance.toStringAsFixed(1)} km',
                               Icons.straighten_rounded,
                             ),
                             const Divider(height: 20),
                             _buildInfoRow(
+                              context,
                               context.trText('Zona Saat Ini'),
                               context.trText(provider.zoneLabel),
                               Icons.shield_outlined,
@@ -241,6 +245,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                             ),
                             const Divider(height: 20),
                             _buildInfoRow(
+                              context,
                               context.trText('Status Gunung'),
                               context.trText(volcano.statusLabel),
                               Icons.landscape_rounded,
@@ -252,6 +257,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                             ),
                             const Divider(height: 20),
                             _buildInfoRow(
+                              context,
                               context.trText('Terakhir Diperbarui'),
                               _formatTime(volcano.lastUpdate),
                               Icons.update_rounded,
@@ -290,7 +296,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                           context.trText('Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 11,
-                            color: const Color(0xFF9E9EAE),
+                            color: context.textTertiary,
                           ),
                         ),
                       ),
@@ -346,7 +352,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                                 highContrast: isHC,
                                 colorBlindMode: cbMode,
                               )
-                            : const Color(0xFF1A1A2E),
+                            : context.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -354,7 +360,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                       context.trText('Kawasan Rawan Bencana berdasarkan jarak dari puncak'),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: const Color(0xFF6B6B78),
+                        color: context.textSecondary,
                       ),
                     ),
                   ],
@@ -373,7 +379,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                     ),
                     child: Icon(
                       Icons.keyboard_arrow_down_rounded,
-                      color: Colors.grey.shade500,
+                      color: context.textSecondary,
                       size: 22,
                     ),
                   ),
@@ -453,14 +459,14 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
             child: Row(
               children: [
                 Icon(Icons.info_outline_rounded,
-                    size: 14, color: Colors.grey.shade500),
+                    size: 14, color: context.textSecondary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Ketuk untuk melihat pembagian zona kawasan rawan bencana',
                     style: AppFonts.plusJakartaSans(
                       fontSize: 11,
-                      color: Colors.grey.shade500,
+                      color: context.textSecondary,
                     ),
                   ),
                 ),
@@ -496,7 +502,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isActive ? color.withAlpha(isHighAlert ? 15 : 10) : Colors.white,
+        color: isActive
+            ? color.withAlpha(isHighAlert ? 15 : 10)
+            : context.bgSurface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isActive
@@ -579,7 +587,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                   style: AppFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF6B6B78),
+                    color: context.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -587,7 +595,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                   context.trText(description),
                   style: AppFonts.plusJakartaSans(
                     fontSize: 11,
-                    color: const Color(0xFF6B6B78),
+                    color: context.textSecondary,
                     height: 1.4,
                   ),
                 ),
@@ -600,6 +608,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
   }
 
   Widget _buildSectionCard({
+    required BuildContext context,
     required IconData icon,
     required Color iconColor,
     required String title,
@@ -608,14 +617,10 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+          ...context.cardShadow,
         ],
       ),
       child: Column(
@@ -637,7 +642,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 style: AppFonts.plusJakartaSans(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1A1A2E),
+                  color: context.textPrimary,
                 ),
               ),
             ],
@@ -650,6 +655,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
   }
 
   Widget _buildInfoRow(
+    BuildContext context,
     String label,
     String value,
     IconData icon, {
@@ -660,7 +666,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 1),
-          child: Icon(icon, size: 16, color: const Color(0xFF9E9EAE)),
+          child: Icon(icon, size: 16, color: context.textTertiary),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -671,7 +677,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 label,
                 style: AppFonts.plusJakartaSans(
                   fontSize: 12,
-                  color: const Color(0xFF6B6B78),
+                  color: context.textSecondary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -680,7 +686,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                 style: AppFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
-                  color: valueColor ?? const Color(0xFF1A1A2E),
+                  color: valueColor ?? context.textPrimary,
                 ),
                 softWrap: true,
               ),

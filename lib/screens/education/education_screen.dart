@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:sigumi/config/fonts.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/education_model.dart';
 import '../../providers/volcano_provider.dart';
 import '../../repositories/education_repository.dart';
@@ -16,6 +17,7 @@ class EducationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHC = context.isHighContrast;
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -25,17 +27,17 @@ class EducationScreen extends StatelessWidget {
             style: AppFonts.plusJakartaSans(
               fontWeight: FontWeight.w700,
               fontSize: 20,
-              color: const Color(0xFF1E1E2C),
+              color: context.textPrimary,
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: context.bgSurface,
           elevation: 0,
           centerTitle: true,
-          iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
+          iconTheme: IconThemeData(color: context.textPrimary),
           bottom: TabBar(
-            indicatorColor: SigumiTheme.primaryBlue,
-            labelColor: const Color(0xFF1E1E2C),
-            unselectedLabelColor: const Color(0xFF1E1E2C).withValues(alpha: 0.5),
+            indicatorColor: context.accentPrimary,
+            labelColor: context.textPrimary,
+            unselectedLabelColor: context.textSecondary,
             indicatorWeight: 3,
             labelStyle: AppFonts.plusJakartaSans(
               fontWeight: FontWeight.w700,
@@ -52,7 +54,7 @@ class EducationScreen extends StatelessWidget {
             ],
           ),
         ),
-        backgroundColor: Colors.grey.shade50,
+        backgroundColor: isHC ? context.bgPrimary : Colors.grey.shade50,
         body: Consumer<VolcanoProvider>(
           builder: (context, volcano, _) {
             return TabBarView(
@@ -248,7 +250,7 @@ class _EducationItemCard extends StatelessWidget {
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: context.borderColor, width: context.borderWidth),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -322,7 +324,7 @@ class _EducationItemCard extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         height: 1.2,
-                        color: Colors.black87,
+                        color: context.textPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -333,7 +335,7 @@ class _EducationItemCard extends StatelessWidget {
                       item.content,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 11,
-                        color: SigumiTheme.textSecondary,
+                        color: context.textSecondary,
                         height: 1.4,
                       ),
                       maxLines: 2,
@@ -745,7 +747,7 @@ class _DisabilityEducationGridState extends State<_DisabilityEducationGrid> {
                               ],
                             ),
                           ),
-                          ShadSwitch(
+                          Switch(
                             value: provider.highContrast,
                             onChanged: (v) {
                               HapticFeedback.mediumImpact();
@@ -778,14 +780,13 @@ class _DisabilityEducationGridState extends State<_DisabilityEducationGrid> {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(9),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF5856D6)
-                                  .withValues(alpha: 0.12),
+                              decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               CupertinoIcons.mic_fill,
-                              color: Color(0xFF5856D6),
+                              color: accentColor,
                               size: 20,
                             ),
                           ),
@@ -993,9 +994,9 @@ class _AnimatedHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -1012,10 +1013,10 @@ class _AnimatedHeader extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                  color: context.accentPrimary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: SigumiTheme.primaryBlue, size: 24),
+                child: Icon(icon, color: context.accentPrimary, size: 24),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -1024,7 +1025,7 @@ class _AnimatedHeader extends StatelessWidget {
                   style: AppFonts.plusJakartaSans(
                     fontWeight: FontWeight.w700,
                     fontSize: 18,
-                    color: Colors.black87,
+                    color: context.textPrimary,
                   ),
                 ),
               ),
@@ -1036,7 +1037,7 @@ class _AnimatedHeader extends StatelessWidget {
             style: AppFonts.plusJakartaSans(
               fontSize: 13.5,
               height: 1.5,
-              color: SigumiTheme.textSecondary,
+              color: context.textSecondary,
             ),
           ),
         ],

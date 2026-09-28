@@ -1,162 +1,281 @@
 import 'package:flutter/material.dart';
 
-/// Painter gunung minimalist & clean untuk background header HomeScreen.
-/// Terinspirasi dari siluet stratovolcano (seperti Merapi / Semeru) dengan
-/// sentuhan estetika vektor modern: layer bertingkat, kontur halus,
-/// dan aksen salju/kawah minimalis.
+/// Draws a quiet, layered volcano silhouette behind the home header.
 class MountainPatternPainter extends CustomPainter {
   final Color nearColor;
   final Color farColor;
-  final Color snowColor;
+  final Color highlightColor;
 
   const MountainPatternPainter({
     required this.nearColor,
     required this.farColor,
-    required this.snowColor,
+    required this.highlightColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
+    if (size.isEmpty) return;
 
-    // ── 0. Aksen Minimalis: Lingkaran Matahari / Halo Pudar ──────
-    final sunCenter = Offset(w * 0.72, h * 0.25);
-    final sunRadius = w * 0.16;
+    final width = size.width;
+    final height = size.height;
 
-    final sunPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.45)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(sunCenter, sunRadius, sunPaint);
+    // A soft sun adds a little depth without competing with the header text.
+    final sunCenter = Offset(width * 0.82, height * 0.27);
+    canvas.drawCircle(
+      sunCenter,
+      height * 0.105,
+      Paint()..color = highlightColor.withValues(alpha: 0.22),
+    );
+    canvas.drawCircle(
+      sunCenter,
+      height * 0.14,
+      Paint()
+        ..color = farColor.withValues(alpha: 0.18)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
 
-    final sunRingPaint = Paint()
-      ..color = farColor.withValues(alpha: 0.3)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    canvas.drawCircle(sunCenter, sunRadius * 1.35, sunRingPaint);
+    // Distant ridges sit low and stay pale to create atmospheric depth.
+    final distantRidge = Path()
+      ..moveTo(0, height * 0.78)
+      ..cubicTo(
+        width * 0.16,
+        height * 0.70,
+        width * 0.19,
+        height * 0.55,
+        width * 0.34,
+        height * 0.62,
+      )
+      ..cubicTo(
+        width * 0.48,
+        height * 0.70,
+        width * 0.54,
+        height * 0.56,
+        width * 0.68,
+        height * 0.61,
+      )
+      ..cubicTo(
+        width * 0.82,
+        height * 0.66,
+        width * 0.89,
+        height * 0.72,
+        width,
+        height * 0.65,
+      )
+      ..lineTo(width, height)
+      ..lineTo(0, height)
+      ..close();
+    canvas.drawPath(
+      distantRidge,
+      Paint()..color = farColor.withValues(alpha: 0.19),
+    );
 
-    // ── 1. Layer Gunung Jauh (Distant Ridges) ────────────────────
-    // Siluet gunung berjarak dengan kurva alami
-    final farPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          farColor.withValues(alpha: 0.65),
-          farColor.withValues(alpha: 0.25),
-        ],
-      ).createShader(Rect.fromLTWH(0, h * 0.25, w, h * 0.75))
-      ..style = PaintingStyle.fill;
+    // One clean stratovolcano profile anchors the composition.
+    final volcano = Path()
+      ..moveTo(0, height * 0.88)
+      ..cubicTo(
+        width * 0.22,
+        height * 0.83,
+        width * 0.34,
+        height * 0.66,
+        width * 0.48,
+        height * 0.55,
+      )
+      ..cubicTo(
+        width * 0.56,
+        height * 0.49,
+        width * 0.60,
+        height * 0.39,
+        width * 0.67,
+        height * 0.35,
+      )
+      ..cubicTo(
+        width * 0.75,
+        height * 0.43,
+        width * 0.80,
+        height * 0.65,
+        width,
+        height * 0.78,
+      )
+      ..lineTo(width, height)
+      ..lineTo(0, height)
+      ..close();
+    canvas.drawPath(
+      volcano,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            nearColor.withValues(alpha: 0.18),
+            nearColor.withValues(alpha: 0.08),
+          ],
+        ).createShader(Rect.fromLTWH(0, height * 0.35, width, height * 0.65)),
+    );
 
-    final farPath = Path();
-    farPath.moveTo(0, h);
-    farPath.lineTo(0, h * 0.60);
-    // Lereng kiri puncak pertama (puncak jauh kiri)
-    farPath.quadraticBezierTo(w * 0.10, h * 0.58, w * 0.20, h * 0.38);
-    // Puncak kiri dan lembah
-    farPath.quadraticBezierTo(w * 0.28, h * 0.52, w * 0.38, h * 0.55);
-    // Menanjak ke puncak jauh tengah-kanan
-    farPath.quadraticBezierTo(w * 0.48, h * 0.45, w * 0.56, h * 0.32);
-    // Turun ke kanan
-    farPath.quadraticBezierTo(w * 0.68, h * 0.48, w * 0.82, h * 0.58);
-    farPath.quadraticBezierTo(w * 0.92, h * 0.62, w, h * 0.55);
-    farPath.lineTo(w, h);
-    farPath.close();
-    canvas.drawPath(farPath, farPaint);
+    // A faint ridge highlight gives the slope definition without a snowcap.
+    final ridgeLine = Path()
+      ..moveTo(width * 0.48, height * 0.55)
+      ..cubicTo(
+        width * 0.56,
+        height * 0.49,
+        width * 0.60,
+        height * 0.39,
+        width * 0.67,
+        height * 0.35,
+      )
+      ..cubicTo(
+        width * 0.74,
+        height * 0.43,
+        width * 0.79,
+        height * 0.61,
+        width * 0.86,
+        height * 0.69,
+      );
+    canvas.drawPath(
+      ridgeLine,
+      Paint()
+        ..color = highlightColor.withValues(alpha: 0.36)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1
+        ..strokeCap = StrokeCap.round,
+    );
 
-    // ── 2. Layer Gunung Utama (Iconic Stratovolcano Merapi) ───────
-    // Puncak utama: (w * 0.64, h * 0.22)
-    final mainPeakX = w * 0.64;
-    final mainPeakY = h * 0.22;
-
-    // Sisi kiri (terkena cahaya lembut)
-    final mainLeftPaint = Paint()
-      ..color = nearColor.withValues(alpha: 0.55)
-      ..style = PaintingStyle.fill;
-
-    final mainLeftPath = Path();
-    mainLeftPath.moveTo(0, h);
-    mainLeftPath.lineTo(0, h * 0.78);
-    // Kurva eksponensial lereng stratovolcano kiri
-    mainLeftPath.quadraticBezierTo(w * 0.25, h * 0.72, w * 0.45, h * 0.46);
-    mainLeftPath.quadraticBezierTo(w * 0.56, h * 0.30, mainPeakX, mainPeakY);
-    // Garis punggungan tengah (ridge) turun ke dasar
-    mainLeftPath.quadraticBezierTo(w * 0.61, h * 0.55, w * 0.58, h);
-    mainLeftPath.close();
-    canvas.drawPath(mainLeftPath, mainLeftPaint);
-
-    // Sisi kanan (bayangan lembut lereng)
-    final mainRightPaint = Paint()
-      ..color = nearColor.withValues(alpha: 0.75)
-      ..style = PaintingStyle.fill;
-
-    final mainRightPath = Path();
-    mainRightPath.moveTo(mainPeakX, mainPeakY);
-    // Lereng kanan curam khas kawah aktif
-    mainRightPath.quadraticBezierTo(w * 0.74, h * 0.34, w * 0.85, h * 0.56);
-    mainRightPath.quadraticBezierTo(w * 0.94, h * 0.70, w, h * 0.76);
-    mainRightPath.lineTo(w, h);
-    mainRightPath.lineTo(w * 0.58, h);
-    mainRightPath.quadraticBezierTo(w * 0.61, h * 0.55, mainPeakX, mainPeakY);
-    mainRightPath.close();
-    canvas.drawPath(mainRightPath, mainRightPaint);
-
-    // Garis punggungan gunung (ridge highlight)
-    final ridgePaint = Paint()
-      ..color = snowColor.withValues(alpha: 0.6)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-    final ridgePath = Path();
-    ridgePath.moveTo(mainPeakX, mainPeakY);
-    ridgePath.quadraticBezierTo(w * 0.61, h * 0.55, w * 0.58, h);
-    canvas.drawPath(ridgePath, ridgePaint);
-
-    // ── 3. Tudung Salju / Puncak Kawah Minimalis (Cap) ───────────
-    final snowPaint = Paint()
-      ..color = snowColor.withValues(alpha: 0.85)
-      ..style = PaintingStyle.fill;
-
-    final snowPath = Path();
-    snowPath.moveTo(mainPeakX, mainPeakY);
-    snowPath.lineTo(mainPeakX - w * 0.05, mainPeakY + h * 0.07);
-    snowPath.lineTo(mainPeakX - w * 0.02, mainPeakY + h * 0.06);
-    snowPath.lineTo(mainPeakX, mainPeakY + h * 0.08);
-    snowPath.lineTo(mainPeakX + w * 0.025, mainPeakY + h * 0.06);
-    snowPath.lineTo(mainPeakX + w * 0.045, mainPeakY + h * 0.075);
-    snowPath.close();
-    canvas.drawPath(snowPath, snowPaint);
-
-    // Puncak kecil kedua (puncak kiri)
-    final p2x = w * 0.20;
-    final p2y = h * 0.38;
-    final snow2Path = Path();
-    snow2Path.moveTo(p2x, p2y);
-    snow2Path.lineTo(p2x - w * 0.03, p2y + h * 0.045);
-    snow2Path.lineTo(p2x, p2y + h * 0.05);
-    snow2Path.lineTo(p2x + w * 0.03, p2y + h * 0.045);
-    snow2Path.close();
-    canvas.drawPath(snow2Path, snowPaint);
-
-    // ── 4. Layer Bukit Depan (Foreground Foothills) ──────────────
-    // Bukit halus di bagian bawah yang mempercantik transisi
-    final hillPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.22)
-      ..style = PaintingStyle.fill;
-
-    final hillPath = Path();
-    hillPath.moveTo(0, h);
-    hillPath.lineTo(0, h * 0.88);
-    hillPath.quadraticBezierTo(w * 0.22, h * 0.80, w * 0.44, h * 0.87);
-    hillPath.quadraticBezierTo(w * 0.68, h * 0.94, w * 0.88, h * 0.83);
-    hillPath.quadraticBezierTo(w * 0.96, h * 0.80, w, h * 0.84);
-    hillPath.lineTo(w, h);
-    hillPath.close();
-    canvas.drawPath(hillPath, hillPaint);
+    // A foreground foothill softly blends the illustration into the card.
+    final foreground = Path()
+      ..moveTo(0, height * 0.91)
+      ..cubicTo(
+        width * 0.20,
+        height * 0.82,
+        width * 0.37,
+        height * 0.88,
+        width * 0.53,
+        height * 0.92,
+      )
+      ..cubicTo(
+        width * 0.70,
+        height * 0.96,
+        width * 0.84,
+        height * 0.83,
+        width,
+        height * 0.88,
+      )
+      ..lineTo(width, height)
+      ..lineTo(0, height)
+      ..close();
+    canvas.drawPath(
+      foreground,
+      Paint()..color = highlightColor.withValues(alpha: 0.16),
+    );
   }
 
   @override
   bool shouldRepaint(MountainPatternPainter oldDelegate) =>
       oldDelegate.nearColor != nearColor ||
       oldDelegate.farColor != farColor ||
-      oldDelegate.snowColor != snowColor;
+      oldDelegate.highlightColor != highlightColor;
+}
+
+/// A subtle repeating mountain landscape that carries the home page theme
+/// through the full scrollable background, including the spaces between cards.
+class MountainWallpaperPainter extends CustomPainter {
+  final Color color;
+
+  const MountainWallpaperPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (size.isEmpty) return;
+
+    final sceneHeight = (size.width * 0.58).clamp(180.0, 260.0).toDouble();
+    final sceneStep = sceneHeight * 1.05;
+    final sceneCount = (size.height / sceneStep).ceil() + 1;
+
+    for (var index = 0; index < sceneCount; index++) {
+      final top = (index * sceneStep + sceneHeight * 0.18).toDouble();
+      final peakX = size.width * (index.isEven ? 0.66 : 0.38);
+
+      final distant = Path()
+        ..moveTo(0, top + sceneHeight * 0.67)
+        ..cubicTo(
+          size.width * 0.22,
+          top + sceneHeight * 0.62,
+          size.width * 0.30,
+          top + sceneHeight * 0.42,
+          size.width * 0.47,
+          top + sceneHeight * 0.53,
+        )
+        ..cubicTo(
+          size.width * 0.65,
+          top + sceneHeight * 0.64,
+          size.width * 0.82,
+          top + sceneHeight * 0.56,
+          size.width,
+          top + sceneHeight * 0.60,
+        )
+        ..lineTo(size.width, top + sceneHeight)
+        ..lineTo(0, top + sceneHeight)
+        ..close();
+      canvas.drawPath(
+        distant,
+        Paint()..color = color.withValues(alpha: 0.06),
+      );
+
+      final mountain = Path()
+        ..moveTo(0, top + sceneHeight * 0.88)
+        ..cubicTo(
+          peakX - size.width * 0.24,
+          top + sceneHeight * 0.84,
+          peakX - size.width * 0.13,
+          top + sceneHeight * 0.48,
+          peakX,
+          top + sceneHeight * 0.26,
+        )
+        ..cubicTo(
+          peakX + size.width * 0.12,
+          top + sceneHeight * 0.42,
+          peakX + size.width * 0.20,
+          top + sceneHeight * 0.78,
+          size.width,
+          top + sceneHeight * 0.86,
+        )
+        ..lineTo(size.width, top + sceneHeight)
+        ..lineTo(0, top + sceneHeight)
+        ..close();
+      canvas.drawPath(
+        mountain,
+        Paint()..color = color.withValues(alpha: 0.12),
+      );
+
+      final ridge = Path()
+        ..moveTo(peakX - size.width * 0.13, top + sceneHeight * 0.48)
+        ..cubicTo(
+          peakX - size.width * 0.05,
+          top + sceneHeight * 0.39,
+          peakX - size.width * 0.04,
+          top + sceneHeight * 0.30,
+          peakX,
+          top + sceneHeight * 0.26,
+        )
+        ..cubicTo(
+          peakX + size.width * 0.12,
+          top + sceneHeight * 0.42,
+          peakX + size.width * 0.20,
+          top + sceneHeight * 0.78,
+          size.width,
+          top + sceneHeight * 0.86,
+        );
+      canvas.drawPath(
+        ridge,
+        Paint()
+          ..color = color.withValues(alpha: 0.20)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(MountainWallpaperPainter oldDelegate) =>
+      oldDelegate.color != color;
 }

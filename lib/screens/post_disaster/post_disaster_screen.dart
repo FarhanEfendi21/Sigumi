@@ -6,7 +6,7 @@ import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/shelter_model.dart';
 import '../../providers/volcano_provider.dart';
 import '../../repositories/shelter_repository.dart';
@@ -118,19 +118,19 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
         }
 
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: context.bgPrimary,
           appBar: AppBar(
             title: Text(
               'Posko & Layanan Kesehatan',
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
-                color: const Color(0xFF1E1E2C),
+                color: context.textPrimary,
               ),
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: context.bgSurface,
             elevation: 0,
-            iconTheme: const IconThemeData(color: Color(0xFF1E1E2C)),
+            iconTheme: IconThemeData(color: context.textPrimary),
             centerTitle: true,
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),
@@ -144,11 +144,11 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
                       fontWeight: FontWeight.w700, fontSize: 13),
                   unselectedLabelStyle: AppFonts.plusJakartaSans(
                       fontWeight: FontWeight.w600, fontSize: 13),
-                  labelColor: SigumiTheme.primaryBlue,
-                  unselectedLabelColor: const Color(0xFF6B6B78),
+                  labelColor: context.accentPrimary,
+                  unselectedLabelColor: context.textSecondary,
                   indicatorSize: TabBarIndicatorSize.label,
                   indicator: UnderlineTabIndicator(
-                    borderSide: const BorderSide(width: 3, color: SigumiTheme.primaryBlue),
+                    borderSide: BorderSide(width: 3, color: context.accentPrimary),
                     borderRadius: BorderRadius.circular(2),
                     insets: const EdgeInsets.symmetric(horizontal: -8),
                   ),
@@ -179,7 +179,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
                 padding:
                     const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+                  color: context.accentPrimary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -187,7 +187,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
                   style: AppFonts.plusJakartaSans(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
-                    color: SigumiTheme.primaryBlue,
+                    color: context.accentPrimary,
                   ),
                 ),
               ),
@@ -221,7 +221,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
     final pageItems = items.sublist(start, end);
 
     return RefreshIndicator(
-      color: SigumiTheme.primaryBlue,
+      color: context.accentPrimary,
       onRefresh: () => _loadShelters(forceReload: true),
       child: CustomScrollView(
         physics: const BouncingScrollPhysics(
@@ -234,14 +234,14 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
               child: Row(
                 children: [
                   Icon(Icons.sort_rounded,
-                      size: 14, color: Colors.grey.shade400),
+                      size: 14, color: context.textTertiary),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'Menampilkan ${start + 1}–$end dari ${items.length}',
                       style: AppFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: Colors.grey.shade500,
+                        color: context.textSecondary,
                       ),
                     ),
                   ),
@@ -252,21 +252,21 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
                           horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: SigumiTheme.primaryBlue.withValues(alpha: 0.3),
+                          color: context.borderColor,
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
                           Icon(Icons.refresh_rounded,
-                              size: 13, color: SigumiTheme.primaryBlue),
+                              size: 13, color: context.accentPrimary),
                           const SizedBox(width: 4),
                           Text(
                             'Refresh',
                             style: AppFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: SigumiTheme.primaryBlue,
+                              color: context.accentPrimary,
                             ),
                           ),
                         ],
@@ -353,13 +353,13 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
                 style: AppFonts.plusJakartaSans(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: Colors.grey.shade800)),
+                    color: context.textPrimary)),
             const SizedBox(height: 8),
             Text(_error!,
                 textAlign: TextAlign.center,
                 style: AppFonts.plusJakartaSans(
                     fontSize: 13,
-                    color: Colors.grey.shade500,
+                    color: context.textSecondary,
                     height: 1.5)),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -367,7 +367,8 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: Text(context.tr('try_again')),
               style: FilledButton.styleFrom(
-                backgroundColor: SigumiTheme.primaryBlue,
+                backgroundColor: context.accentPrimary,
+                foregroundColor: context.isHighContrast ? context.bgPrimary : Colors.white,
                 padding: const EdgeInsets.symmetric(
                     horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -388,25 +389,25 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: SigumiTheme.primaryBlue.withValues(alpha: 0.06),
+              color: context.accentPrimary.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.home_work_outlined,
                 size: 48,
-                color: SigumiTheme.primaryBlue.withValues(alpha: 0.4)),
+                color: context.accentPrimary),
           ),
           const SizedBox(height: 16),
           Text(context.tr('no_data_yet'),
               style: AppFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade700)),
+                  color: context.textPrimary)),
           const SizedBox(height: 6),
           Text(context.tr('no_facility_desc'),
               textAlign: TextAlign.center,
               style: AppFonts.plusJakartaSans(
                   fontSize: 13,
-                  color: Colors.grey.shade400,
+                  color: context.textSecondary,
                   height: 1.5)),
         ],
       ),
@@ -438,9 +439,9 @@ class PaginationBar extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -463,12 +464,12 @@ class PaginationBar extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 3),
                 decoration: BoxDecoration(
                   color:
-                      active ? SigumiTheme.primaryBlue : Colors.transparent,
+                      active ? context.accentPrimary : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: active
-                        ? SigumiTheme.primaryBlue
-                        : Colors.grey.shade300,
+                        ? context.accentPrimary
+                        : context.borderColor,
                     width: active ? 1.5 : 1,
                   ),
                 ),
@@ -478,7 +479,11 @@ class PaginationBar extends StatelessWidget {
                   style: AppFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: active ? Colors.white : Colors.grey.shade500,
+                    color: active && context.isHighContrast
+                        ? context.bgPrimary
+                        : active
+                            ? Colors.white
+                            : context.textPrimary,
                   ),
                 ),
               ),
@@ -517,14 +522,14 @@ class _PageNavBtn extends StatelessWidget {
         height: 34,
         decoration: BoxDecoration(
           color: enabled
-              ? SigumiTheme.primaryBlue.withValues(alpha: 0.08)
-              : Colors.grey.shade100,
+              ? context.accentPrimary.withValues(alpha: 0.15)
+              : context.bgSecondary,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon,
             size: 20,
             color:
-                enabled ? SigumiTheme.primaryBlue : Colors.grey.shade300),
+                enabled ? context.accentPrimary : context.textTertiary),
       ),
     );
   }
@@ -547,9 +552,9 @@ class ShelterCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -603,7 +608,7 @@ class ShelterCard extends StatelessWidget {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1A1A2E),
+                            color: context.textPrimary,
                             height: 1.25,
                           ),
                         ),
@@ -613,7 +618,7 @@ class ShelterCard extends StatelessWidget {
                             shelter.address!,
                             style: AppFonts.plusJakartaSans(
                               fontSize: 12,
-                              color: Colors.grey.shade500,
+                              color: context.textSecondary,
                               height: 1.4,
                             ),
                             maxLines: 2,
@@ -636,13 +641,13 @@ class ShelterCard extends StatelessWidget {
                           if (shelter.capacity != null) ...[
                             const SizedBox(width: 10),
                             Icon(Icons.people_outline_rounded,
-                                size: 13, color: Colors.grey.shade400),
+                                size: 13, color: context.textTertiary),
                             const SizedBox(width: 3),
                             Text(
                               '${shelter.capacity} ${context.tr('people')}',
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 12,
-                                color: Colors.grey.shade400,
+                                color: context.textTertiary,
                               ),
                             ),
                           ],
@@ -662,7 +667,7 @@ class ShelterCard extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child: Icon(Icons.chevron_right_rounded,
-                        size: 20, color: Colors.grey.shade300),
+                        size: 20, color: context.textTertiary),
                   ),
                 ],
               ),
@@ -700,8 +705,8 @@ class _DetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: context.bgSurface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -714,7 +719,7 @@ class _DetailSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: context.dividerColor,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -744,7 +749,7 @@ class _DetailSheet extends StatelessWidget {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1A1A2E),
+                          color: context.textPrimary,
                         height: 1.2,
                       ),
                     ),
@@ -755,7 +760,7 @@ class _DetailSheet extends StatelessWidget {
           ),
 
           const SizedBox(height: 16),
-          Divider(height: 1, color: Colors.grey.shade100),
+          Divider(height: 1, color: context.dividerColor),
           const SizedBox(height: 4),
 
           // Detail rows
@@ -857,7 +862,7 @@ class _DetailSheet extends StatelessWidget {
                 child: _ActionBtn(
                   icon: Icons.map_rounded,
                   label: context.tr('open_maps'),
-                  color: SigumiTheme.primaryBlue,
+                  color: context.accentPrimary,
                   onTap: () async {
                     final query = Uri.encodeComponent(shelter.name);
                     final uri = Uri.parse(
@@ -988,7 +993,7 @@ class _DetailRow extends StatelessWidget {
                   style: AppFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
-                      color: Colors.grey.shade400,
+                      color: context.textTertiary,
                       letterSpacing: 0.6)),
               const SizedBox(height: 2),
               Text(value,
@@ -999,7 +1004,7 @@ class _DetailRow extends StatelessWidget {
                           : FontWeight.w500,
                       color: highlighted
                           ? color
-                          : const Color(0xFF1A1A2E),
+                          : context.textPrimary,
                       height: 1.4)),
             ],
           ),
@@ -1022,8 +1027,12 @@ class _ActionBtn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonColor = context.isHighContrast ? context.accentPrimary : color;
+    final foregroundColor = context.isHighContrast
+        ? context.bgPrimary
+        : Colors.white;
     return Material(
-      color: color,
+      color: buttonColor,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: () {
@@ -1037,11 +1046,11 @@ class _ActionBtn extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white, size: 17),
+              Icon(icon, color: foregroundColor, size: 17),
               const SizedBox(width: 7),
               Text(label,
                   style: AppFonts.plusJakartaSans(
-                      color: Colors.white,
+                      color: foregroundColor,
                       fontWeight: FontWeight.w700,
                       fontSize: 13)),
             ],

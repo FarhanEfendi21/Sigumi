@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import '../../config/fonts.dart';
 import '../../config/routes.dart';
+import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 import '../../services/hiking_tracking_service.dart';
 import '../../services/location_service.dart';
@@ -204,12 +205,12 @@ class _HikingUnavailableView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgTop = Colors.white;
-    const Color bgBottom = Color(0xFFF1F5F9);
-    const Color peakColor = Color(0xFFE2E8F0);
-    const Color accentColor = Color(0xFF16A34A);
-    const Color textDark = Color(0xFF1E293B);
-    const Color textMuted = Color(0xFF64748B);
+    final bgTop = context.bgPrimary;
+    final bgBottom = context.bgSecondary;
+    final peakColor = context.isHighContrast ? context.accentSecondary : const Color(0xFFE2E8F0);
+    final accentColor = context.successColor;
+    final textDark = context.textPrimary;
+    final textMuted = context.textSecondary;
 
     return Scaffold(
       backgroundColor: bgTop,
@@ -217,11 +218,13 @@ class _HikingUnavailableView extends StatelessWidget {
         children: [
           // Clean gradient background
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [bgTop, Color(0xFFF8FAFC), bgBottom],
+                colors: context.isHighContrast
+                    ? [bgTop, bgTop, bgBottom]
+                    : [bgTop, const Color(0xFFF8FAFC), bgBottom],
                 stops: [0.0, 0.6, 1.0],
               ),
             ),
@@ -252,7 +255,7 @@ class _HikingUnavailableView extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                        icon: Icon(Icons.arrow_back_ios_new_rounded,
                             color: textDark, size: 20),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -276,9 +279,9 @@ class _HikingUnavailableView extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
+                      color: context.isHighContrast ? context.bgSurface : const Color(0xFFDCFCE7),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF86EFAC), width: 1.5),
+                      border: Border.all(color: context.borderColor, width: context.borderWidth),
                       boxShadow: [
                         BoxShadow(
                           color: accentColor.withAlpha(25),
@@ -287,7 +290,7 @@ class _HikingUnavailableView extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.location_searching_rounded,
                       color: accentColor,
                       size: 32,
@@ -302,9 +305,9 @@ class _HikingUnavailableView extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: bgTop,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                      border: Border.all(color: context.borderColor, width: context.borderWidth),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withAlpha(6),
@@ -368,7 +371,7 @@ class _HikingUnavailableView extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textDark,
                       minimumSize: const Size.fromHeight(50),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      side: BorderSide(color: context.borderColor, width: context.borderWidth),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -398,23 +401,25 @@ class _HikingLoginGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgTop = Colors.white;
-    const Color bgBottom = Color(0xFFF1F5F9);
-    const Color peakColor = Color(0xFFE2E8F0);
-    const Color accentColor = Color(0xFF16A34A);
-    const Color textDark = Color(0xFF1E293B);
-    const Color textMuted = Color(0xFF64748B);
+    final bgTop = context.bgPrimary;
+    final bgBottom = context.bgSecondary;
+    final peakColor = context.isHighContrast ? context.accentSecondary : const Color(0xFFE2E8F0);
+    final accentColor = context.accentPrimary;
+    final textDark = context.textPrimary;
+    final textMuted = context.textSecondary;
 
     return Scaffold(
       backgroundColor: bgTop,
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [bgTop, Color(0xFFF8FAFC), bgBottom],
+                colors: context.isHighContrast
+                    ? [bgTop, bgTop, bgBottom]
+                    : [bgTop, const Color(0xFFF8FAFC), bgBottom],
                 stops: [0.0, 0.6, 1.0],
               ),
             ),
@@ -440,7 +445,7 @@ class _HikingLoginGate extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                        icon: Icon(Icons.arrow_back_ios_new_rounded,
                             color: textDark, size: 20),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -464,9 +469,9 @@ class _HikingLoginGate extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF0FDF4),
+                      color: context.isHighContrast ? context.bgSurface : const Color(0xFFF0FDF4),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF86EFAC), width: 1.5),
+                      border: Border.all(color: context.borderColor, width: context.borderWidth),
                       boxShadow: [
                         BoxShadow(
                           color: accentColor.withAlpha(20),
@@ -475,7 +480,7 @@ class _HikingLoginGate extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.lock_rounded,
                       color: accentColor,
                       size: 30,
@@ -523,7 +528,7 @@ class _HikingLoginGate extends StatelessWidget {
                         Navigator.pushNamed(context, AppRoutes.login),
                     style: FilledButton.styleFrom(
                       backgroundColor: accentColor,
-                      foregroundColor: Colors.white,
+                      foregroundColor: context.isHighContrast ? context.bgPrimary : Colors.white,
                       minimumSize: const Size.fromHeight(52),
                       elevation: 2,
                       shadowColor: accentColor.withAlpha(80),
@@ -536,7 +541,7 @@ class _HikingLoginGate extends StatelessWidget {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: Colors.white,
+                        color: context.isHighContrast ? context.bgPrimary : Colors.white,
                       ),
                     ),
                   ),
@@ -549,7 +554,7 @@ class _HikingLoginGate extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textDark,
                       minimumSize: const Size.fromHeight(48),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      side: BorderSide(color: context.borderColor, width: context.borderWidth),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -587,13 +592,12 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
   // Titik tengah default jalur pendakian Rinjani Sembalun
   static const LatLng _rinjaniCenter = LatLng(-8.3900, 116.4950);
 
-  // Warna tema putih bersih & modern
-  static const Color _bg = Color(0xFFF8FAFC);
-  static const Color _cardBg = Colors.white;
-  static const Color _cardBorder = Color(0xFFE2E8F0);
-  static const Color _accentColor = Color(0xFF16A34A);
-  static const Color _textDark = Color(0xFF1E293B);
-  static const Color _textMuted = Color(0xFF64748B);
+  Color get _bg => context.bgPrimary;
+  Color get _cardBg => context.bgSurface;
+  Color get _cardBorder => context.borderColor;
+  Color get _accentColor => context.successColor;
+  Color get _textDark => context.textPrimary;
+  Color get _textMuted => context.textSecondary;
 
   @override
   Widget build(BuildContext context) {
@@ -621,7 +625,9 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                 height: 180,
                 child: CustomPaint(
                   painter: _MountainSilhouettePainter(
-                    peakColor: const Color(0xFFDCFCE7).withAlpha(140),
+                    peakColor: context.isHighContrast
+                        ? context.accentSecondary.withAlpha(80)
+                        : const Color(0xFFDCFCE7).withAlpha(140),
                     fogColor: _bg,
                   ),
                 ),
@@ -639,14 +645,14 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                            icon: Icon(Icons.arrow_back_ios_new_rounded,
                                 color: _textDark, size: 20),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                             Expanded(
                             child: Text(
                               context.trText('Tracking Pendakian'),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: _textDark,
@@ -659,21 +665,21 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                               onPressed: tracking.isStarting || tracking.isStopping
                                   ? null
                                   : () => _confirmResetTracking(context, tracking),
-                              icon: const Icon(Icons.restart_alt_rounded,
-                                  color: Color(0xFFDC2626), size: 22),
+                            icon: Icon(Icons.restart_alt_rounded,
+                                  color: context.errorColor, size: 22),
                             ),
                           IconButton(
                             tooltip: context.trText('Pusatkan ke Rinjani'),
                             onPressed: () =>
                                 _mapController.move(_rinjaniCenter, 12.5),
-                            icon: const Icon(Icons.terrain_rounded,
+                            icon: Icon(Icons.terrain_rounded,
                                 color: _textDark, size: 20),
                           ),
                           IconButton(
                             tooltip: context.trText('Lokasi saya'),
                             onPressed: () =>
                                 _mapController.move(userPoint, 15),
-                            icon: const Icon(Icons.my_location_rounded,
+                            icon: Icon(Icons.my_location_rounded,
                                 color: _textDark, size: 20),
                           ),
                         ],
@@ -704,7 +710,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
                             letterSpacing: 1.5,
-                            color: Color(0xFF166534),
+                            color: context.accentPrimary,
                           ),
                         ),
                       ),
@@ -769,7 +775,9 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                             Polyline(
                                               points: tracking.routePoints,
                                               strokeWidth: 4.5,
-                                              color: const Color(0xFF2563EB),
+                                              color: context.isHighContrast
+                                                  ? context.accentSecondary
+                                                  : const Color(0xFF2563EB),
                                             ),
                                         ],
                                       ),
@@ -803,7 +811,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                                               .all(4.5),
                                                       decoration:
                                                           BoxDecoration(
-                                                        color: Colors.white,
+                                                        color: context.bgSurface,
                                                         shape:
                                                             BoxShape.circle,
                                                         border: Border.all(
@@ -833,7 +841,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                                           vertical: 1.5),
                                                       decoration:
                                                           BoxDecoration(
-                                                        color: Colors.white.withAlpha(240),
+                                                        color: context.bgSurface,
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(
@@ -856,7 +864,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                                                 '')
                                                             .trim(),
                                                         style:
-                                                            const TextStyle(
+                                                            TextStyle(
                                                           fontSize: 8.5,
                                                           fontWeight:
                                                               FontWeight
@@ -877,7 +885,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                             point: userPoint,
                                             width: 48,
                                             height: 48,
-                                            child: const Icon(
+                                          child: Icon(
                                               Icons
                                                   .person_pin_circle_rounded,
                                               color: _accentColor,
@@ -896,7 +904,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 10, vertical: 5),
                                       decoration: BoxDecoration(
-                                        color: Colors.white.withAlpha(240),
+                                        color: context.bgSurface,
                                         borderRadius:
                                             BorderRadius.circular(20),
                                         border: Border.all(color: _cardBorder),
@@ -911,13 +919,13 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.route_rounded,
+                                          Icon(Icons.route_rounded,
                                               color: _accentColor,
                                               size: 13),
                                           const SizedBox(width: 5),
                                           Text(
                                             context.trText('Jalur Sembalun'),
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               color: _textDark,
                                               fontSize: 11,
                                               fontWeight: FontWeight.w700,
@@ -942,15 +950,15 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
+                                color: context.bgSurface,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                    color: const Color(0xFFFECACA)),
+                                    color: context.borderColor),
                               ),
                               child: Text(
                                 tracking.error!,
-                                style: const TextStyle(
-                                    color: Color(0xFFDC2626),
+                                style: TextStyle(
+                                    color: context.errorColor,
                                     fontSize: 12),
                               ),
                             ),
@@ -983,18 +991,20 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                                color: context.isHighContrast ? context.bgPrimary : Colors.white,
                               ),
                             ),
                             style: FilledButton.styleFrom(
                               backgroundColor: tracking.isActive
-                                  ? const Color(0xFFDC2626)
+                                  ? context.errorColor
                                   : _accentColor,
-                              foregroundColor: Colors.white,
+                              foregroundColor: context.isHighContrast
+                                  ? context.bgPrimary
+                                  : Colors.white,
                               minimumSize: const Size.fromHeight(52),
                               elevation: 2,
                               shadowColor: (tracking.isActive
-                                      ? const Color(0xFFDC2626)
+                                      ? context.errorColor
                                       : _accentColor)
                                   .withAlpha(80),
                               shape: RoundedRectangleBorder(
@@ -1010,24 +1020,25 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                               onPressed: tracking.isStarting || tracking.isStopping
                                   ? null
                                   : () => _confirmResetTracking(context, tracking),
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.restart_alt_rounded,
                                 size: 18,
-                                color: Color(0xFFDC2626),
+                                color: context.errorColor,
                               ),
                               label: Text(
                                 context.trText('Reset Riwayat Tracking'),
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: const Color(0xFFDC2626),
+                                  color: context.errorColor,
                                 ),
                               ),
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: const Color(0xFFDC2626),
-                                backgroundColor: const Color(0xFFFEF2F2),
-                                side: const BorderSide(
-                                    color: Color(0xFFFECACA), width: 1.2),
+                                foregroundColor: context.errorColor,
+                                backgroundColor: context.bgSurface,
+                                side: BorderSide(
+                                    color: context.borderColor,
+                                    width: context.borderWidth),
                                 minimumSize: const Size.fromHeight(48),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -1072,7 +1083,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
       SnackBar(
         content:
             Text(tracking.error ?? context.trText('Tracking belum dapat dimulai.')),
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: context.bgSurface,
       ),
     );
   }
@@ -1084,7 +1095,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: context.bgSurface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -1103,7 +1114,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFDC2626)),
+                backgroundColor: context.errorColor),
             child: Text(context.trText('Selesaikan')),
           ),
         ],
@@ -1120,7 +1131,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
+        backgroundColor: context.bgSurface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
@@ -1128,13 +1139,13 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
         icon: Center(
           child: Container(
             padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFEF2F2),
+            decoration: BoxDecoration(
+              color: context.bgSurface,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.restart_alt_rounded,
-              color: Color(0xFFDC2626),
+              color: context.errorColor,
               size: 28,
             ),
           ),
@@ -1168,7 +1179,10 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                   onPressed: () => Navigator.pop(context, false),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: _textDark,
-                    side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    side: BorderSide(
+                      color: context.borderColor,
+                      width: context.borderWidth,
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -1189,8 +1203,10 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                 child: FilledButton(
                   onPressed: () => Navigator.pop(context, true),
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFDC2626),
-                    foregroundColor: Colors.white,
+                    backgroundColor: context.errorColor,
+                    foregroundColor: context.isHighContrast
+                        ? context.bgPrimary
+                        : Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -1201,7 +1217,9 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                     style: AppFonts.plusJakartaSans(
                       fontWeight: FontWeight.w700,
                       fontSize: 14,
-                      color: Colors.white,
+                      color: context.isHighContrast
+                          ? context.bgPrimary
+                          : Colors.white,
                     ),
                   ),
                 ),
@@ -1232,7 +1250,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
               ),
             ],
           ),
-          backgroundColor: const Color(0xFF1E293B),
+          backgroundColor: context.bgSurface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -1249,14 +1267,13 @@ class _HikingStatusBanner extends StatelessWidget {
   const _HikingStatusBanner({required this.tracking});
   final HikingTrackingService tracking;
 
-  static const Color _accentColor = Color(0xFF16A34A);
-  static const Color _cardBg = Colors.white;
-  static const Color _cardBorder = Color(0xFFE2E8F0);
-  static const Color _textDark = Color(0xFF1E293B);
-  static const Color _textMuted = Color(0xFF64748B);
-
   @override
   Widget build(BuildContext context) {
+    final accentColor = context.successColor;
+    final cardBg = context.bgSurface;
+    final cardBorder = context.borderColor;
+    final textDark = context.textPrimary;
+    final textMuted = context.textSecondary;
     final location = tracking.locationService;
     final isActive = tracking.isActive;
 
@@ -1272,16 +1289,18 @@ class _HikingStatusBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: _cardBg,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive ? _accentColor.withAlpha(120) : _cardBorder,
+          color: isActive && !context.isHighContrast
+              ? accentColor.withAlpha(120)
+              : cardBorder,
           width: isActive ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isActive
-                ? _accentColor.withAlpha(20)
+            color: isActive && !context.isHighContrast
+                ? accentColor.withAlpha(20)
                 : Colors.black.withAlpha(6),
             blurRadius: 10,
             offset: const Offset(0, 3),
@@ -1294,12 +1313,14 @@ class _HikingStatusBanner extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: (isActive ? _accentColor : _textMuted).withAlpha(20),
+              color: context.isHighContrast
+                  ? context.bgPrimary
+                  : (isActive ? accentColor : textMuted).withAlpha(20),
               shape: BoxShape.circle,
             ),
             child: Icon(
               isActive ? Icons.gps_fixed : Icons.gps_not_fixed,
-              color: isActive ? _accentColor : _textMuted,
+              color: isActive ? accentColor : textMuted,
               size: 18,
             ),
           ),
@@ -1313,14 +1334,14 @@ class _HikingStatusBanner extends StatelessWidget {
                   style: AppFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: isActive ? _accentColor : _textDark,
+                    color: isActive ? accentColor : textDark,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   coordText,
                   style: AppFonts.plusJakartaSans(
-                      fontSize: 11, color: _textMuted),
+                      fontSize: 11, color: textMuted),
                 ),
               ],
             ),
@@ -1330,11 +1351,11 @@ class _HikingStatusBanner extends StatelessWidget {
               width: 8,
               height: 8,
               decoration: BoxDecoration(
-                color: _accentColor,
+                color: accentColor,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: _accentColor.withAlpha(120),
+                    color: accentColor.withAlpha(120),
                     blurRadius: 6,
                     spreadRadius: 1,
                   ),
@@ -1399,20 +1420,19 @@ class _HikingStatTile extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  static const Color _accentColor = Color(0xFF16A34A);
-  static const Color _cardBg = Colors.white;
-  static const Color _cardBorder = Color(0xFFE2E8F0);
-  static const Color _textDark = Color(0xFF1E293B);
-  static const Color _textMuted = Color(0xFF64748B);
-
   @override
   Widget build(BuildContext context) {
+    final accentColor = context.successColor;
+    final cardBg = context.bgSurface;
+    final cardBorder = context.borderColor;
+    final textDark = context.textPrimary;
+    final textMuted = context.textSecondary;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: _cardBg,
+        color: cardBg,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _cardBorder, width: 1),
+        border: Border.all(color: cardBorder, width: context.borderWidth),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withAlpha(5),
@@ -1423,21 +1443,21 @@ class _HikingStatTile extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(icon, size: 18, color: _accentColor),
+          Icon(icon, size: 18, color: accentColor),
           const SizedBox(height: 6),
           Text(
             value,
             style: AppFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w800,
-              color: _textDark,
+              color: textDark,
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
             style:
-                AppFonts.plusJakartaSans(fontSize: 11, color: _textMuted),
+                AppFonts.plusJakartaSans(fontSize: 11, color: textMuted),
           ),
         ],
       ),

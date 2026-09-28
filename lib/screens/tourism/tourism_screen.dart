@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/tourism_destination.dart';
 import '../../models/tourism_event.dart';
 import '../../providers/tourism_provider.dart';
@@ -32,6 +33,7 @@ class _TourismScreenState extends State<TourismScreen> {
     return Consumer2<VolcanoProvider, TourismProvider>(
       builder: (context, volcanoProvider, tourismProvider, _) {
         final region = volcanoProvider.selectedRegion;
+        final destinationColumns = MediaQuery.sizeOf(context).width >= 700 ? 3 : 2;
 
         // Reload jika region berubah
         if (tourismProvider.currentRegion != region) {
@@ -41,16 +43,9 @@ class _TourismScreenState extends State<TourismScreen> {
         }
 
         return Scaffold(
-          backgroundColor: SigumiTheme.background,
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {},
-            backgroundColor: SigumiTheme.primaryBlue,
-            icon: const Icon(Icons.map_rounded, color: Colors.white, size: 20),
-            label: Text(context.tr('tourism_map'), style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
-            elevation: 4,
-          ),
+          backgroundColor: context.bgPrimary,
           body: RefreshIndicator(
-            color: SigumiTheme.primaryBlue,
+            color: context.accentPrimary,
             onRefresh: () async {
               await tourismProvider.loadForRegion(region);
             },
@@ -100,9 +95,9 @@ class _TourismScreenState extends State<TourismScreen> {
                     ? SliverPadding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.65,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: destinationColumns,
+                            childAspectRatio: destinationColumns == 2 ? 0.68 : 0.76,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
                           ),
@@ -117,9 +112,9 @@ class _TourismScreenState extends State<TourismScreen> {
                     : SliverPadding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         sliver: SliverGrid(
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.65,
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: destinationColumns,
+                            childAspectRatio: destinationColumns == 2 ? 0.68 : 0.76,
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
                           ),
@@ -197,6 +192,11 @@ class _SliverHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = _styles[region] ?? _styles['Yogyakarta']!;
+    final heroGradient = context.isHighContrast
+        ? [context.bgPrimary, context.bgPrimary]
+        : style.gradient;
+    final heroForeground =
+        context.isHighContrast ? context.accentSecondary : Colors.white;
     final topPadding = MediaQuery.of(context).padding.top;
 
     return SliverAppBar(
@@ -204,8 +204,8 @@ class _SliverHeader extends StatelessWidget {
       pinned: true,
       elevation: 0,
       stretch: true,
-      backgroundColor: style.gradient.first,
-      iconTheme: const IconThemeData(color: Colors.white),
+      backgroundColor: heroGradient.first,
+      iconTheme: IconThemeData(color: heroForeground),
       flexibleSpace: LayoutBuilder(
         builder: (context, constraints) {
           final double appBarHeight = constraints.maxHeight;
@@ -222,7 +222,7 @@ class _SliverHeader extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: style.gradient,
+                  colors: heroGradient,
                 ),
               ),
               child: Stack(
@@ -252,7 +252,9 @@ class _SliverHeader extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(30),
+                    color: context.isHighContrast
+                        ? context.bgSurface
+                        : Colors.white.withAlpha(30),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: Colors.white.withAlpha(50),
@@ -265,7 +267,7 @@ class _SliverHeader extends StatelessWidget {
                                 isAutoDetected
                                     ? Icons.my_location_rounded
                                     : Icons.place_rounded,
-                                color: Colors.white,
+                                color: heroForeground,
                                 size: 12,
                               ),
                               const SizedBox(width: 5),
@@ -273,8 +275,8 @@ class _SliverHeader extends StatelessWidget {
                                 isAutoDetected
                                     ? context.trText('Lokasi Anda')
                                     : context.trText('Daerah Pilihan'),
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: heroForeground,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -287,8 +289,8 @@ class _SliverHeader extends StatelessWidget {
                           fit: BoxFit.scaleDown,
                           child: Text(
                             region,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: heroForeground,
                               fontSize: 36,
                               fontWeight: FontWeight.w900,
                               letterSpacing: -0.5,
@@ -302,7 +304,7 @@ class _SliverHeader extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.white.withAlpha(200),
+                            color: heroForeground,
                             fontSize: 14,
                             fontWeight: FontWeight.w400,
                             letterSpacing: 0.1,
@@ -321,8 +323,8 @@ class _SliverHeader extends StatelessWidget {
               opacity: (1.0 - opacity).clamp(0.0, 1.0),
               child: Text(
                 '${context.tr('tourism_section')} $region',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: heroForeground,
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                 ),
@@ -367,7 +369,7 @@ class _CategoryFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: SigumiTheme.background,
+      color: context.bgPrimary,
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,7 +379,7 @@ class _CategoryFilter extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: SigumiTheme.textPrimary,
+              color: context.textPrimary,
               letterSpacing: -0.2,
             ),
           ),
@@ -407,18 +409,18 @@ class _CategoryFilter extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                        ? SigumiTheme.primaryBlue
-                                        : SigumiTheme.surface,
+                                    ? context.accentPrimary
+                                    : context.bgSurface,
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
                                   color: isSelected
-                                          ? SigumiTheme.primaryBlue
-                                          : SigumiTheme.divider,
-                                  width: 1.2,
+                                      ? context.accentPrimary
+                                      : context.borderColor,
+                                  width: context.borderWidth,
                                 ),
-                                boxShadow: isSelected ? [
+                                boxShadow: isSelected && !context.isHighContrast ? [
                                   BoxShadow(
-                                    color: SigumiTheme.primaryBlue.withAlpha(50),
+                                    color: context.accentPrimary.withAlpha(50),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   )
@@ -428,7 +430,9 @@ class _CategoryFilter extends StatelessWidget {
                                 children: [
                                   Icon(
                                     icon,
-                                    color: isSelected ? Colors.white : SigumiTheme.textSecondary,
+                                    color: isSelected && context.isHighContrast
+                                        ? context.bgPrimary
+                                        : isSelected ? Colors.white : context.textSecondary,
                                     size: 24,
                                   ),
                                   const SizedBox(height: 8),
@@ -437,7 +441,9 @@ class _CategoryFilter extends StatelessWidget {
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                      color: isSelected ? Colors.white : SigumiTheme.textBody,
+                                      color: isSelected && context.isHighContrast
+                                          ? context.bgPrimary
+                                          : isSelected ? Colors.white : context.textPrimary,
                                     ),
                                   ),
                                 ],
@@ -479,19 +485,19 @@ class _SectionHeader extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: SigumiTheme.textPrimary,
+                    color: context.textPrimary,
                     letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: SigumiTheme.textSecondary,
+                    color: context.textSecondary,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
@@ -530,19 +536,19 @@ class _AgendaSection extends StatelessWidget {
                   children: [
                     Text(
                       context.trText('Agenda Mendatang'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
-                        color: SigumiTheme.textPrimary,
+                        color: context.textPrimary,
                         letterSpacing: -0.2,
                       ),
                     ),
                     SizedBox(height: 2),
                     Text(
                       context.trText('Pertunjukan, festival, & ritual budaya'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: SigumiTheme.textSecondary,
+                        color: context.textSecondary,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -598,15 +604,20 @@ class _AgendaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _typeColors[event.eventType] ?? SigumiTheme.primaryBlue;
+    final color = context.isHighContrast
+        ? context.accentSecondary
+        : _typeColors[event.eventType] ?? SigumiTheme.primaryBlue;
 
     return Container(
           width: 220,
           margin: const EdgeInsets.only(right: 12),
           decoration: BoxDecoration(
-            color: SigumiTheme.surface,
+            color: context.bgSurface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: SigumiTheme.divider.withAlpha(180)),
+            border: Border.all(
+              color: context.borderColor,
+              width: context.borderWidth,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withAlpha(6),
@@ -634,7 +645,9 @@ class _AgendaCard extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color: color.withAlpha(20),
+                            color: context.isHighContrast
+                                ? context.bgPrimary
+                                : color.withAlpha(20),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -655,8 +668,9 @@ class _AgendaCard extends StatelessWidget {
                             vertical: 3,
                           ),
                           decoration: BoxDecoration(
-                            color:
-                                event.isRecurring
+                            color: context.isHighContrast
+                                ? context.bgPrimary
+                                : event.isRecurring
                                     ? SigumiTheme.statusNormal.withAlpha(20)
                                     : SigumiTheme.primaryBlue.withAlpha(15),
                             borderRadius: BorderRadius.circular(6),
@@ -666,8 +680,9 @@ class _AgendaCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
-                              color:
-                                  event.isRecurring
+                              color: context.isHighContrast
+                                  ? context.accentSecondary
+                                  : event.isRecurring
                                       ? SigumiTheme.statusNormal
                                       : SigumiTheme.primaryBlue,
                             ),
@@ -683,10 +698,10 @@ class _AgendaCard extends StatelessWidget {
                       event.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: SigumiTheme.textPrimary,
+                        color: context.textPrimary,
                         height: 1.3,
                         letterSpacing: -0.1,
                       ),
@@ -697,10 +712,10 @@ class _AgendaCard extends StatelessWidget {
                     // Lokasi
                     Row(
                       children: [
-                        const Icon(
+                    Icon(
                           Icons.place_rounded,
                           size: 12,
-                          color: SigumiTheme.textSecondary,
+                          color: context.textSecondary,
                         ),
                         const SizedBox(width: 3),
                         Expanded(
@@ -708,9 +723,9 @@ class _AgendaCard extends StatelessWidget {
                             event.locationName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: SigumiTheme.textSecondary,
+                              color: context.textSecondary,
                             ),
                           ),
                         ),
@@ -723,18 +738,18 @@ class _AgendaCard extends StatelessWidget {
                     Row(
                       children: [
                         if (event.time != null) ...[
-                          const Icon(
+                          Icon(
                             Icons.schedule_rounded,
                             size: 12,
-                            color: SigumiTheme.textSecondary,
+                            color: context.textSecondary,
                           ),
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               event.time!,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: SigumiTheme.textSecondary,
+                                color: context.textSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -746,7 +761,7 @@ class _AgendaCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: event.price == 0 ? color : SigumiTheme.textBody,
+                            color: event.price == 0 ? color : context.textSecondary,
                           ),
                         ),
                       ],
@@ -773,7 +788,7 @@ class _EmptyAgenda extends StatelessWidget {
         context.trText('Belum ada agenda mendatang'),
         style: TextStyle(
           fontSize: 13,
-          color: SigumiTheme.textSecondary.withAlpha(160),
+          color: context.textSecondary,
         ),
       ),
     );
@@ -811,7 +826,9 @@ class _DestinationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final catColor = _categoryColors[destination.category] ?? SigumiTheme.primaryBlue;
+    final catColor = context.isHighContrast
+        ? context.bgSurface
+        : _categoryColors[destination.category] ?? SigumiTheme.primaryBlue;
     final catIcon = _categoryIcons[destination.category] ?? Icons.place_rounded;
 
     return Material(
@@ -821,9 +838,12 @@ class _DestinationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            color: SigumiTheme.surface,
+            color: context.bgSurface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: SigumiTheme.divider.withAlpha(150)),
+            border: Border.all(
+              color: context.borderColor,
+              width: context.borderWidth,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withAlpha(6),
@@ -866,17 +886,19 @@ class _DestinationCard extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                             decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(60),
+                              color: context.isHighContrast
+                                  ? context.bgPrimary
+                                  : Colors.black.withAlpha(60),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.star_rounded, color: Color(0xFFFFD623), size: 12),
+                                Icon(Icons.star_rounded, color: context.accentSecondary, size: 12),
                                 const SizedBox(width: 2),
                                 Text(
                                   destination.rating.toStringAsFixed(1),
-                                  style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
+                                  style: TextStyle(color: context.isHighContrast ? context.accentSecondary : Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
                                 ),
                               ],
                             ),
@@ -899,10 +921,10 @@ class _DestinationCard extends StatelessWidget {
                         destination.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w800,
-                          color: SigumiTheme.textPrimary,
+                          color: context.textPrimary,
                           height: 1.2,
                           letterSpacing: -0.2,
                         ),
@@ -910,24 +932,28 @@ class _DestinationCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          const Icon(Icons.schedule_rounded, size: 10, color: SigumiTheme.textSecondary),
+                          Icon(Icons.schedule_rounded, size: 10, color: context.textSecondary),
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               destination.openHours,
-                              style: const TextStyle(fontSize: 10, color: SigumiTheme.textSecondary),
+                              style: TextStyle(fontSize: 10, color: context.textSecondary),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
                       const Spacer(),
-                      Text(
-                        destination.formattedFee,
-                        style: TextStyle(
+                        Text(
+                          destination.formattedFee,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
-                          color: destination.entryFee == 0 ? SigumiTheme.statusNormal : SigumiTheme.primaryBlue,
+                          color: destination.entryFee == 0
+                              ? context.successColor
+                              : context.accentPrimary,
                         ),
                       ),
                     ],
@@ -952,11 +978,11 @@ class _DestinationShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade200,
-      highlightColor: Colors.grey.shade100,
+      baseColor: context.bgSurface,
+      highlightColor: context.borderColor,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.bgSurface,
           borderRadius: BorderRadius.circular(16),
         ),
       ),
@@ -974,13 +1000,13 @@ class _AgendaShimmerRow extends StatelessWidget {
       itemBuilder: (_, __) => Padding(
         padding: const EdgeInsets.only(right: 12),
         child: Shimmer.fromColors(
-          baseColor: Colors.grey.shade200,
-          highlightColor: Colors.grey.shade100,
+          baseColor: context.bgSurface,
+          highlightColor: context.borderColor,
           child: Container(
             width: 220,
             height: 168,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.bgSurface,
               borderRadius: BorderRadius.circular(16),
             ),
           ),
@@ -1005,7 +1031,7 @@ class _EmptyState extends StatelessWidget {
             Icon(
               Icons.explore_off_rounded,
               size: 52,
-              color: SigumiTheme.textSecondary.withAlpha(100),
+              color: context.textSecondary,
             ),
             const SizedBox(height: 12),
             Text(
@@ -1013,7 +1039,7 @@ class _EmptyState extends StatelessWidget {
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
-                color: SigumiTheme.textSecondary.withAlpha(160),
+                color: context.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
@@ -1021,7 +1047,7 @@ class _EmptyState extends StatelessWidget {
               context.trText('Coba pilih kategori lain'),
               style: TextStyle(
                 fontSize: 13,
-                color: SigumiTheme.textSecondary.withAlpha(120),
+                color: context.textSecondary,
               ),
             ),
           ],

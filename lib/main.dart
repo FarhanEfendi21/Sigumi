@@ -129,7 +129,9 @@ class _SigumiAppState extends State<SigumiApp> with WidgetsBindingObserver {
           title: 'SIGUMI',
           debugShowCheckedModeBanner: false,
           materialThemeBuilder: (context, theme) {
-            return SigumiTheme.lightTheme;
+            return provider.highContrast
+                ? SigumiTheme.highContrastTheme
+                : SigumiTheme.lightTheme;
           },
           initialRoute: AppRoutes.splash,
           routes: AppRoutes.routes,

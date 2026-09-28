@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
-import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 import '../../services/localization_service.dart';
 
@@ -16,15 +16,15 @@ class LanguageSettingsScreen extends StatelessWidget {
         final currentLanguage = provider.language;
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: context.bgPrimary,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: context.bgSurface,
             elevation: 0,
             centerTitle: true,
             leading: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: Color(0xFF1E1E2C),
+                color: context.textPrimary,
                 size: 20,
               ),
               onPressed: () => Navigator.pop(context),
@@ -34,7 +34,7 @@ class LanguageSettingsScreen extends StatelessWidget {
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
-                color: const Color(0xFF1E1E2C),
+                color: context.textPrimary,
               ),
             ),
           ),
@@ -43,7 +43,7 @@ class LanguageSettingsScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader(context.tr('available_languages')),
+                _buildSectionHeader(context, context.tr('available_languages')),
                 const SizedBox(height: 16),
                 _LanguageOptionCard(
                       title: context.tr('lang_id'),
@@ -109,13 +109,13 @@ class LanguageSettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Text(
       title,
       style: AppFonts.plusJakartaSans(
         fontSize: 12,
         fontWeight: FontWeight.w800,
-        color: const Color(0xFF64748B),
+        color: context.textTertiary,
         letterSpacing: 1.2,
       ),
     );
@@ -125,19 +125,20 @@ class LanguageSettingsScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: SigumiTheme.primaryBlue.withValues(alpha: 0.05),
+        color: context.accentPrimary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: SigumiTheme.primaryBlue.withValues(alpha: 0.1),
+          color: context.borderColor,
+          width: context.borderWidth,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline_rounded,
             size: 20,
-            color: SigumiTheme.primaryBlue,
+            color: context.accentPrimary,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -146,7 +147,7 @@ class LanguageSettingsScreen extends StatelessWidget {
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
                 height: 1.5,
-                color: SigumiTheme.primaryBlue.withValues(alpha: 0.8),
+                color: context.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -183,21 +184,14 @@ class _LanguageOptionCard extends StatelessWidget {
           duration: const Duration(milliseconds: 300),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.bgSurface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? SigumiTheme.primaryBlue : Colors.white,
+              color: isSelected ? context.accentPrimary : context.borderColor,
               width: 2,
             ),
             boxShadow: [
-              BoxShadow(
-                color:
-                    isSelected
-                        ? SigumiTheme.primaryBlue.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.03),
-                blurRadius: 15,
-                offset: const Offset(0, 4),
-              ),
+              ...context.cardShadow,
             ],
           ),
           child: Row(
@@ -208,8 +202,8 @@ class _LanguageOptionCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       isSelected
-                          ? SigumiTheme.primaryBlue.withValues(alpha: 0.1)
-                          : const Color(0xFFF1F5F9),
+                          ? context.accentPrimary.withValues(alpha: 0.12)
+                          : context.bgSecondary,
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -228,8 +222,8 @@ class _LanguageOptionCard extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                         color:
                             isSelected
-                                ? SigumiTheme.primaryBlue
-                                : const Color(0xFF1E1E2C),
+                                ? context.accentPrimary
+                                : context.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -237,7 +231,7 @@ class _LanguageOptionCard extends StatelessWidget {
                       subtitle,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: const Color(0xFF64748B),
+                        color: context.textSecondary,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -251,18 +245,24 @@ class _LanguageOptionCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color:
-                      isSelected ? SigumiTheme.primaryBlue : Colors.transparent,
+                      isSelected ? context.accentPrimary : Colors.transparent,
                   border: Border.all(
                     color:
                         isSelected
-                            ? SigumiTheme.primaryBlue
-                            : const Color(0xFFCBD5E1),
+                            ? context.accentPrimary
+                            : context.borderColor,
                     width: 2,
                   ),
                 ),
                 child:
                     isSelected
-                        ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      ? Icon(
+                          Icons.check,
+                          color: context.isHighContrast
+                              ? context.bgPrimary
+                              : Colors.white,
+                          size: 16,
+                        )
                         : null,
               ),
             ],

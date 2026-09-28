@@ -230,6 +230,10 @@ class SigumiTheme {
         onPrimary: hcBackground,
         onSecondary: hcBackground,
         onSurface: hcPrimary,
+        error: hcStatusAwas,
+        onError: hcBackground,
+        inverseSurface: hcPrimary,
+        onInverseSurface: hcBackground,
       ),
       scaffoldBackgroundColor: hcBackground,
       textTheme: const TextTheme().copyWith(
@@ -283,6 +287,60 @@ class SigumiTheme {
           letterSpacing: 0.3,
         ),
         iconTheme: const IconThemeData(color: hcPrimary),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: hcSecondary,
+          textStyle: AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: hcSecondary,
+          side: const BorderSide(color: hcBorder, width: 2),
+          textStyle: AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
+        ),
+      ),
+      iconButtonTheme: const IconButtonThemeData(
+        style: ButtonStyle(
+          foregroundColor: WidgetStatePropertyAll(hcPrimary),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? hcBackground
+              : hcPrimary,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? hcSecondary
+              : hcSurface,
+        ),
+        trackOutlineColor: const WidgetStatePropertyAll(hcBorder),
+      ),
+      checkboxTheme: CheckboxThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? hcSecondary
+              : hcBackground,
+        ),
+        checkColor: const WidgetStatePropertyAll(hcBackground),
+        side: const BorderSide(color: hcBorder, width: 2),
+      ),
+      radioTheme: RadioThemeData(
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? hcSecondary
+              : hcPrimary,
+        ),
+      ),
+      sliderTheme: const SliderThemeData(
+        activeTrackColor: hcSecondary,
+        inactiveTrackColor: hcDivider,
+        thumbColor: hcPrimary,
+        overlayColor: Color(0x33FFD600),
+        valueIndicatorColor: hcSecondary,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -345,6 +403,109 @@ class SigumiTheme {
         unselectedItemColor: hcDivider,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: hcSurface,
+        indicatorColor: hcSecondary,
+        iconTheme: const WidgetStatePropertyAll(
+          IconThemeData(color: hcPrimary),
+        ),
+        labelTextStyle: const WidgetStatePropertyAll(
+          TextStyle(color: hcPrimary, fontWeight: FontWeight.w700),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: hcSurface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: hcBorder, width: 2),
+        ),
+        titleTextStyle: AppFonts.plusJakartaSans(
+          color: hcPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
+        contentTextStyle: AppFonts.plusJakartaSans(
+          color: hcPrimary,
+          fontSize: 14,
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: hcSurface,
+        modalBackgroundColor: hcSurface,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        dragHandleColor: hcPrimary,
+      ),
+      listTileTheme: const ListTileThemeData(
+        tileColor: hcSurface,
+        textColor: hcPrimary,
+        iconColor: hcPrimary,
+        selectedColor: hcSecondary,
+      ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: hcPrimary,
+        unselectedLabelColor: hcDivider,
+        indicatorColor: hcSecondary,
+        dividerColor: hcDivider,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: hcSurface,
+        selectedColor: hcSecondary,
+        checkmarkColor: hcBackground,
+        labelStyle: AppFonts.plusJakartaSans(
+          color: hcPrimary,
+          fontWeight: FontWeight.w700,
+        ),
+        side: const BorderSide(color: hcBorder, width: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: hcSecondary,
+        foregroundColor: hcBackground,
+        shape: CircleBorder(side: BorderSide(color: hcBorder, width: 2)),
+      ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: hcSecondary,
+        linearTrackColor: hcSurface,
+        circularTrackColor: hcSurface,
+      ),
+      textSelectionTheme: const TextSelectionThemeData(
+        cursorColor: hcSecondary,
+        selectionColor: Color(0x66FFD600),
+        selectionHandleColor: hcSecondary,
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: hcSurface,
+          border: Border.all(color: hcBorder, width: 2),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        textStyle: AppFonts.plusJakartaSans(
+          color: hcPrimary,
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: hcSurface,
+        contentTextStyle: AppFonts.plusJakartaSans(color: hcPrimary),
+        actionTextColor: hcSecondary,
+        behavior: SnackBarBehavior.floating,
+        showCloseIcon: true,
+        closeIconColor: hcPrimary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: hcBorder, width: 2),
+        ),
+      ),
+      popupMenuTheme: const PopupMenuThemeData(
+        color: hcSurface,
+        textStyle: TextStyle(color: hcPrimary),
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: hcBorder, width: 2),
+        ),
       ),
       dividerColor: hcDivider,
       iconTheme: const IconThemeData(color: hcPrimary),

@@ -152,12 +152,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
+  void _clearNameErrorWhenValid(String value) {
+    if (_nameError != null && value.trim().isNotEmpty) {
+      setState(() => _nameError = null);
+    }
+  }
+
+  void _clearPhoneErrorWhenValid(String value) {
+    if (_phoneError != null && value.trim().isNotEmpty) {
+      setState(() => _phoneError = null);
+    }
+  }
+
+  void _clearPasswordErrorWhenValid(String value) {
+    if (_passwordError != null && value.trim().length >= 6) {
+      setState(() => _passwordError = null);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<VolcanoProvider>(
-      builder: (context, provider, _) {
-        final isLoading = provider.isAuthLoading;
-
+    return Selector<VolcanoProvider, String>(
+      selector: (_, provider) => provider.language,
+      builder: (context, language, _) {
         return Scaffold(
           body: Container(
             width: double.infinity,
@@ -241,6 +258,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       hint: context.tr('name_hint'),
                                       icon: Icons.person_outline_rounded,
                                       errorText: _nameError,
+                                      onChanged: _clearNameErrorWhenValid,
                                     ),
 
                                     const SizedBox(height: 18),
@@ -254,6 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       icon: Icons.phone_outlined,
                                       keyboardType: TextInputType.phone,
                                       errorText: _phoneError,
+                                      onChanged: _clearPhoneErrorWhenValid,
                                     ),
 
                                     const SizedBox(height: 18),
@@ -267,6 +286,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       icon: Icons.lock_outline_rounded,
                                       obscure: _obscurePassword,
                                       errorText: _passwordError,
+                                      onChanged: _clearPasswordErrorWhenValid,
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           _obscurePassword
@@ -319,7 +339,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             const SizedBox(width: 12),
                                             Text(
                                               _selectedDateOfBirth != null
-                                                  ? DateFormat('dd MMMM yyyy', provider.language == 'id' ? 'id' : 'en').format(_selectedDateOfBirth!)
+                                                  ? DateFormat('dd MMMM yyyy', language == 'id' ? 'id' : 'en').format(_selectedDateOfBirth!)
                                                   : context.tr('dob_hint'),
                                               style: AppFonts.plusJakartaSans(
                                                 fontSize: 14,
@@ -365,54 +385,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                             ),
                                           ],
                                         ),
-                                        child: ElevatedButton(
-                                          onPressed:
-                                              isLoading ? null : _register,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.transparent,
-                                            shadowColor: Colors.transparent,
-                                            foregroundColor: Colors.white,
-                                            disabledBackgroundColor:
-                                                Colors.transparent,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                            ),
-                                          ),
-                                          child:
-                                              isLoading
+                                        child: Selector<VolcanoProvider, bool>(
+                                          selector: (_, provider) =>
+                                              provider.isAuthLoading,
+                                          builder: (context, isLoading, _) {
+                                            return ElevatedButton(
+                                              onPressed: isLoading ? null : _register,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.transparent,
+                                                shadowColor: Colors.transparent,
+                                                foregroundColor: Colors.white,
+                                                disabledBackgroundColor:
+                                                    Colors.transparent,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(16),
+                                                ),
+                                              ),
+                                              child: isLoading
                                                   ? const SizedBox(
-                                                    width: 22,
-                                                    height: 22,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                          strokeWidth: 2.5,
-                                                          color: Colors.white,
-                                                        ),
-                                                  )
+                                                      width: 22,
+                                                      height: 22,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2.5,
+                                                        color: Colors.white,
+                                                      ),
+                                                    )
                                                   : Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      Text(
-                                                        context.tr('register_btn'),
-                                                        style:
-                                                            AppFonts.plusJakartaSans(
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
-                                                      ),
-                                                      const SizedBox(width: 8),
-                                                      const Icon(
-                                                        Icons
-                                                            .arrow_forward_rounded,
-                                                        size: 20,
-                                                      ),
-                                                    ],
-                                                  ),
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment.center,
+                                                      children: [
+                                                        Text(
+                                                          context.tr('register_btn'),
+                                                          style: AppFonts.plusJakartaSans(
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 8),
+                                                        const Icon(
+                                                          Icons.arrow_forward_rounded,
+                                                          size: 20,
+                                                        ),
+                                                      ],
+                                                    ),
+                                            );
+                                          },
                                         ),
                                       ),
                                     ),
@@ -483,6 +502,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool obscure = false,
     Widget? suffixIcon,
     String? errorText,
+    ValueChanged<String>? onChanged,
   }) {
     final hasError = errorText != null;
     return Column(
@@ -502,9 +522,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: controller,
             keyboardType: keyboardType,
             obscureText: obscure,
-            onChanged: (_) {
-              if (hasError) setState(() {});
-            },
+            onChanged: onChanged,
             style: AppFonts.plusJakartaSans(
               color: SigumiTheme.textBody,
               fontSize: 14,
@@ -557,4 +575,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-

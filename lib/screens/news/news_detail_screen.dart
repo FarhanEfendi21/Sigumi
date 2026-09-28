@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../config/fonts.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/news_item.dart';
 import '../../services/localization_service.dart';
 
@@ -14,24 +15,24 @@ class NewsDetailScreen extends StatelessWidget {
     final newsItem = ModalRoute.of(context)!.settings.arguments as NewsItem;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.bgPrimary,
       appBar: AppBar(
         title: Text(
           context.trText('Detail Berita'),
           style: AppFonts.plusJakartaSans(
             fontWeight: FontWeight.w700,
             fontSize: 18,
-            color: const Color(0xFF1E1E2C),
+            color: context.textPrimary,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: context.bgSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_rounded,
-            color: Color(0xFF1E1E2C),
+            color: context.textPrimary,
             size: 20,
           ),
           onPressed: () => Navigator.pop(context),
@@ -49,17 +50,17 @@ class NewsDetailScreen extends StatelessWidget {
               Container(
                 width: double.infinity,
                 height: 250,
-                color: const Color(0xFFF8FAFC),
+                color: context.bgSecondary,
                 child: Image.network(
                   newsItem.imageUrl!,
                   fit: BoxFit.cover,
                   errorBuilder:
                       (context, error, stackTrace) => Container(
-                        color: const Color(0xFFF1F5F9),
-                        child: const Center(
+                        color: context.bgSecondary,
+                        child: Center(
                           child: Icon(
                             Icons.broken_image_rounded,
-                            color: Color(0xFF94A3B8),
+                            color: context.textTertiary,
                             size: 40,
                           ),
                         ),
@@ -92,7 +93,7 @@ class NewsDetailScreen extends StatelessWidget {
                                 child: Text(
                                   newsItem.categoryLabel.toUpperCase(),
                                   style: AppFonts.plusJakartaSans(
-                                    color: newsItem.categoryColor,
+                                    color: context.contrastColor(newsItem.categoryColor),
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.5,
@@ -103,7 +104,7 @@ class NewsDetailScreen extends StatelessWidget {
                               Text(
                                 newsItem.timeAgo,
                                 style: AppFonts.plusJakartaSans(
-                                  color: const Color(0xFF64748B),
+                                  color: context.textSecondary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -113,16 +114,16 @@ class NewsDetailScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.calendar_today_rounded,
                                 size: 13,
-                                color: Color(0xFF94A3B8),
+                                color: context.textTertiary,
                               ),
                               const SizedBox(width: 6),
                               Text(
                                 _formatPublishedDate(newsItem.publishedAt),
                                 style: AppFonts.plusJakartaSans(
-                                  color: const Color(0xFF64748B),
+                                  color: context.textSecondary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -141,7 +142,7 @@ class NewsDetailScreen extends StatelessWidget {
                   Text(
                         newsItem.title,
                         style: AppFonts.plusJakartaSans(
-                          color: const Color(0xFF0F172A),
+                          color: context.textPrimary,
                           fontSize: 24,
                           fontWeight: FontWeight.w800,
                           height: 1.3,
@@ -159,21 +160,21 @@ class NewsDetailScreen extends StatelessWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFF1F5F9),
+                            decoration: BoxDecoration(
+                              color: context.bgSecondary,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.source_rounded,
                               size: 14,
-                              color: Color(0xFF64748B),
+                              color: context.textSecondary,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             'Sumber: ${newsItem.source}',
                             style: AppFonts.plusJakartaSans(
-                              color: const Color(0xFF475569),
+                              color: context.textSecondary,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),
@@ -185,8 +186,8 @@ class NewsDetailScreen extends StatelessWidget {
                       .slideY(begin: 0.1, end: 0),
 
                   const SizedBox(height: 24),
-                  const Divider(
-                    color: Color(0xFFF1F5F9),
+                  Divider(
+                    color: context.dividerColor,
                     thickness: 1.5,
                     height: 1,
                   ),
@@ -196,16 +197,16 @@ class NewsDetailScreen extends StatelessWidget {
                   Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: context.bgSurface,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: context.borderColor, width: context.borderWidth),
                         ),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.format_quote_rounded,
-                              color: Color(0xFF94A3B8),
+                              color: context.textTertiary,
                               size: 24,
                             ),
                             const SizedBox(width: 12),
@@ -213,7 +214,7 @@ class NewsDetailScreen extends StatelessWidget {
                               child: Text(
                                 newsItem.summary,
                                 style: AppFonts.plusJakartaSans(
-                                  color: const Color(0xFF334155),
+                                  color: context.textPrimary,
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   height: 1.5,
@@ -234,7 +235,7 @@ class NewsDetailScreen extends StatelessWidget {
                   Text(
                         newsItem.content,
                         style: AppFonts.plusJakartaSans(
-                          color: const Color(0xFF1E293B), // Slate 800
+                          color: context.textPrimary,
                           fontSize: 16,
                           fontWeight: FontWeight.w400,
                           height: 1.7,
@@ -250,22 +251,22 @@ class NewsDetailScreen extends StatelessWidget {
                   SizedBox(
                         width: double.infinity,
                         child: CupertinoButton(
-                          color: const Color(0xFFF1F5F9),
+                          color: context.accentPrimary,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           borderRadius: BorderRadius.circular(12),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(
+                              Icon(
                                 CupertinoIcons.share,
-                                color: Color(0xFF0F172A),
+                                color: context.isHighContrast ? context.bgPrimary : context.textPrimary,
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 context.trText('Bagikan Berita'),
                                 style: AppFonts.plusJakartaSans(
-                                  color: const Color(0xFF0F172A),
+                                  color: context.isHighContrast ? context.bgPrimary : context.textPrimary,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                 ),

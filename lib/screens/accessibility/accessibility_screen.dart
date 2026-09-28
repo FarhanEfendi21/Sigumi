@@ -178,8 +178,8 @@ class AccessibilityScreen extends StatelessWidget {
                             ),
                           ),
                           Expanded(
-                            child: ShadSlider(
-                              initialValue: provider.fontSize,
+                            child: Slider(
+                              value: provider.fontSize,
                               min: 0.8,
                               max: 1.5,
                               onChanged: (v) => provider.setFontSize(v),
@@ -282,7 +282,7 @@ class AccessibilityScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      ShadSwitch(
+                      Switch(
                         value: provider.highContrast,
                         onChanged: (v) {
                           HapticFeedback.mediumImpact();

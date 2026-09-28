@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/supabase_config.dart';
-import '../models/eruption_history.dart';
 import '../models/news_item.dart';
 import '../models/user_model.dart';
 import '../models/volcano_activity.dart';
@@ -29,11 +28,9 @@ class VolcanoProvider extends ChangeNotifier {
   List<VolcanoModel> _allVolcanoes = [];
   final List<NewsItem> _newsItems = NewsItem.mockNews();
 
-  // ── Aktivitas & Riwayat Erupsi (dari Supabase, diinput admin) ──
+  // ── Aktivitas gunung terkini (dari Supabase, diinput admin) ──
   List<VolcanoActivity> _recentActivities = [];
-  List<EruptionHistory> _eruptionHistory = [];
   bool _isLoadingActivities = false;
-  bool _isLoadingEruptions = false;
   bool _isLoadingVolcanoes = true;
 
 
@@ -111,14 +108,11 @@ class VolcanoProvider extends ChangeNotifier {
   bool get isFirstTime => _isFirstTime;
   String? get detectedRegion => _locationService.detectedRegion;
 
-  // ── Getters Aktivitas & Riwayat Erupsi ──
+  // ── Getters Aktivitas Gunung ──
   List<VolcanoActivity> get recentActivities => _recentActivities;
-  List<EruptionHistory> get eruptionHistory => _eruptionHistory;
   bool get isLoadingActivities => _isLoadingActivities;
-  bool get isLoadingEruptions => _isLoadingEruptions;
   bool get isLoadingVolcanoes => _isLoadingVolcanoes;
   bool get hasActivities => _recentActivities.isNotEmpty;
-  bool get hasEruptionHistory => _eruptionHistory.isNotEmpty;
 
 
 
@@ -176,6 +170,7 @@ class VolcanoProvider extends ChangeNotifier {
     _language = prefs.getString('language') ?? 'id';
     _colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
     _audioGuidance = prefs.getBool('audio_guidance') ?? false;
+    _highContrast = prefs.getBool('high_contrast') ?? false;
 
     // Pulihkan region yang terakhir dipilih pengguna (sebelum GPS/data async selesai)
     final savedRegion = prefs.getString('selected_region');
@@ -944,10 +939,17 @@ class VolcanoProvider extends ChangeNotifier {
   }
 
   void setHighContrast(bool value) {
+    if (_highContrast == value) return;
     _highContrast = value;
     if (_currentUser != null) {
       _currentUser = _currentUser!.copyWith(highContrast: value);
     }
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.setBool('high_contrast', value))
+        .catchError((error) {
+          debugPrint('[VolcanoProvider] Error saving high contrast: $error');
+          return false;
+        });
     if (_isAuthenticated) {
       try {
         _authRepo.updateProfileTable(highContrast: value);
@@ -1041,9 +1043,8 @@ class VolcanoProvider extends ChangeNotifier {
     }
     notifyListeners();
 
-    // Fetch data aktivitas & erupsi untuk gunung yang dipilih
+    // Fetch aktivitas gunung yang dipilih
     fetchRecentActivities();
-    fetchEruptionHistory();
 
     // Fetch nomor darurat sesuai region baru
     fetchEmergencyContacts();
@@ -1130,31 +1131,7 @@ class VolcanoProvider extends ChangeNotifier {
   }
 
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  /// FETCH RIWAYAT ERUPSI dari Supabase
   /// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  /// Mengambil seluruh riwayat erupsi dari tabel
-  /// `eruption_history`. Return kosong jika tabel belum ada
-  /// (admin panel belum selesai).
-  Future<void> fetchEruptionHistory() async {
-    _isLoadingEruptions = true;
-    notifyListeners();
-
-    try {
-      _eruptionHistory = await _volcanoRepo.getEruptionHistory(_volcano.dbId);
-    } catch (e) {
-      // Sembunyikan error tabel hilang karena admin panel belum selesai
-      if (!e.toString().contains('PGRST205')) {
-        debugPrint('[SIGUMI] Info: Tabel eruptions belum tersedia.');
-      }
-      _eruptionHistory = [];
-    }
-
-    _isLoadingEruptions = false;
-    notifyListeners();
-  }
-
-
-
   /// ──────────────────────────────────────────────────
   /// FETCH NOMOR TELEPON DARURAT dari Supabase
   /// ──────────────────────────────────────────────────
@@ -1261,9 +1238,8 @@ class VolcanoProvider extends ChangeNotifier {
         name: _volcano.name,
       );
 
-      // 6. Reload aktivitas & riwayat terkini
+      // 6. Reload aktivitas terkini
       await fetchRecentActivities();
-      await fetchEruptionHistory();
 
       // 7. Reload kontak darurat
       await fetchEmergencyContacts();

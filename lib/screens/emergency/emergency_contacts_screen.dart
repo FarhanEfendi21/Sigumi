@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:sigumi/config/fonts.dart';
-import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/emergency_contact.dart';
 import '../../providers/volcano_provider.dart';
 
@@ -81,23 +81,23 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
             : allContacts.sublist(startIndex, endIndex);
 
         return Scaffold(
-          backgroundColor: Colors.white, // CLean white background
+          backgroundColor: context.bgPrimary,
           appBar: AppBar(
             title: Text(
               context.tr('emergency_number').replaceAll('\n', ' '),
               style: AppFonts.plusJakartaSans(
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
-                color: const Color(0xFF1E1E2C),
+                color: context.textPrimary,
               ),
             ),
-            backgroundColor: Colors.white,
+            backgroundColor: context.bgSurface,
             elevation: 0,
             scrolledUnderElevation: 0,
             leading: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back_ios_new_rounded,
-                color: Color(0xFF1E1E2C),
+                color: context.textPrimary,
                 size: 20,
               ),
               onPressed: () => Navigator.pop(context),
@@ -105,7 +105,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
             centerTitle: true,
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(1),
-              child: Container(color: Colors.grey.shade100, height: 1),
+              child: Container(color: context.dividerColor, height: context.borderWidth),
             ),
           ),
           body: CustomScrollView(
@@ -122,7 +122,7 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                         text: TextSpan(
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
-                            color: Colors.grey.shade600,
+                            color: context.textSecondary,
                             height: 1.5,
                           ),
                           children: [
@@ -131,9 +131,9 @@ class _EmergencyContactsScreenState extends State<EmergencyContactsScreen> {
                             ),
                             TextSpan(
                               text: region,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.w700,
-                                color: SigumiTheme.primaryBlue,
+                                color: context.accentPrimary,
                               ),
                             ),
                             TextSpan(
@@ -262,8 +262,11 @@ class _PaginationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color textColor = isActive ? const Color(0xFF1E1E2C) : Colors.grey.shade400;
-    Color bgColor = isActive ? Colors.grey.shade100 : Colors.transparent;
+    final isHC = context.isHighContrast;
+    Color textColor = isActive ? context.textPrimary : context.textTertiary;
+    Color bgColor = isActive
+        ? (isHC ? context.bgSurface : Colors.grey.shade100)
+        : Colors.transparent;
 
     return Material(
       color: bgColor,
@@ -324,9 +327,9 @@ class _EmergencyCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -338,7 +341,7 @@ class _EmergencyCard extends StatelessWidget {
               Clipboard.setData(ClipboardData(text: contact.phone));
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(context.tr('number_copied') + '${contact.phone}'),
+                  content: Text('${context.tr('number_copied')}${contact.phone}'),
                   behavior: SnackBarBehavior.floating,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -366,7 +369,7 @@ class _EmergencyCard extends StatelessWidget {
                                 style: AppFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 15,
-                                  color: const Color(0xFF1A1A1A),
+                                  color: context.textPrimary,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -378,7 +381,7 @@ class _EmergencyCard extends StatelessWidget {
                           contact.description,
                           style: AppFonts.plusJakartaSans(
                             fontSize: 13,
-                            color: Colors.grey.shade500,
+                            color: context.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                           maxLines: 1,
@@ -479,9 +482,9 @@ class _LoadingCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       height: 100,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.bgSurface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: context.borderColor, width: context.borderWidth),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -496,7 +499,7 @@ class _LoadingCard extends StatelessWidget {
                     height: 14,
                     width: 120,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: context.dividerColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -505,7 +508,7 @@ class _LoadingCard extends StatelessWidget {
                     height: 12,
                     width: 200,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: context.bgSecondary,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -514,7 +517,7 @@ class _LoadingCard extends StatelessWidget {
                     height: 16,
                     width: 140,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: context.dividerColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -526,7 +529,7 @@ class _LoadingCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+              color: context.bgSecondary,
                 shape: BoxShape.circle,
               ),
             ),
@@ -538,7 +541,7 @@ class _LoadingCard extends StatelessWidget {
         .shimmer(
           delay: Duration(milliseconds: 150 * index),
           duration: 1000.ms,
-          color: Colors.grey.shade300,
+          color: context.dividerColor,
         );
   }
 }
@@ -561,13 +564,13 @@ class _EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: context.bgSecondary,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.content_paste_off_rounded,
                 size: 48,
-                color: Colors.grey.shade300,
+                color: context.dividerColor,
               ),
             ),
             const SizedBox(height: 20),
@@ -576,7 +579,7 @@ class _EmptyState extends StatelessWidget {
               style: AppFonts.plusJakartaSans(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF1A1A1A),
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -585,7 +588,7 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
-                color: Colors.grey.shade500,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -598,7 +601,7 @@ class _EmptyState extends StatelessWidget {
                 style: AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
               ),
               style: TextButton.styleFrom(
-                foregroundColor: SigumiTheme.primaryBlue,
+                foregroundColor: context.accentPrimary,
               ),
             ),
           ],
@@ -619,8 +622,8 @@ class _CallConfirmationSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: context.bgPrimary,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
@@ -633,7 +636,7 @@ class _CallConfirmationSheet extends StatelessWidget {
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: context.dividerColor,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -644,7 +647,7 @@ class _CallConfirmationSheet extends StatelessWidget {
               style: AppFonts.plusJakartaSans(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: const Color(0xFF1E1E2C),
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -652,7 +655,7 @@ class _CallConfirmationSheet extends StatelessWidget {
               context.trText('Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.'),
               style: AppFonts.plusJakartaSans(
                 fontSize: 13,
-                color: Colors.grey.shade600,
+                color: context.textSecondary,
                 height: 1.5,
               ),
             ),
@@ -660,9 +663,9 @@ class _CallConfirmationSheet extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: context.bgSurface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: context.borderColor, width: context.borderWidth),
               ),
               child: Row(
                 children: [
@@ -685,7 +688,7 @@ class _CallConfirmationSheet extends StatelessWidget {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
-                            color: Colors.black87,
+                          color: context.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -711,7 +714,7 @@ class _CallConfirmationSheet extends StatelessWidget {
                     onPressed: () => Navigator.pop(context, false),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      foregroundColor: Colors.grey.shade600,
+                      foregroundColor: context.textSecondary,
                     ),
                     child: Text(
                       context.tr('cancel'),

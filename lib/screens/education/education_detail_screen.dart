@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
-import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../models/education_model.dart';
 import '../../services/localization_service.dart';
 
@@ -24,21 +24,21 @@ class EducationDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.bgPrimary,
       body: CustomScrollView(
         slivers: [
           // Minimalist Hero Image app bar
           SliverAppBar(
             expandedHeight: 240,
             pinned: true,
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black87,
+            backgroundColor: context.bgSurface,
+            foregroundColor: context.textPrimary,
             elevation: 0,
             leading: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.85),
+                  color: context.bgSurface,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
@@ -48,7 +48,7 @@ class EducationDetailScreen extends StatelessWidget {
                   ],
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black87, size: 20),
+                  icon: Icon(Icons.arrow_back, color: context.textPrimary, size: 20),
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ),
@@ -73,8 +73,8 @@ class EducationDetailScreen extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.white.withValues(alpha: 0.1),
-                          Colors.white,
+                          context.bgPrimary.withValues(alpha: 0.1),
+                          context.bgPrimary,
                         ],
                         stops: const [0.5, 0.8, 1.0],
                       ),
@@ -115,7 +115,7 @@ class EducationDetailScreen extends StatelessWidget {
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       height: 1.2,
-                      color: Colors.black87,
+                      color: context.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -184,7 +184,7 @@ class _SectionWidget extends StatelessWidget {
                   style: AppFonts.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black87,
+                    color: context.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -199,7 +199,7 @@ class _SectionWidget extends StatelessWidget {
             style: AppFonts.plusJakartaSans(
               fontSize: 15,
               height: 1.7,
-              color: SigumiTheme.textBody.withValues(alpha: 0.85),
+              color: context.textPrimary,
             ),
           ),
 
@@ -228,7 +228,7 @@ class _SectionWidget extends StatelessWidget {
                         style: AppFonts.plusJakartaSans(
                           fontSize: 14.5,
                           height: 1.6,
-                          color: SigumiTheme.textBody.withValues(alpha: 0.85),
+                          color: context.textPrimary,
                         ),
                       ),
                     ),
@@ -273,7 +273,7 @@ class _SectionWidget extends StatelessWidget {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
                             height: 1.6,
-                            color: Colors.black87,
+                          color: context.textPrimary,
                           ),
                         ),
                       ],
@@ -316,7 +316,7 @@ class _SectionWidget extends StatelessWidget {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 14,
                             height: 1.6,
-                            color: Colors.black87,
+                            color: context.textPrimary,
                           ),
                         ),
                       ],
