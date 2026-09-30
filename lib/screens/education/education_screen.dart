@@ -50,7 +50,7 @@ class EducationScreen extends StatelessWidget {
             tabs: [
               Tab(text: context.trText('Umum')),
               Tab(text: context.tr('kids_education')),
-              Tab(text: context.tr('accessibility')),
+              Tab(text: context.tr('inclusive_education')),
             ],
           ),
         ),
@@ -125,7 +125,7 @@ class _GeneralEducationGridState extends State<_GeneralEducationGrid> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = context.trText('Gagal memuat data edukasi.');
+          _error = context.trTextSafe('Gagal memuat data edukasi.');
           _isLoading = false;
         });
       }
@@ -412,7 +412,7 @@ class _ChildrenEducationGridState extends State<_ChildrenEducationGrid> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = context.trText('Gagal memuat data edukasi anak-anak.');
+          _error = context.trTextSafe('Gagal memuat data edukasi anak-anak.');
           _isLoading = false;
         });
       }
@@ -559,7 +559,7 @@ class _DisabilityEducationGridState extends State<_DisabilityEducationGrid> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = context.trText('Gagal memuat data edukasi difabel.');
+          _error = context.trTextSafe('Gagal memuat data edukasi difabel.');
           _isLoading = false;
         });
       }

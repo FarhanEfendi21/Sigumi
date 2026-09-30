@@ -13,6 +13,18 @@ extension AppLocalizations on BuildContext {
     final lang = select<VolcanoProvider, String>((provider) => provider.language);
     return LocalizationService.translateText(sourceText, lang);
   }
+
+  /// Read translations from callbacks, validators, and async handlers where
+  /// registering a Provider dependency with `select` is not allowed.
+  String trSafe(String key) {
+    final lang = read<VolcanoProvider>().language;
+    return LocalizationService.translate(key, lang);
+  }
+
+  String trTextSafe(String sourceText) {
+    final lang = read<VolcanoProvider>().language;
+    return LocalizationService.translateText(sourceText, lang);
+  }
 }
 
 /// Layanan lokalisasi untuk mendukung 5 bahasa: Indonesia, English, Jawa, Bali, Sasak
@@ -80,6 +92,7 @@ class LocalizationService {
       'settings': 'Pengaturan',
       'language': 'Bahasa',
       'accessibility': 'Aksesibilitas Inklusif',
+      'inclusive_education': 'Edukasi Inklusif',
       'about': 'Tentang Sigumi',
       'logout': 'Keluar',
       'language_changed': 'Bahasa telah diubah',
@@ -272,6 +285,7 @@ class LocalizationService {
       'settings': 'Settings',
       'language': 'Language',
       'accessibility': 'Inclusive Accessibility',
+      'inclusive_education': 'Inclusive Education',
       'about': 'About Sigumi',
       'logout': 'Logout',
       'language_changed': 'Language has been changed',
@@ -459,6 +473,7 @@ class LocalizationService {
       'settings': 'Pangaturan',
       'language': 'Basa',
       'accessibility': 'Aksesbilitas Inklusif',
+      'inclusive_education': 'Edukasi Inklusif',
       'about': 'Ngenani Sigumi',
       'logout': 'Metu',
       'language_changed': 'Basa wis diowah',
@@ -645,6 +660,7 @@ class LocalizationService {
       'settings': 'Pengaturan',
       'language': 'Basa',
       'accessibility': 'Aksesibilitas Inklusif',
+      'inclusive_education': 'Edukasi Inklusif',
       'about': 'Ngenani Sigumi',
       'logout': 'Metu',
       'language_changed': 'Basa sampun diowah',
@@ -832,6 +848,7 @@ class LocalizationService {
       'settings': 'Pangaturan',
       'language': 'Basa',
       'accessibility': 'Aksesibilitas Inklusif',
+      'inclusive_education': 'Edukasi Inklusif',
       'about': 'Ngenani Sigumi',
       'logout': 'Metu',
       'language_changed': 'Basa sampun diowah',

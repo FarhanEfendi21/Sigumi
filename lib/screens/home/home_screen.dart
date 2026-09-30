@@ -17,7 +17,7 @@ import '../../services/vibration_alert_service.dart';
 import '../../models/news_item.dart';
 import 'widgets/news_carousel.dart';
 import 'widgets/vibration_alert_modal.dart';
-import 'widgets/mountain_pattern_painter.dart';
+import 'widgets/home_ambient_painter.dart';
 import 'package:flutter/services.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -120,14 +120,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return Scaffold(
           backgroundColor: context.bgSecondary,
-          body: CustomPaint(
-            painter:
-                isHighContrast
-                    ? null
-                    : MountainWallpaperPainter(
-                      color: const Color(0xFF8FA8CE),
+          body: Stack(
+            children: [
+              if (!isHighContrast)
+                const Positioned.fill(
+                  child: IgnorePointer(
+                    child: RepaintBoundary(
+                      child: CustomPaint(
+                        painter: HomeAmbientBackdropPainter(),
+                      ),
                     ),
-            child: RefreshIndicator(
+                  ),
+                ),
+              RefreshIndicator(
               onRefresh: () async {
                 // Get provider before async gap
                 final newsProvider = Provider.of<NewsProvider>(
@@ -185,14 +190,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: Stack(
                           children: [
-                            // ── Mountain pattern background ─────────────
+                            // ── Aksen biru-kuning transparan ─────────────
                             if (!isHighContrast)
                               Positioned.fill(
-                                child: CustomPaint(
-                                  painter: MountainPatternPainter(
-                                    farColor: const Color(0xFFB6C9E8),
-                                    nearColor: const Color(0xFF8FA8CE),
-                                    highlightColor: Colors.white,
+                                child: const RepaintBoundary(
+                                  child: CustomPaint(
+                                    painter: HomeHeaderAmbientPainter(),
                                   ),
                                 ),
                               ),
@@ -938,7 +941,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -1195,14 +1199,14 @@ class _HomeScreenState extends State<HomeScreen> {
           canPop: isDismissible,
           child: Container(
             decoration: BoxDecoration(
-              color: context.bgPrimary,
+              color: ctx.bgPrimary,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(24),
                 topRight: Radius.circular(24),
               ),
               border: Border.all(
-                color: context.borderColor,
-                width: context.borderWidth,
+                color: ctx.borderColor,
+                width: ctx.borderWidth,
               ),
             ),
             child: Column(
@@ -1242,7 +1246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              title ?? context.tr('select_region'),
+                              title ?? ctx.tr('select_region'),
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w700,
@@ -1251,7 +1255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              subtitle ?? context.tr('monitor_volcano'),
+                              subtitle ?? ctx.tr('monitor_volcano'),
                               style: const TextStyle(
                                 fontSize: 12,
                                 color: SigumiTheme.textSecondary,
@@ -1360,7 +1364,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                                 const SizedBox(width: 3),
                                                 Text(
-                                                  context.tr('your_location'),
+                                                  ctx.tr('your_location'),
                                                   style: TextStyle(
                                                     fontSize: 9,
                                                     fontWeight: FontWeight.w600,
@@ -2354,6 +2358,12 @@ class _TourismBannerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHighContrast = context.isHighContrast;
+    const actionBackground = Colors.transparent;
+    final actionForeground =
+        isHighContrast ? context.accentPrimary : Colors.white;
+    final actionBorder = isHighContrast
+        ? context.accentPrimary
+        : Colors.white.withAlpha(170);
     // Default fallback to signature image if region not strictly matched
     final imageUrl =
         _regionImages[region] ??
@@ -2363,7 +2373,7 @@ class _TourismBannerCard extends StatelessWidget {
       width: double.infinity,
       constraints: const BoxConstraints(minHeight: 120),
       decoration: BoxDecoration(
-        color: isHighContrast ? context.accentPrimary : const Color(0xFF1B2E7B),
+        color: isHighContrast ? context.bgPrimary : const Color(0xFF1B2E7B),
         image:
             isHighContrast
                 ? null
@@ -2379,7 +2389,7 @@ class _TourismBannerCard extends StatelessWidget {
         border:
             isHighContrast
                 ? Border.all(
-                  color: context.borderColor,
+                  color: context.accentPrimary,
                   width: context.borderWidth,
                 )
                 : null,
@@ -2405,66 +2415,65 @@ class _TourismBannerCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Title Typography Hierarchy
+                // Judul adalah fokus utama; CTA diberi permukaan netral.
                 Text(
                   '${context.tr('explore_tourism')} $region',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: AppFonts.plusJakartaSans(
+                    color: isHighContrast ? context.textPrimary : Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.3,
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 6),
-                // Subtitle & Action Indicator (Hierarchical Spacing)
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        context.tr('find_destination'),
-                        style: TextStyle(
-                          color: Colors.white.withAlpha(220),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                Text(
+                  context.tr('find_destination'),
+                  style: AppFonts.plusJakartaSans(
+                    color: isHighContrast
+                        ? context.textPrimary
+                        : Colors.white.withAlpha(220),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 44),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: actionBackground,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: actionBorder),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          context.tr('explore_tourism'),
+                          style: AppFonts.plusJakartaSans(
+                            color: actionForeground,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: actionForeground,
+                          size: 16,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: SigumiTheme.primaryBlue,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            context.tr('explore_tourism'),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(
-                            Icons.arrow_forward_rounded,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),

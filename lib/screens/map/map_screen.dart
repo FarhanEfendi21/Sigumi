@@ -124,6 +124,18 @@ class _MapScreenState extends State<MapScreen>
   }) {
     if (!mounted) return;
 
+    final volcanoProvider = context.read<VolcanoProvider>();
+    final highContrast = volcanoProvider.highContrast;
+    final foregroundColor =
+        highContrast ? SigumiTheme.hcBackground : Colors.white;
+    final backgroundColor = isError
+        ? highContrast
+            ? SigumiTheme.hcStatusWaspada
+            : Colors.orange.shade600
+        : highContrast
+            ? SigumiTheme.hcStatusNormal
+            : Colors.green.shade600;
+
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -131,7 +143,7 @@ class _MapScreenState extends State<MapScreen>
           children: [
             Icon(
               isError ? Icons.gps_off_rounded : Icons.gps_fixed_rounded,
-              color: context.bgPrimary,
+              color: foregroundColor,
               size: 18,
             ),
             const SizedBox(width: 10),
@@ -139,7 +151,7 @@ class _MapScreenState extends State<MapScreen>
               child: Text(
                 message,
                 style: AppFonts.plusJakartaSans(
-                  color: context.bgPrimary,
+                  color: foregroundColor,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -147,8 +159,7 @@ class _MapScreenState extends State<MapScreen>
             ),
           ],
         ),
-        backgroundColor:
-            isError ? context.warningColor : context.successColor,
+        backgroundColor: backgroundColor,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: EdgeInsets.only(
@@ -160,8 +171,8 @@ class _MapScreenState extends State<MapScreen>
         action:
             showRetry
                 ? SnackBarAction(
-                  label: context.tr('try_again'),
-                  textColor: context.bgPrimary,
+                  label: context.trSafe('try_again'),
+                  textColor: foregroundColor,
                   onPressed: () {
                     final ls = context.read<LocationService>();
                     ls.retryTracking();
@@ -823,12 +834,7 @@ class _MapScreenState extends State<MapScreen>
 
   /// Tampilkan info ringkas gunung yang belum dipantau Sigumi
   void _showSecondaryVolcanoDetail(VolcanoModel volcano) {
-    final prov = context.read<VolcanoProvider>();
-    final statusColor = SigumiTheme.getStatusColor(
-      volcano.statusLevel,
-      highContrast: prov.highContrast,
-      colorBlindMode: prov.colorBlindMode,
-    );
+    final infoColor = context.accentPrimary;
 
     showDialog(
       context: context,
@@ -850,17 +856,17 @@ class _MapScreenState extends State<MapScreen>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // ── Header dengan background status color ──
+                    // ── Header informasi umum ──
                     Container(
                       padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
                       decoration: BoxDecoration(
-                        color: statusColor.withAlpha(14),
+                        color: infoColor.withAlpha(14),
                         borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(24),
                         ),
                         border: Border(
                           bottom: BorderSide(
-                            color: statusColor.withAlpha(35),
+                            color: infoColor.withAlpha(35),
                             width: dialogContext.borderWidth,
                           ),
                         ),
@@ -873,20 +879,18 @@ class _MapScreenState extends State<MapScreen>
                             width: 46,
                             height: 46,
                             decoration: BoxDecoration(
-                              color: statusColor,
+                              color: infoColor,
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: statusColor.withAlpha(120),
+                                  color: infoColor.withAlpha(120),
                                   blurRadius: 10,
                                   spreadRadius: 2,
                                 ),
                               ],
                             ),
                             child: Icon(
-                              volcano.statusLevel >= 2
-                                  ? Icons.volcano_rounded
-                                  : Icons.landscape_rounded,
+                              Icons.landscape_rounded,
                               color: dialogContext.bgPrimary,
                               size: 22,
                             ),
@@ -962,23 +966,13 @@ class _MapScreenState extends State<MapScreen>
                       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
                       child: Column(
                         children: [
-                          // Info cards — ketinggian & status level
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildInfoCard(
-                                  dialogContext,
-                                  icon: Icons.height_rounded,
-                                  label: context.trText('Ketinggian'),
-                                  value: '${volcano.elevation.toInt()} m dpl',
-                                  color: Colors.blue.shade400,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _buildStatusCard(dialogContext, volcano, statusColor),
-                              ),
-                            ],
+                          // Informasi umum — tanpa status pemantauan
+                          _buildInfoCard(
+                            dialogContext,
+                            icon: Icons.height_rounded,
+                            label: dialogContext.trText('Ketinggian'),
+                            value: '${volcano.elevation.toInt()} m dpl',
+                            color: Colors.blue.shade400,
                           ),
                           const SizedBox(height: 12),
 
@@ -1011,7 +1005,9 @@ class _MapScreenState extends State<MapScreen>
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
-                                    dialogContext.trText('Gunung ini belum masuk dalam pemantauan aktif Sigumi.'),
+                                    dialogContext.trText(
+                                      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.',
+                                    ),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 12,
                                       color: dialogContext.warningColor,
@@ -1048,61 +1044,6 @@ class _MapScreenState extends State<MapScreen>
   // ───────────────────────────────────────────────────────
   // HELPER WIDGETS
   // ───────────────────────────────────────────────────────
-
-  /// Card status untuk popup secondary volcano
-  Widget _buildStatusCard(BuildContext ctx, VolcanoModel volcano, Color statusColor) {
-    // Ambil label pendek: "Normal", "Waspada", "Siaga", "Awas"
-    final shortLabel =
-        volcano.statusLabel.contains('•')
-            ? volcano.statusLabel.split('•').last.trim()
-            : volcano.statusLabel;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: statusColor.withAlpha(15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: statusColor.withAlpha(55), 
-          width: ctx.borderWidth
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.radio_button_checked_rounded,
-                size: 15,
-                color: statusColor,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                ctx.trText('Status'),
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: ctx.textTertiary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            ctx.trText(shortLabel),
-            style: AppFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: statusColor,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
 
   /// Build info card kecil dua kolom
   Widget _buildInfoCard(
@@ -1162,23 +1103,23 @@ class _MapScreenState extends State<MapScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<VolcanoProvider, LocationService>(
-      builder: (context, provider, locationService, _) {
-        final distance = locationService.distanceFromVolcano;
-        final zoneLevel = locationService.zoneLevel;
-        final zoneLabel = context.trText(locationService.zoneLabel);
+    final provider = context.watch<VolcanoProvider>();
+    final locationService = context.watch<LocationService>();
+    final distance = locationService.distanceFromVolcano;
+    final zoneLevel = locationService.zoneLevel;
+    final zoneLabel = context.trText(locationService.zoneLabel);
 
-        final userPos = LatLng(
-          locationService.userLat,
-          locationService.userLng,
-        );
+    final userPos = LatLng(
+      locationService.userLat,
+      locationService.userLng,
+    );
 
-        final volcanoPos = LatLng(
-          provider.volcano.latitude,
-          provider.volcano.longitude,
-        );
+    final volcanoPos = LatLng(
+      provider.volcano.latitude,
+      provider.volcano.longitude,
+    );
 
-        return Scaffold(
+    return Scaffold(
           backgroundColor: context.bgPrimary,
           extendBodyBehindAppBar: true,
           body: Stack(
@@ -1375,8 +1316,6 @@ class _MapScreenState extends State<MapScreen>
               ),
             ],
           ),
-        );
-      },
     );
   }
 

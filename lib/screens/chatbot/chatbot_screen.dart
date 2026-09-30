@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/fonts.dart';
+import '../../config/theme.dart';
 import '../../config/theme_extensions.dart';
 import '../../models/chat_message.dart';
 import '../../services/ai_service.dart';
@@ -296,16 +297,19 @@ class _ChatbotScreenState extends State<ChatbotScreen>
 
   void _showErrorSnackBar(String message) {
     if (!mounted) return;
+    // This is called from async callbacks, outside the widget build phase.
+    final highContrast = context.read<VolcanoProvider>().highContrast;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           message,
           style: AppFonts.plusJakartaSans(
-            color: context.bgPrimary, 
-            fontSize: 13
+            color: highContrast ? SigumiTheme.hcBackground : Colors.white,
+            fontSize: 13,
           ),
         ),
-        backgroundColor: context.errorColor,
+        backgroundColor:
+            highContrast ? SigumiTheme.hcStatusAwas : Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
@@ -697,13 +701,15 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
               itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isTyping) {
-                  return _buildTypingIndicator();
-                }
-                final message = _messages[index];
-                return _buildMessageBubble(message, index);
-              },
+              itemBuilder: (context, index) => Builder(
+                builder: (itemContext) {
+                  if (index == _messages.length && _isTyping) {
+                    return _buildTypingIndicator(itemContext);
+                  }
+                  final message = _messages[index];
+                  return _buildMessageBubble(itemContext, message, index);
+                },
+              ),
             ),
           ),
 
@@ -733,7 +739,10 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           ),
 
           // Input Area Bottom Bar
-          _buildInputBar(context, currentAppLanguage),
+          Builder(
+            builder: (inputContext) =>
+                _buildInputBar(inputContext, currentAppLanguage),
+          ),
         ],
       ),
     );
@@ -1006,7 +1015,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
         left: 16,
         right: 16,
         top: 12,
-        bottom: 12 + MediaQuery.of(context).padding.bottom,
+        bottom: 12 + MediaQuery.paddingOf(context).bottom,
       ),
       decoration: BoxDecoration(
         color: context.bgPrimary,
@@ -1123,8 +1132,12 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message, int index) {
-    final actLang = context.read<VolcanoProvider>().language;
+  Widget _buildMessageBubble(
+    BuildContext itemContext,
+    ChatMessage message,
+    int index,
+  ) {
+    final actLang = itemContext.read<VolcanoProvider>().language;
     final displayContent = _getDisplayContent(message, actLang);
 
     if (message.messageType == MessageType.system) {
@@ -1135,7 +1148,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             margin: const EdgeInsets.symmetric(horizontal: 24),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: context.accentPrimary.withValues(alpha: 0.05),
+              color: itemContext.accentPrimary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -1147,7 +1160,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   child: Icon(
                     Icons.info_outline_rounded,
                     size: 16, 
-                    color: context.accentPrimary
+                    color: itemContext.accentPrimary
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -1156,7 +1169,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     displayContent,
                     AppFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: context.textTertiary,
+                      color: itemContext.textTertiary,
                       height: 1.4,
                     ),
                     textAlign: TextAlign.center,
@@ -1185,7 +1198,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
               height: 32,
               margin: const EdgeInsets.only(top: 4),
               decoration: BoxDecoration(
-                color: context.accentPrimary.withValues(alpha: 0.1),
+                color: itemContext.accentPrimary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: ClipOval(
@@ -1196,7 +1209,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                     errorBuilder: (ctx, err, stack) => Icon(
                         Icons.smart_toy_rounded,
                         size: 18,
-                        color: context.accentPrimary),
+                        color: Theme.of(ctx).colorScheme.primary),
                   ),
                 ),
               ),
@@ -1208,12 +1221,12 @@ class _ChatbotScreenState extends State<ChatbotScreen>
           Flexible(
             child: Container(
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.75,
+                maxWidth: MediaQuery.sizeOf(itemContext).width * 0.75,
               ),
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isUser ? context.accentPrimary : context.bgSurface,
+                color: isUser ? itemContext.accentPrimary : itemContext.bgSurface,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
                   topRight: const Radius.circular(20),
@@ -1235,18 +1248,18 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                             Icons.mic_rounded,
                             size: 14,
                             color: isUser
-                                ? context.bgPrimary.withValues(alpha: 0.7)
-                                : context.textTertiary,
+                                ? itemContext.bgPrimary.withValues(alpha: 0.7)
+                                : itemContext.textTertiary,
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            context.trText('Pesan Suara'),
+                            itemContext.trText('Pesan Suara'),
                             style: AppFonts.plusJakartaSans(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
                               color: isUser
-                                  ? context.bgPrimary.withValues(alpha: 0.7)
-                                  : context.textTertiary,
+                                  ? itemContext.bgPrimary.withValues(alpha: 0.7)
+                                  : itemContext.textTertiary,
                             ),
                           ),
                         ],
@@ -1255,12 +1268,12 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   _buildRichText(
                     displayContent,
                     AppFonts.plusJakartaSans(
-                      color: isUser ? context.bgPrimary : context.textPrimary,
+                      color: isUser ? itemContext.bgPrimary : itemContext.textPrimary,
                       fontSize: 14,
                       height: 1.5,
                       fontWeight: FontWeight.w500,
                     ),
-                    boldColor: isUser ? context.bgPrimary : context.textPrimary,
+                    boldColor: isUser ? itemContext.bgPrimary : itemContext.textPrimary,
                   ),
                   if (!isUser) ...[
                     const SizedBox(height: 6),
@@ -1268,7 +1281,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Theme(
-                          data: Theme.of(context).copyWith(
+                          data: Theme.of(itemContext).copyWith(
                             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: InkWell(
@@ -1284,15 +1297,15 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                   Icon(
                                     Icons.volume_up_rounded, 
                                     size: 14, 
-                                    color: context.textTertiary
+                                    color: itemContext.textTertiary
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    context.trText('Dengarkan'),
+                                    itemContext.trText('Dengarkan'),
                                     style: AppFonts.plusJakartaSans(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: context.textTertiary,
+                                      color: itemContext.textTertiary,
                                     ),
                                   ),
                                 ],
@@ -1305,7 +1318,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                            Container(
                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                               decoration: BoxDecoration(
-                                color: context.dividerColor.withValues(alpha: 0.5),
+                                color: itemContext.dividerColor.withValues(alpha: 0.5),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -1313,7 +1326,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 9,
                                   fontWeight: FontWeight.w700,
-                                  color: context.textTertiary,
+                                  color: itemContext.textTertiary,
                                 ),
                               ),
                            ),
@@ -1326,7 +1339,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                               decoration: BoxDecoration(
                                 color: message.responseSource == ResponseSource.cloud
                                     ? const Color(0xFF4285F4).withValues(alpha: 0.1)
-                                    : context.successColor.withValues(alpha: 0.1),
+                                    : itemContext.successColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -1336,7 +1349,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                                   fontWeight: FontWeight.w700,
                                   color: message.responseSource == ResponseSource.cloud
                                       ? const Color(0xFF4285F4)
-                                      : context.successColor,
+                                      : itemContext.successColor,
                                 ),
                               ),
                            ),
@@ -1356,7 +1369,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
     );
   }
 
-  Widget _buildTypingIndicator() {
+  Widget _buildTypingIndicator(BuildContext itemContext) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
@@ -1366,24 +1379,24 @@ class _ChatbotScreenState extends State<ChatbotScreen>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: context.bgSurface,
+              color: itemContext.bgSurface,
               shape: BoxShape.circle,
               border: Border.all(
-                color: context.borderColor,
-                width: context.borderWidth,
+                color: itemContext.borderColor,
+                width: itemContext.borderWidth,
               ),
             ),
             child: Icon(
               Icons.smart_toy_rounded,
               size: 20, 
-              color: context.accentPrimary
+              color: itemContext.accentPrimary
             ),
           ),
           const SizedBox(width: 10),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: context.bgSurface,
+              color: itemContext.bgSurface,
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -1391,8 +1404,8 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                 bottomRight: Radius.circular(16),
               ),
               border: Border.all(
-                color: context.borderColor,
-                width: context.borderWidth,
+                color: itemContext.borderColor,
+                width: itemContext.borderWidth,
               ),
             ),
             child: Row(
@@ -1403,7 +1416,7 @@ class _ChatbotScreenState extends State<ChatbotScreen>
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: context.textTertiary,
+                    color: itemContext.textTertiary,
                     shape: BoxShape.circle,
                   ),
                 )

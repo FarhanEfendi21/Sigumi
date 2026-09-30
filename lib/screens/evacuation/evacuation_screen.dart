@@ -128,7 +128,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = context.trText('Gagal memuat data. Periksa koneksi internet Anda.');
+          _error = context.trTextSafe('Gagal memuat data. Periksa koneksi internet Anda.');
           _isLoading = false;
         });
       }
@@ -231,17 +231,17 @@ class _EvacuationScreenState extends State<EvacuationScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer2<VolcanoProvider, LocationService>(
-      builder: (context, volcanoProvider, locService, _) {
-        final region = volcanoProvider.selectedRegion;
-        if (_lastLoadedRegion.isNotEmpty && region != _lastLoadedRegion) {
-          WidgetsBinding.instance
-              .addPostFrameCallback((_) => _loadShelters(forceReload: true));
-        }
+    final volcanoProvider = context.watch<VolcanoProvider>();
+    final locService = context.watch<LocationService>();
+    final region = volcanoProvider.selectedRegion;
+    if (_lastLoadedRegion.isNotEmpty && region != _lastLoadedRegion) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _loadShelters(forceReload: true));
+    }
 
-        final userPos = LatLng(locService.userLat, locService.userLng);
+    final userPos = LatLng(locService.userLat, locService.userLng);
 
-        return Scaffold(
+    return Scaffold(
           backgroundColor: context.bgPrimary,
           // Agar peta terlihat sampai belakang status/app bar
           extendBodyBehindAppBar: true, 
@@ -661,8 +661,6 @@ class _EvacuationScreenState extends State<EvacuationScreen>
               ),
             ],
           ),
-        );
-      },
     );
   }
 

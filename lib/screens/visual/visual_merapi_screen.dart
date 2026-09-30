@@ -189,18 +189,17 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<VolcanoProvider>(
-      builder: (context, provider, _) {
-        late VolcanoModel volcano;
-        if (widget.volcano != null) {
-          volcano = widget.volcano!;
-        } else {
-          final args = ModalRoute.of(context)?.settings.arguments;
-          if (args is VolcanoModel) {
-            volcano = args;
-          } else {
-            volcano = provider.volcano;
-          }
+    final provider = context.watch<VolcanoProvider>();
+    late VolcanoModel volcano;
+    if (widget.volcano != null) {
+      volcano = widget.volcano!;
+    } else {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is VolcanoModel) {
+        volcano = args;
+      } else {
+        volcano = provider.volcano;
+      }
         }
 
         final hasCctv =
@@ -214,7 +213,7 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
           _ => null,
         };
 
-        return Scaffold(
+    return Scaffold(
           backgroundColor: provider.highContrast
               ? context.bgPrimary
               : hasCctv
@@ -346,8 +345,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                       ],
                     ),
                   ),
-        );
-      },
     );
   }
 

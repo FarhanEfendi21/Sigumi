@@ -48,9 +48,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       initialDate: DateTime(now.year - 20, now.month, now.day),
       firstDate: DateTime(1920),
       lastDate: now,
-      helpText: context.tr('select_birth_date'),
-      cancelText: context.tr('cancel'),
-      confirmText: context.tr('select'),
+      helpText: context.trSafe('select_birth_date'),
+      cancelText: context.trSafe('cancel'),
+      confirmText: context.trSafe('select'),
       locale: Locale(language == 'id' ? 'id' : 'en'),
       builder: (context, child) {
         return Theme(
@@ -80,12 +80,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     bool valid = true;
 
     setState(() {
-      _nameError = name.isEmpty ? context.trText('Nama lengkap harus diisi.') : null;
-      _phoneError = phone.isEmpty ? context.trText('Nomor telepon harus diisi.') : null;
+      _nameError = name.isEmpty ? context.trTextSafe('Nama lengkap harus diisi.') : null;
+      _phoneError = phone.isEmpty ? context.trTextSafe('Nomor telepon harus diisi.') : null;
       _passwordError = password.isEmpty
-          ? context.trText('Kata sandi harus diisi.')
+          ? context.trTextSafe('Kata sandi harus diisi.')
           : password.length < 6
-              ? context.trText('Kata sandi minimal 6 karakter.')
+              ? context.trTextSafe('Kata sandi minimal 6 karakter.')
               : null;
     });
 

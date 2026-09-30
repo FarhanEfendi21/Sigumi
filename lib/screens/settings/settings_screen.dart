@@ -202,7 +202,7 @@ class SettingsScreen extends StatelessWidget {
                     if (context.mounted) {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(context.tr('logout_failed') + '$e')),
+                        SnackBar(content: Text('${context.trSafe('logout_failed')}$e')),
                       );
                     }
                   }
@@ -446,11 +446,11 @@ class _ProfileHero extends StatelessWidget {
 
         return Container(
           decoration: BoxDecoration(
-            color: context.bgSurface,
+            color: ctx.bgSurface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             border: Border.all(
-              color: context.borderColor,
-              width: context.borderWidth,
+              color: ctx.borderColor,
+              width: ctx.borderWidth,
             ),
           ),
           padding: EdgeInsets.fromLTRB(
@@ -467,26 +467,26 @@ class _ProfileHero extends StatelessWidget {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: context.textTertiary.withValues(alpha: 0.4),
+                  color: ctx.textTertiary.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               Text(
-                context.trText('Pilih Lokasi Pemantauan'),
+                ctx.trText('Pilih Lokasi Pemantauan'),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: context.textPrimary,
+                  color: ctx.textPrimary,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
-                context.trText('Pilih wilayah gunung api yang ingin dipantau'),
+                ctx.trText('Pilih wilayah gunung api yang ingin dipantau'),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
                   fontSize: 13,
-                  color: context.textSecondary,
+                  color: ctx.textSecondary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -500,14 +500,14 @@ class _ProfileHero extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 8),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? context.accentPrimary.withValues(alpha: 0.08)
-                        : context.bgSecondary,
+                        ? ctx.accentPrimary.withValues(alpha: 0.08)
+                        : ctx.bgSecondary,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isSelected
-                          ? context.accentPrimary
-                          : context.borderColor,
-                      width: isSelected ? 1.5 : context.borderWidth,
+                          ? ctx.accentPrimary
+                          : ctx.borderColor,
+                      width: isSelected ? 1.5 : ctx.borderWidth,
                     ),
                   ),
                   child: Material(
@@ -530,8 +530,8 @@ class _ProfileHero extends StatelessWidget {
                               icon,
                               size: 22,
                               color: isSelected
-                                  ? context.accentPrimary
-                                  : context.textSecondary,
+                                  ? ctx.accentPrimary
+                                  : ctx.textSecondary,
                             ),
                             const SizedBox(width: 14),
                             Expanded(
@@ -545,8 +545,8 @@ class _ProfileHero extends StatelessWidget {
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
                                       color: isSelected
-                                          ? context.accentPrimary
-                                          : context.textPrimary,
+                                          ? ctx.accentPrimary
+                                          : ctx.textPrimary,
                                     ),
                                   ),
                                   Text(
@@ -554,7 +554,7 @@ class _ProfileHero extends StatelessWidget {
                                     style: TextStyle(
                                       fontFamily: 'Plus Jakarta Sans',
                                       fontSize: 12,
-                                      color: context.textSecondary,
+                                      color: ctx.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -564,7 +564,7 @@ class _ProfileHero extends StatelessWidget {
                               Icon(
                                 CupertinoIcons.checkmark_alt_circle_fill,
                                 size: 22,
-                                color: context.accentPrimary,
+                                color: ctx.accentPrimary,
                               ),
                           ],
                         ),
@@ -915,69 +915,6 @@ class _NotificationRowState extends State<_NotificationRow> {
               HapticFeedback.lightImpact();
               await NotificationService.instance.setEnabled(val);
               if (mounted) setState(() => _isEnabled = val);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Baris saklar Panduan Audio / Voice Assistant
-class _VoiceAssistantRow extends StatelessWidget {
-  final VolcanoProvider provider;
-
-  const _VoiceAssistantRow({required this.provider});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-      child: Row(
-        children: [
-          _IconBadge(
-            icon: CupertinoIcons.mic_fill,
-            background: const Color(0xFF5856D6),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.tr('audio_guide'),
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimary,
-                    letterSpacing: -0.2,
-                    height: 1.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  provider.audioGuidance
-                      ? context.trText('Aktif ("Halo Sigumi")')
-                      : context.tr('disabled'),
-                  style: TextStyle(
-                    fontFamily: 'Plus Jakarta Sans',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                    color: context.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          CupertinoSwitch(
-            value: provider.audioGuidance,
-            activeTrackColor: const Color(0xFF5856D6),
-            onChanged: (val) {
-              HapticFeedback.lightImpact();
-              provider.setAudioGuidance(val);
             },
           ),
         ],

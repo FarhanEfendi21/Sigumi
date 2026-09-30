@@ -1082,8 +1082,8 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content:
-            Text(tracking.error ?? context.trText('Tracking belum dapat dimulai.')),
-        backgroundColor: context.bgSurface,
+            Text(tracking.error ?? context.trTextSafe('Tracking belum dapat dimulai.')),
+        backgroundColor: Theme.of(context).colorScheme.surface,
       ),
     );
   }
@@ -1241,7 +1241,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                   color: Colors.white, size: 20),
               const SizedBox(width: 8),
               Text(
-                context.trText('Riwayat tracking berhasil di-reset.'),
+                context.trTextSafe('Riwayat tracking berhasil di-reset.'),
                 style: AppFonts.plusJakartaSans(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -1250,7 +1250,7 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
               ),
             ],
           ),
-          backgroundColor: context.bgSurface,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

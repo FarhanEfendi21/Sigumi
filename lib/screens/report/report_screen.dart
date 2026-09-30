@@ -71,7 +71,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${context.trText('Gagal membuka kamera:')} $e',
+              '${context.trTextSafe('Gagal membuka kamera:')} $e',
               style: AppFonts.plusJakartaSans(color: Colors.white),
             ),
             backgroundColor: Colors.redAccent,
@@ -99,7 +99,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              context.trText('Pilih kategori dan isi deskripsi terlebih dahulu'),
+              context.trTextSafe('Pilih kategori dan isi deskripsi terlebih dahulu'),
               style: AppFonts.plusJakartaSans(color: Colors.white),
             ),
             backgroundColor: Colors.orange.shade700,
@@ -128,7 +128,7 @@ class _ReportScreenState extends State<ReportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '${context.trText('Laporan hanya dapat dikirim dari dalam radius')} ${AppConstants.reportMaxRadius.toInt()} km.',
+              '${context.trTextSafe('Laporan hanya dapat dikirim dari dalam radius')} ${AppConstants.reportMaxRadius.toInt()} km.',
               style: AppFonts.plusJakartaSans(color: Colors.white),
             ),
             backgroundColor: Colors.redAccent,
@@ -234,13 +234,13 @@ class _ReportScreenState extends State<ReportScreen> {
               child: Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: context.bgPrimary,
+                  color: dialogContext.bgPrimary,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: context.borderColor,
-                    width: context.borderWidth,
+                    color: dialogContext.borderColor,
+                    width: dialogContext.borderWidth,
                   ),
-                  boxShadow: context.cardShadow,
+                  boxShadow: dialogContext.cardShadow,
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -249,32 +249,32 @@ class _ReportScreenState extends State<ReportScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: context.successColor.withValues(alpha: 0.15),
+                        color: dialogContext.successColor.withValues(alpha: 0.15),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.check_circle_rounded,
-                        color: context.successColor,
+                        color: dialogContext.successColor,
                         size: 48,
                       ),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      context.trText('Laporan Berhasil!'),
+                      dialogContext.trText('Laporan Berhasil!'),
                       textAlign: TextAlign.center,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: context.textPrimary,
+                        color: dialogContext.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      context.trText('Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.'),
+                      dialogContext.trText('Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.'),
                       textAlign: TextAlign.center,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 14,
-                        color: context.textSecondary,
+                        color: dialogContext.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -285,8 +285,8 @@ class _ReportScreenState extends State<ReportScreen> {
                           Navigator.pop(dialogContext);
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: context.successColor,
-                          foregroundColor: context.isHighContrast ? context.bgPrimary : Colors.white,
+                          backgroundColor: dialogContext.successColor,
+                          foregroundColor: dialogContext.isHighContrast ? dialogContext.bgPrimary : Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -326,7 +326,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    '${context.trText('Gagal mengirim laporan:')} ${e.toString()}',
+                    '${context.trTextSafe('Gagal mengirim laporan:')} ${e.toString()}',
                     style: AppFonts.plusJakartaSans(color: Colors.white),
                   ),
                 ),

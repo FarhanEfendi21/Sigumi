@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'dart:io';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../config/theme.dart';
@@ -133,13 +132,11 @@ class _MainNavigationState extends State<MainNavigation> {
         });
 
         return PopScope(
-          canPop: false,
+          canPop: _currentIndex == 0,
           onPopInvokedWithResult: (didPop, _) {
             if (didPop) return;
             if (_currentIndex != 0) {
               setState(() => _currentIndex = 0);
-            } else {
-              exit(0);
             }
           },
           child: Scaffold(
@@ -230,10 +227,14 @@ class _MainNavigationState extends State<MainNavigation> {
                 ),
               ],
             ),
-            bottomNavigationBar: _ModernBottomNav(
-              currentIndex: _currentIndex,
-              isGuest: isGuest,
-              onTap: _onTabTap,
+            bottomNavigationBar: SafeArea(
+              // Hindari tab aplikasi bertumpuk dengan tombol/gesture navigasi OS.
+              top: false,
+              child: _ModernBottomNav(
+                currentIndex: _currentIndex,
+                isGuest: isGuest,
+                onTap: _onTabTap,
+              ),
             ),
           ),
         );

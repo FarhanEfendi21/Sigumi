@@ -16,13 +16,14 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
+  static const int _pageCount = 3;
   final PageController _pageController = PageController();
   int _currentPage = 0;
   bool _isButtonPressed = false;
 
-  List<OnboardingData> get _pages => [
+  List<OnboardingData> _pages(BuildContext pageContext) => [
     OnboardingData(
-      title: context.tr('welcome_to_sigumi'),
+      title: pageContext.tr('welcome_to_sigumi'),
       description:
           'Sistem Informasi Gunung Berapi & Mitigasi Bencana yang membantu Anda tetap aman dan terinformasi.',
       icon: Icons.volcano_rounded,
@@ -30,7 +31,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       imagePath: 'assets/onboarding/onboarding 1.png',
     ),
     OnboardingData(
-      title: context.tr('realtime_status'),
+      title: pageContext.tr('realtime_status'),
       description:
           'Dapatkan pemantauan aktivitas gunung berapi secara langsung dan instan berkat integrasi data MAGMA.',
       icon: Icons.sensors_rounded,
@@ -38,7 +39,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       imagePath: 'assets/onboarding/onboarding 2.png',
     ),
     OnboardingData(
-      title: context.tr('choose_your_language'),
+      title: pageContext.tr('choose_your_language'),
       description:
           'SIGUMI mendukung berbagai bahasa daerah untuk memudahkan akses informasi bagi semua kalangan.',
       icon: Icons.translate_rounded,
@@ -54,7 +55,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _onNext() {
     HapticFeedback.lightImpact();
-    if (_currentPage < _pages.length - 1) {
+    if (_currentPage < _pageCount - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 600),
         curve: Curves.easeInOutCubic,
@@ -79,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: Column(
             children: [
               // Skip button
-              if (_currentPage < _pages.length - 1)
+              if (_currentPage < _pageCount - 1)
                 Align(
                   alignment: Alignment.topRight,
                   child: TextButton(
@@ -101,13 +102,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   controller: _pageController,
                   onPageChanged:
                       (index) => setState(() => _currentPage = index),
-                  itemCount: _pages.length,
-                  itemBuilder: (context, index) {
-                    if (index == 2) {
-                      return _LanguageSelectionPage(data: _pages[index]);
-                    }
-                    return _OnboardingPage(data: _pages[index]);
-                  },
+                  itemCount: _pageCount,
+                  itemBuilder: (context, index) => Builder(
+                    builder: (pageContext) {
+                      final pages = _pages(pageContext);
+                      if (index == 2) {
+                        return _LanguageSelectionPage(data: pages[index]);
+                      }
+                      return _OnboardingPage(data: pages[index]);
+                    },
+                  ),
                 ),
               ),
 
@@ -120,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
-                        _pages.length,
+                        _pageCount,
                         (index) => _buildIndicator(index),
                       ),
                     ),
@@ -153,7 +157,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                       .withAlpha(100),
                                 ),
                                 child: Text(
-                                  _currentPage == _pages.length - 1
+                                  _currentPage == _pageCount - 1
                                       ? 'Mulai Sekarang'
                                       : 'Lanjutkan',
                                   style: AppFonts.plusJakartaSans(
@@ -166,7 +170,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         )
                         .animate(
-                          target: _currentPage == _pages.length - 1 ? 1 : 0,
+                          target: _currentPage == _pageCount - 1 ? 1 : 0,
                         )
                         .shimmer(delay: 2.seconds, duration: 1.5.seconds),
                   ],

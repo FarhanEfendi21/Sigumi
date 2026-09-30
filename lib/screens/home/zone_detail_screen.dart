@@ -72,16 +72,15 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<VolcanoProvider>(
-      builder: (context, provider, _) {
-        final distance = provider.distanceFromMerapi;
-        final zoneLevel = provider.zoneLevel;
-        final isHC = provider.highContrast;
-        final cbMode = provider.colorBlindMode;
-        final zoneColor = SigumiTheme.getStatusColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
-        final volcano = provider.volcano;
-        final volcanoLevel = volcano.statusLevel;
-        final isHighAlert = volcanoLevel >= 3;
+    final provider = context.watch<VolcanoProvider>();
+    final distance = provider.distanceFromMerapi;
+    final zoneLevel = provider.zoneLevel;
+    final isHC = provider.highContrast;
+    final cbMode = provider.colorBlindMode;
+    final zoneColor = SigumiTheme.getStatusColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
+    final volcano = provider.volcano;
+    final volcanoLevel = volcano.statusLevel;
+    final isHighAlert = volcanoLevel >= 3;
 
         // Warna dari JARAK user (zoneLevel), bukan status gunung
         final headerColor = _getHeaderColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
@@ -97,7 +96,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
         final heroFontStyle =
             isHighAlert ? FontStyle.italic : FontStyle.normal;
 
-        return Scaffold(
+    return Scaffold(
           backgroundColor: pageBg,
           appBar: AppBar(
             backgroundColor: headerColor,
@@ -307,8 +306,6 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
               ],
             ),
           ),
-        );
-      },
     );
   }
 

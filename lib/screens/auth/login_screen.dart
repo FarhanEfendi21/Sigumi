@@ -40,11 +40,11 @@ class _LoginScreenState extends State<LoginScreen> {
     bool valid = true;
 
     setState(() {
-      _phoneError = phone.isEmpty ? context.trText('Nomor telepon harus diisi.') : null;
+      _phoneError = phone.isEmpty ? context.trTextSafe('Nomor telepon harus diisi.') : null;
       _passwordError = password.isEmpty
-          ? context.trText('Kata sandi harus diisi.')
+          ? context.trTextSafe('Kata sandi harus diisi.')
           : password.length < 6
-              ? context.trText('Kata sandi minimal 6 karakter.')
+              ? context.trTextSafe('Kata sandi minimal 6 karakter.')
               : null;
     });
 
@@ -92,7 +92,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
     SigumiDialog.show(
       context: context,
-      title: context.tr('login_failed'),
+      title: context.trSafe('login_failed'),
       message: message,
       type: SigumiDialogType.error,
     );
@@ -113,9 +113,9 @@ class _LoginScreenState extends State<LoginScreen> {
               child: SingleChildScrollView(
                 child: SizedBox(
                   height:
-                      MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.top -
-                      MediaQuery.of(context).padding.bottom,
+                      MediaQuery.sizeOf(context).height -
+                      MediaQuery.viewPaddingOf(context).top -
+                      MediaQuery.viewPaddingOf(context).bottom,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 28),
                     child: Column(
@@ -198,6 +198,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     icon: Icons.phone_outlined,
                                     keyboardType: TextInputType.phone,
                                     errorText: _phoneError,
+                                    onChanged: (_) {
+                                      if (_phoneError != null) {
+                                        setState(() => _phoneError = null);
+                                      }
+                                    },
                                   ),
 
                                   const SizedBox(height: 20),
@@ -218,6 +223,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     icon: Icons.lock_outline,
                                     obscure: _obscurePassword,
                                     errorText: _passwordError,
+                                    onChanged: (_) {
+                                      if (_passwordError != null) {
+                                        setState(() => _passwordError = null);
+                                      }
+                                    },
                                     suffixIcon: IconButton(
                                       icon: Icon(
                                         _obscurePassword
@@ -417,6 +427,7 @@ class _LoginScreenState extends State<LoginScreen> {
     bool obscure = false,
     Widget? suffixIcon,
     String? errorText,
+    ValueChanged<String>? onChanged,
   }) {
     final hasError = errorText != null;
     return Column(
@@ -436,10 +447,7 @@ class _LoginScreenState extends State<LoginScreen> {
             controller: controller,
             keyboardType: keyboardType,
             obscureText: obscure,
-            onChanged: (_) {
-              // Hapus error saat user mulai mengetik
-              if (hasError) setState(() {});
-            },
+            onChanged: onChanged,
             style: AppFonts.plusJakartaSans(
               color: SigumiTheme.textBody,
               fontSize: 14,

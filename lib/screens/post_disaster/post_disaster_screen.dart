@@ -93,7 +93,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
     } catch (_) {
       if (mounted) {
         setState(() {
-          _error = context.trText('Gagal memuat data. Periksa koneksi internet.');
+          _error = context.trTextSafe('Gagal memuat data. Periksa koneksi internet.');
           _isLoading = false;
         });
       }
@@ -109,15 +109,14 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
   // ── BUILD ─────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    return Consumer<VolcanoProvider>(
-      builder: (context, provider, _) {
-        if (_lastLoadedRegion.isNotEmpty &&
-            provider.selectedRegion != _lastLoadedRegion) {
-          WidgetsBinding.instance
-              .addPostFrameCallback((_) => _loadShelters(forceReload: true));
-        }
+    final provider = context.watch<VolcanoProvider>();
+    if (_lastLoadedRegion.isNotEmpty &&
+        provider.selectedRegion != _lastLoadedRegion) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _loadShelters(forceReload: true));
+    }
 
-        return Scaffold(
+    return Scaffold(
           backgroundColor: context.bgPrimary,
           appBar: AppBar(
             title: Text(
@@ -162,9 +161,7 @@ class _PostDisasterScreenState extends State<PostDisasterScreen>
               ),
             ),
           ),
-          body: _buildBody(),
-        );
-      },
+      body: _buildBody(),
     );
   }
 
