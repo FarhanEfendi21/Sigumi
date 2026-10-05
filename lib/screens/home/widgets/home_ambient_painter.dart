@@ -12,77 +12,57 @@ class HomeAmbientBackdropPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty) return;
 
+    // Keep the brand wash continuous across the full home viewport. The hues
+    // stay close to the scaffold neutral so cards and text remain prominent.
+    final bounds = Offset.zero & size;
+    canvas.drawRect(
+      bounds,
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFF0F4FB),
+            Color(0xFFF4F6FA),
+            Color(0xFFFAF7EF),
+            Color(0xFFF5F7FA),
+          ],
+          stops: [0, 0.38, 0.78, 1],
+        ).createShader(bounds),
+    );
+
     _drawOrb(
       canvas,
-      center: Offset(size.width * 0.94, size.height * 0.12),
-      radius: size.width * 0.62,
+      center: Offset(size.width * 0.98, size.height * 0.08),
+      radius: size.width * 0.88,
       color: _blue,
-      opacity: 0.075,
+      opacity: 0.13,
     );
     _drawOrb(
       canvas,
-      center: Offset(-size.width * 0.14, size.height * 0.40),
-      radius: size.width * 0.54,
+      center: Offset(-size.width * 0.08, size.height * 0.98),
+      radius: size.width * 0.82,
       color: _yellow,
-      opacity: 0.065,
+      opacity: 0.12,
     );
     _drawOrb(
       canvas,
       center: Offset(size.width * 1.05, size.height * 0.69),
       radius: size.width * 0.72,
       color: _blue,
-      opacity: 0.050,
+      opacity: 0.035,
     );
     _drawOrb(
       canvas,
       center: Offset(size.width * 0.21, size.height * 0.94),
       radius: size.width * 0.46,
       color: _yellow,
-      opacity: 0.045,
+      opacity: 0.03,
     );
   }
 
   @override
   bool shouldRepaint(covariant HomeAmbientBackdropPainter oldDelegate) => false;
-}
-
-/// Aksen yang lebih rapat untuk header. Semua warna berhenti transparan agar
-/// hierarki teks dan kontrol tetap jelas.
-class HomeHeaderAmbientPainter extends CustomPainter {
-  const HomeHeaderAmbientPainter();
-
-  static const _blue = Color(0xFF2574D7);
-  static const _yellow = Color(0xFFFFC928);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
-
-    _drawOrb(
-      canvas,
-      center: Offset(size.width * 0.92, size.height * 0.10),
-      radius: size.width * 0.47,
-      color: _blue,
-      opacity: 0.14,
-    );
-    _drawOrb(
-      canvas,
-      center: Offset(size.width * 0.10, size.height * 1.02),
-      radius: size.width * 0.44,
-      color: _yellow,
-      opacity: 0.13,
-    );
-    _drawOrb(
-      canvas,
-      center: Offset(size.width * 1.03, size.height * 0.86),
-      radius: size.width * 0.30,
-      color: _yellow,
-      opacity: 0.075,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant HomeHeaderAmbientPainter oldDelegate) => false;
 }
 
 void _drawOrb(

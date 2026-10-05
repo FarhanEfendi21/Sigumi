@@ -4,6 +4,10 @@ import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/language_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
+import '../screens/auth/forgot_password_screen.dart';
+import '../screens/auth/reset_otp_screen.dart';
+import '../screens/auth/reset_set_password_screen.dart';
+import '../screens/auth/register_otp_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/map/map_screen.dart';
 import '../screens/report/report_screen.dart';
@@ -28,6 +32,10 @@ class AppRoutes {
   static const String language = '/language';
   static const String login = '/login';
   static const String register = '/register';
+  static const String forgotPassword = '/forgot-password';
+  static const String resetOtpVerification = '/reset-otp';
+  static const String resetSetPassword = '/reset-set-password';
+  static const String registerOtp = '/register-otp';
   static const String main = '/main';
   static const String home = '/home';
   static const String map = '/map';
@@ -52,6 +60,10 @@ class AppRoutes {
     language: (_) => const LanguageScreen(),
     login: (_) => const LoginScreen(),
     register: (_) => const RegisterScreen(),
+    forgotPassword: (_) => const ForgotPasswordScreen(),
+    resetOtpVerification: (_) => const ResetOtpScreen(),
+    resetSetPassword: (_) => const ResetSetPasswordScreen(),
+    registerOtp: (_) => const RegisterOtpScreen(),
     main: (_) => const MainNavigation(),
     home: (_) => const HomeScreen(),
     map: (_) => const MapScreen(),

@@ -14,6 +14,7 @@ import '../repositories/emergency_repository.dart';
 import '../repositories/volcano_repository.dart';
 import '../services/location_service.dart';
 import '../services/notification_service.dart';
+import '../services/password_reset_service.dart';
 
 /// Provider utama untuk state management SIGUMI.
 ///
@@ -579,6 +580,7 @@ class VolcanoProvider extends ChangeNotifier {
     required String phone,
     required String password,
     required String fullName,
+    required String registrationToken,
     DateTime? dateOfBirth,
   }) async {
     _isAuthLoading = true;
@@ -587,12 +589,19 @@ class VolcanoProvider extends ChangeNotifier {
 
     try {
       final normalizedPhone = AuthRepository.normalizePhone(phone);
-      await _authRepo.register(
+      final result = await PasswordResetService().completeRegistration(
+        registrationToken: registrationToken,
         phone: normalizedPhone,
         password: password,
         fullName: fullName,
         dateOfBirth: dateOfBirth,
       );
+      if (!result.isSuccess) {
+        _authError = result.errorMessage ?? 'Pendaftaran gagal. Coba lagi.';
+        _isAuthLoading = false;
+        notifyListeners();
+        return false;
+      }
       _isAuthLoading = false;
       notifyListeners();
       return true;
@@ -616,6 +625,14 @@ class VolcanoProvider extends ChangeNotifier {
     _isAuthLoading = true;
     _authError = null;
     notifyListeners();
+
+    if (!SupabaseConfig.isConfigured) {
+      _authError =
+          'Layanan login belum dikonfigurasi. Gunakan URL HTTPS atau endpoint HTTP VPS SIGUMI yang diizinkan, beserta anon/public key yang sesuai.';
+      _isAuthLoading = false;
+      notifyListeners();
+      return false;
+    }
 
     try {
       final normalizedPhone = AuthRepository.normalizePhone(phone);

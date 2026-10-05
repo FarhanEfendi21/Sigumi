@@ -69,7 +69,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
             // Subtitle text
             Text(
-                  context.trText('Sistem Informasi Gunung Berapi\nMitigasi Bencana'),
+                  context.trText('Sistem Informasi Gunung Berapi\nMitigasi Inklusif'),
                   textAlign: TextAlign.center,
                   style: AppFonts.plusJakartaSans(
                     color: SigumiTheme.primaryBlue.withAlpha(160),

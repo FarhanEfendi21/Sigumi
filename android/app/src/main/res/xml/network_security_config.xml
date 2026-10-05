@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Network Security Config untuk SIGUMI
-  Memastikan semua koneksi HTTPS ke domain Supabase diizinkan
-  tanpa diblokir oleh sistem keamanan jaringan Android.
+  Network Security Config untuk SIGUMI.
+  Cleartext HTTP hanya dibuka untuk gateway Supabase VPS SIGUMI.
+  Koneksi lain tetap mengikuti kebijakan HTTPS.
 -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false">
@@ -20,5 +20,11 @@
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
+    </domain-config>
+
+    <!-- Pengecualian sementara untuk Supabase VPS pada port HTTP 8000.
+         Network Security Config membatasi host; port dibatasi di SupabaseConfig. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">187.53.141.200</domain>
     </domain-config>
 </network-security-config>

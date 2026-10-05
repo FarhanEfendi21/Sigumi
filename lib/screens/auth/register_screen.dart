@@ -3,13 +3,14 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../config/supabase_config.dart';
 import '../../config/theme.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
 import '../../services/localization_service.dart';
 import 'package:flutter/services.dart';
+import '../../services/password_reset_service.dart';
+import 'register_otp_screen.dart';
 
 
 class RegisterScreen extends StatefulWidget {
@@ -23,8 +24,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailController = TextEditingController(); // Email pemulihan
   bool _obscurePassword = true;
   DateTime? _selectedDateOfBirth;
+
+  // State verifikasi email pemulihan
+  bool _isEmailVerified = false;
+  String? _registrationToken;
+  String? _verifiedPhone;
+  bool _isSendingOtp = false;
+  String? _emailError;
 
   // Inline validation errors per field
   String? _nameError;
@@ -36,6 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -77,6 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
+    final email = _emailController.text.trim();
     bool valid = true;
 
     setState(() {
@@ -87,12 +98,92 @@ class _RegisterScreenState extends State<RegisterScreen> {
           : password.length < 6
               ? context.trTextSafe('Kata sandi minimal 6 karakter.')
               : null;
+      // Validasi email pemulihan
+      if (email.isEmpty) {
+        _emailError = 'Email pemulihan harus diisi.';
+      } else if (!RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)) {
+        _emailError = 'Format email tidak valid.';
+      } else if (!_isEmailVerified) {
+        _emailError = 'Email pemulihan harus diverifikasi terlebih dahulu.';
+      } else {
+        _emailError = null;
+      }
     });
 
-    if (_nameError != null || _phoneError != null || _passwordError != null) {
+    if (_nameError != null || _phoneError != null || _passwordError != null || _emailError != null) {
       valid = false;
     }
     return valid;
+  }
+
+  /// Kirim OTP ke email pemulihan dan buka layar verifikasi
+  Future<void> _sendAndVerifyEmail() async {
+    final email = _emailController.text.trim();
+    final phone = _phoneController.text.trim();
+
+    // Validasi email dan telepon sebelum kirim
+    setState(() {
+      _emailError = email.isEmpty
+          ? 'Email pemulihan harus diisi.'
+          : !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email)
+              ? 'Format email tidak valid.'
+              : null;
+    });
+    if (_emailError != null) return;
+
+    if (phone.isEmpty) {
+      setState(() => _phoneError = 'Isi nomor telepon sebelum verifikasi email.');
+      return;
+    }
+
+    setState(() => _isSendingOtp = true);
+
+    try {
+      // Kirim OTP ke email
+      final sendResult = await PasswordResetService().initiateRegistrationOtp(
+        email: email,
+        phone: phone,
+      );
+
+      if (!mounted) return;
+      // Buka layar OTP sekalipun respons kirim tidak terkonfirmasi. Server
+      // mungkin sudah mengirim email sebelum koneksi client terputus; pengguna
+      // tetap perlu bisa memasukkan kode yang sudah diterima atau kirim ulang.
+      final registrationToken = await Navigator.of(context).push<String>(
+        MaterialPageRoute<String>(
+          settings: RouteSettings(
+            name: AppRoutes.registerOtp,
+            arguments: {
+              'email': email,
+              'phone': phone,
+              if (!sendResult.isSuccess)
+                'initialError': sendResult.errorMessage ??
+                    'Pengiriman kode belum terkonfirmasi. Periksa inbox; jika kode belum masuk, kirim ulang dari layar ini.',
+            },
+          ),
+          builder: (_) => const RegisterOtpScreen(),
+        ),
+      );
+
+      if (!mounted) return;
+
+      if (registrationToken != null && registrationToken.isNotEmpty) {
+        setState(() {
+          _isEmailVerified = true;
+          _registrationToken = registrationToken;
+          _verifiedPhone = phone;
+          _emailError = null;
+        });
+      }
+    } catch (e) {
+      debugPrint('[RegisterScreen] Could not open registration OTP screen: $e');
+      if (mounted) {
+        setState(() => _emailError =
+            'Layar verifikasi tidak dapat dibuka. Coba lagi.');
+      }
+    } finally {
+      if (mounted) setState(() => _isSendingOtp = false);
+    }
   }
 
   void _register() async {
@@ -102,25 +193,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final name = _nameController.text.trim();
     final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
+    final registrationToken = _registrationToken;
 
-    final provider = context.read<VolcanoProvider>();
-
-    // Jika Supabase belum dikonfigurasi, mode demo
-    if (!SupabaseConfig.isConfigured) {
-      Navigator.pushReplacementNamed(context, AppRoutes.main);
+    if (registrationToken == null || _verifiedPhone != phone) {
+      setState(() {
+        _isEmailVerified = false;
+        _registrationToken = null;
+        _verifiedPhone = null;
+        _emailError = 'Verifikasi kembali email setelah nomor telepon diubah.';
+      });
       return;
     }
+
+    final provider = context.read<VolcanoProvider>();
 
     final success = await provider.register(
       phone: phone,
       password: password,
       fullName: name,
+      registrationToken: registrationToken,
       dateOfBirth: _selectedDateOfBirth,
     );
 
     if (!mounted) return;
 
     if (success) {
+      // Email pemulihan disimpan oleh trigger database setelah server membuat
+      // akun dengan bukti verifikasi sekali pakai.
       // Tampilkan dialog sukses sebelum pindah ke Login
       // Gunakan read (bukan watch) karena dipanggil di luar build()
       final lang = context.read<VolcanoProvider>().language;
@@ -159,8 +258,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _clearPhoneErrorWhenValid(String value) {
-    if (_phoneError != null && value.trim().isNotEmpty) {
-      setState(() => _phoneError = null);
+    if (_phoneError != null && value.trim().isNotEmpty ||
+        (_verifiedPhone != null && value.trim() != _verifiedPhone)) {
+      setState(() {
+        if (_phoneError != null && value.trim().isNotEmpty) _phoneError = null;
+        _isEmailVerified = false;
+        _registrationToken = null;
+        _verifiedPhone = null;
+      });
     }
   }
 
@@ -359,6 +464,64 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       ),
                                     ),
 
+                                    const SizedBox(height: 18),
+
+                                    // ── Email Pemulihan ──────────────────
+                                    Row(
+                                      children: [
+                                        _label('Email Pemulihan'),
+                                        const SizedBox(width: 8),
+                                        if (_isEmailVerified)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF10B981)
+                                                  .withAlpha(20),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: const Color(0xFF10B981)
+                                                    .withAlpha(60),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.verified_rounded,
+                                                  size: 11,
+                                                  color: Color(0xFF10B981),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Terverifikasi',
+                                                  style: AppFonts
+                                                      .plusJakartaSans(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        const Color(0xFF10B981),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Hanya untuk pemulihan kata sandi, bukan untuk login.',
+                                      style: AppFonts.plusJakartaSans(
+                                        fontSize: 11,
+                                        color: SigumiTheme.textSecondary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildEmailField(),
+
                                     const SizedBox(height: 24),
 
                                     // Register button with gradient
@@ -491,6 +654,147 @@ class _RegisterScreenState extends State<RegisterScreen> {
         fontWeight: FontWeight.w600,
         color: SigumiTheme.textPrimary,
       ),
+    );
+  }
+
+  /// Field email pemulihan dengan tombol "Verifikasi" di dalam suffixIcon
+  Widget _buildEmailField() {
+    final hasError = _emailError != null;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: _isEmailVerified
+                ? const Color(0xFF10B981).withAlpha(10)
+                : hasError
+                    ? Colors.red.shade50
+                    : SigumiTheme.background,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: _isEmailVerified
+                  ? const Color(0xFF10B981).withAlpha(80)
+                  : hasError
+                      ? Colors.red.shade400
+                      : SigumiTheme.divider,
+              width: (_isEmailVerified || hasError) ? 1.5 : 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  enabled: !_isEmailVerified,
+                  onChanged: (_) {
+                    if (_emailError != null || _isEmailVerified) {
+                      setState(() {
+                        _emailError = null;
+                        // Jika email diubah setelah verifikasi, reset status
+                        _isEmailVerified = false;
+                        _registrationToken = null;
+                        _verifiedPhone = null;
+                      });
+                    }
+                  },
+                  style: AppFonts.plusJakartaSans(
+                    color: SigumiTheme.textBody,
+                    fontSize: 14,
+                  ),
+                  cursorColor: SigumiTheme.primaryBlue,
+                  decoration: InputDecoration(
+                    hintText: 'contoh@email.com',
+                    hintStyle: AppFonts.plusJakartaSans(
+                      color: SigumiTheme.textSecondary,
+                      fontSize: 13,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.email_outlined,
+                      color: _isEmailVerified
+                          ? const Color(0xFF10B981)
+                          : hasError
+                              ? Colors.red.shade400
+                              : SigumiTheme.primaryBlue.withAlpha(150),
+                      size: 20,
+                    ),
+                    filled: false,
+                    border: InputBorder.none,
+                    enabledBorder: InputBorder.none,
+                    focusedBorder: InputBorder.none,
+                    disabledBorder: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                  ),
+                ),
+              ),
+              // Tombol Verifikasi
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: _isSendingOtp
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: SigumiTheme.primaryBlue,
+                        ),
+                      )
+                    : TextButton(
+                        onPressed:
+                            _isEmailVerified ? null : _sendAndVerifyEmail,
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          minimumSize: Size.zero,
+                          backgroundColor: _isEmailVerified
+                              ? const Color(0xFF10B981).withAlpha(20)
+                              : SigumiTheme.primaryBlue.withAlpha(15),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          _isEmailVerified ? 'Terverifikasi' : 'Verifikasi',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: _isEmailVerified
+                                ? const Color(0xFF10B981)
+                                : SigumiTheme.primaryBlue,
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+        if (hasError)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 6),
+            child: Row(
+              children: [
+                Icon(Icons.error_outline, size: 14, color: Colors.red.shade600),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    _emailError!,
+                    style: AppFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: Colors.red.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(duration: 200.ms).slideY(begin: -0.3, end: 0),
+      ],
     );
   }
 

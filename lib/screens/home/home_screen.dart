@@ -159,46 +159,23 @@ class _HomeScreenState extends State<HomeScreen> {
                       // Header
                       Container(
                         width: double.infinity,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(
-                          gradient:
-                              isHighContrast
-                                  ? null
-                                  : const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color(0xFFF0F4FF),
-                                      Color(0xFFE8EDFA),
-                                      Color(0xFFFFF8E8),
-                                    ],
-                                    stops: [0.0, 0.55, 1.0],
-                                  ),
-                          color: isHighContrast ? context.bgSurface : null,
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(28),
-                            bottomRight: Radius.circular(28),
-                          ),
-                          border:
-                              isHighContrast
-                                  ? Border.all(
-                                    color: context.borderColor,
-                                    width: context.borderWidth,
-                                  )
-                                  : null,
-                          boxShadow: context.cardShadow,
-                        ),
+                        clipBehavior:
+                            isHighContrast ? Clip.antiAlias : Clip.none,
+                        decoration: isHighContrast
+                            ? BoxDecoration(
+                                color: context.bgSurface,
+                                borderRadius: const BorderRadius.only(
+                                  bottomLeft: Radius.circular(28),
+                                  bottomRight: Radius.circular(28),
+                                ),
+                                border: Border.all(
+                                  color: context.borderColor,
+                                  width: context.borderWidth,
+                                ),
+                              )
+                            : null,
                         child: Stack(
                           children: [
-                            // ── Aksen biru-kuning transparan ─────────────
-                            if (!isHighContrast)
-                              Positioned.fill(
-                                child: const RepaintBoundary(
-                                  child: CustomPaint(
-                                    painter: HomeHeaderAmbientPainter(),
-                                  ),
-                                ),
-                              ),
                             // ── Konten header ───────────────────────────
                             Padding(
                               padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
@@ -225,8 +202,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         style: TextStyle(
                                           color: context.textTertiary,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400,
+                                          letterSpacing: -0.2,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
@@ -266,8 +244,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               context.tr('offline_active'),
                                               style: TextStyle(
                                                 color: context.warningColor,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                           ],
@@ -396,11 +374,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                                           style: const TextStyle(
                                                             fontFamily:
                                                                 'Plus Jakarta Sans',
-                                                            fontSize: 19,
+                                                            fontSize: 22,
                                                             fontWeight:
-                                                                FontWeight.w800,
+                                                                FontWeight.w700,
                                                             color: Colors.white,
                                                             letterSpacing: -0.5,
+                                                            height: 1.25,
                                                           ),
                                                           maxLines: 1,
                                                           overflow:
@@ -558,10 +537,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                       fontFamily:
                                                                           'Plus Jakarta Sans',
                                                                       fontSize:
-                                                                          11,
+                                                                          12,
                                                                       fontWeight:
                                                                           FontWeight
-                                                                              .w700,
+                                                                              .w600,
                                                                       color:
                                                                           Colors
                                                                               .white,
@@ -612,10 +591,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   style: TextStyle(
                                                                     fontFamily:
                                                                         'Plus Jakarta Sans',
-                                                                    fontSize: 10,
+                                                                    fontSize: 12,
                                                                     fontWeight:
                                                                         FontWeight
-                                                                            .w500,
+                                                                            .w400,
                                                                     color: Colors
                                                                         .white
                                                                         .withAlpha(
@@ -712,7 +691,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: _FeaturedMenuCard(
                                   icon: Icons.alt_route_rounded,
                                   label: context.tr('evacuation_point'),
-                                  subtitle: context.tr('evacuation_point_sub'),
                                   color: Colors.green,
                                   onTap:
                                       () => Navigator.pushNamed(
@@ -726,7 +704,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: _FeaturedMenuCard(
                                   icon: Icons.videocam_rounded,
                                   label: context.tr('cctv_monitoring'),
-                                  subtitle: context.tr('cctv_monitoring_sub'),
                                   color: Colors.teal,
                                   onTap:
                                       () => Navigator.pushNamed(
@@ -741,7 +718,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      // Row 2: 4 small cards (ukuran asli, desain baru)
+                      // Row 2: four compact cards keep the original size.
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: IntrinsicHeight(
@@ -752,7 +729,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: _ShadMenuCard(
                                   icon: Icons.school_rounded,
                                   label: context.tr('education'),
-                                  subtitle: context.tr('education_sub'),
                                   color: Colors.orange,
                                   onTap:
                                       () => Navigator.pushNamed(
@@ -766,7 +742,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: _ShadMenuCard(
                                   icon: Icons.local_hospital_rounded,
                                   label: context.tr('posko_faskes'),
-                                  subtitle: context.tr('posko_faskes_sub'),
                                   color: Colors.indigo,
                                   onTap:
                                       () => Navigator.pushNamed(
@@ -780,7 +755,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: _ShadMenuCard(
                                   icon: Icons.chat_rounded,
                                   label: context.tr('ask_sigumi'),
-                                  subtitle: context.tr('ask_sigumi_sub'),
                                   color: Colors.purple,
                                   onTap:
                                       () => Navigator.pushNamed(
@@ -794,7 +768,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: _ShadMenuCard(
                                   icon: Icons.phone_in_talk_rounded,
                                   label: context.tr('emergency_number'),
-                                  subtitle: context.tr('emergency_number_sub'),
                                   color: Colors.red,
                                   onTap:
                                       () => Navigator.pushNamed(
@@ -814,7 +787,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: _FullWidthMenuCard(
                           icon: Icons.accessibility_new_rounded,
                           label: context.tr('accessibility'),
-                          subtitle: context.tr('accessibility_sub'),
                           color: Colors.brown,
                           onTap:
                               () => Navigator.pushNamed(
@@ -994,8 +966,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 provider.distanceShort,
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                   color: Colors.white.withAlpha(220),
                   letterSpacing: 0,
                 ),
@@ -1005,8 +977,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 context.tr('from_summit'),
                 style: TextStyle(
                   fontFamily: 'Plus Jakarta Sans',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
                   color: Colors.white.withAlpha(150),
                 ),
               ),
@@ -1117,16 +1089,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       context.tr('your_location'),
                       style: TextStyle(
                         color: context.successColor,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   Text(
                     provider.selectedRegion,
                     style: TextStyle(
                       color: context.textPrimary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -1257,7 +1229,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             Text(
                               subtitle ?? ctx.tr('monitor_volcano'),
                               style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w400,
                                 color: SigumiTheme.textSecondary,
                               ),
                             ),
@@ -1332,7 +1305,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           regionName,
                                           style: TextStyle(
                                             fontSize: 16,
-                                            fontWeight: FontWeight.w700,
+                                            fontWeight: FontWeight.w600,
                                             color:
                                                 isSelected
                                                     ? color
@@ -1366,8 +1339,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 Text(
                                                   ctx.tr('your_location'),
                                                   style: TextStyle(
-                                                    fontSize: 9,
-                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w500,
                                                     color:
                                                         Colors.green.shade700,
                                                   ),
@@ -1424,14 +1397,12 @@ class _HomeScreenState extends State<HomeScreen> {
 class _ShadMenuCard extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String subtitle;
   final Color color;
   final VoidCallback onTap;
 
   const _ShadMenuCard({
     required this.icon,
     required this.label,
-    required this.subtitle,
     required this.color,
     required this.onTap,
   });
@@ -1510,43 +1481,25 @@ class _ShadMenuCard extends StatelessWidget {
                       label,
                       style: TextStyle(
                         fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                         color:
                             isHighContrast ? context.textPrimary : Colors.white,
                         height: 1.2,
+                        letterSpacing: -0.2,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 3),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 9,
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  isHighContrast
-                                      ? context.textSecondary
-                                      : Colors.white.withAlpha(170),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 10,
-                          color:
-                              isHighContrast
-                                  ? context.textSecondary
-                                  : Colors.white.withAlpha(170),
-                        ),
-                      ],
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 10,
+                        color:
+                            isHighContrast
+                                ? context.textSecondary
+                                : Colors.white.withAlpha(170),
+                      ),
                     ),
                   ],
                 ),
@@ -1565,14 +1518,12 @@ class _ShadMenuCard extends StatelessWidget {
 class _FeaturedMenuCard extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String subtitle;
   final Color color;
   final VoidCallback onTap;
 
   const _FeaturedMenuCard({
     required this.icon,
     required this.label,
-    required this.subtitle,
     required this.color,
     required this.onTap,
   });
@@ -1644,41 +1595,27 @@ class _FeaturedMenuCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontFamily: 'Plus Jakarta Sans',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color:
-                            isHighContrast ? context.textPrimary : Colors.white,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Expanded(
                           child: Text(
-                            subtitle,
+                            label,
                             style: TextStyle(
                               fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                               color:
                                   isHighContrast
-                                      ? context.textSecondary
-                                      : Colors.white.withAlpha(180),
+                                      ? context.textPrimary
+                                      : Colors.white,
+                              height: 1.2,
+                              letterSpacing: -0.2,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Icon(
                           Icons.arrow_forward_rounded,
-                          size: 13,
+                          size: 16,
                           color:
                               isHighContrast
                                   ? context.textSecondary
@@ -1839,8 +1776,8 @@ class _HikingSpotlightCard extends StatelessWidget {
                               child: Text(
                                 context.tr('hiking_tracking_section'),
                                 style: AppFonts.plusJakartaSans(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
                                   color: isHighContrast
                                       ? context.textPrimary
                                       : Colors.white,
@@ -1876,9 +1813,8 @@ class _HikingSpotlightCard extends StatelessWidget {
                                         tracking?.elapsed ?? Duration.zero,
                                       ),
                                       style: AppFonts.plusJakartaSans(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.5,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
                                         color: isHighContrast
                                             ? context.textPrimary
                                             : const Color(0xFFFF8A80),
@@ -1898,14 +1834,13 @@ class _HikingSpotlightCard extends StatelessWidget {
                                   ? 'Pantau rute & koordinat jalur secara realtime'
                                   : 'Khusus wilayah Gunung Rinjani (Lombok)'),
                           style: AppFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w400,
+                            height: 1.3,
                             color: isHighContrast
                                 ? context.textSecondary
                                 : Colors.white.withAlpha(190),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -2008,14 +1943,12 @@ class _PulseDotState extends State<_PulseDot>
 class _FullWidthMenuCard extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String subtitle;
   final Color color;
   final VoidCallback onTap;
 
   const _FullWidthMenuCard({
     required this.icon,
     required this.label,
-    required this.subtitle,
     required this.color,
     required this.onTap,
   });
@@ -2089,38 +2022,17 @@ class _FullWidthMenuCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 14),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            label,
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color:
-                                  isHighContrast
-                                      ? context.textPrimary
-                                      : Colors.white,
-                              height: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            subtitle,
-                            style: TextStyle(
-                              fontFamily: 'Plus Jakarta Sans',
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color:
-                                  isHighContrast
-                                      ? context.textSecondary
-                                      : Colors.white.withAlpha(180),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          fontFamily: 'Plus Jakarta Sans',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isHighContrast ? context.textPrimary : Colors.white,
+                          height: 1.2,
+                          letterSpacing: -0.2,
+                        ),
                       ),
                     ),
                     Icon(
@@ -2423,9 +2335,10 @@ class _TourismBannerCard extends StatelessWidget {
                   '${context.tr('explore_tourism')} $region',
                   style: AppFonts.plusJakartaSans(
                     color: isHighContrast ? context.textPrimary : Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.3,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                    height: 1.25,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -2437,10 +2350,10 @@ class _TourismBannerCard extends StatelessWidget {
                         ? context.textPrimary
                         : Colors.white.withAlpha(220),
                     fontSize: 13,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: -0.1,
+                    height: 1.3,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -2516,9 +2429,9 @@ class _HomeSectionHeader extends StatelessWidget {
               title,
               style: AppFonts.plusJakartaSans(
                 fontSize: 18,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
                 color: context.textPrimary,
-                letterSpacing: -0.4,
+                letterSpacing: -0.2,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

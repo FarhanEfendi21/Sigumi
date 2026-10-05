@@ -77,6 +77,26 @@ class SettingsScreen extends StatelessWidget {
 
                 const SizedBox(height: 32),
 
+                // ── 2. Section: Keamanan Akun ───────────────────────
+                _SectionHeader(label: context.tr('account_security')),
+                _GroupedList(
+                  children: [
+                    _ListRow(
+                      icon: CupertinoIcons.lock,
+                      iconBg: const Color(0xFFFF9500),
+                      title: context.tr('reset_password'),
+                      subtitle: context.tr('reset_password_subtitle'),
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.forgotPassword,
+                        arguments: {'fromProfile': true},
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 28),
+
                 // ── 2. Section: Preferensi Akun ────────────────────
                 _SectionHeader(label: context.tr('account_pref')),
                 _GroupedList(

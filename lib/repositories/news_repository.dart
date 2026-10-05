@@ -3,7 +3,10 @@ import '../models/news_model.dart';
 import '../utils/logger.dart';
 
 class NewsRepository {
-  final _supabase = Supabase.instance.client;
+  // Resolve the client when a request is made, not while NewsProvider is
+  // being constructed. Supabase initialization can be skipped when the app
+  // has no valid public configuration, and that must not crash the HomeScreen.
+  SupabaseClient get _supabase => Supabase.instance.client;
 
   /// Ambil 5 berita terbaru (filter by lokasi jika diberikan)
   Future<List<NewsModel>> getLatestNews({int limit = 5, String? lokasi}) async {

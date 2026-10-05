@@ -38,48 +38,6 @@ class AuthRepository {
   Stream<AuthState> get onAuthStateChange => _auth.onAuthStateChange;
 
   /// ──────────────────────────────────────────────
-  /// REGISTER — Nomor Telepon + Kata Sandi
-  /// ──────────────────────────────────────────────
-  ///
-  /// [phone] format: '+6281234567890' (sudah dinormalisasi)
-  /// [password] minimal 6 karakter
-  /// [fullName] nama lengkap untuk personalisasi
-  /// [dateOfBirth] tanggal lahir untuk personalisasi AI
-  ///
-  /// Internally: phone → email sintetis (6281234567890@sigumi.app)
-  Future<AuthResponse> register({
-    required String phone,
-    required String password,
-    required String fullName,
-    DateTime? dateOfBirth,
-  }) async {
-    try {
-      final syntheticEmail = _phoneToEmail(phone);
-
-      final response = await _auth.signUp(
-        email: syntheticEmail,
-        password: password,
-        data: {
-          'full_name': fullName,
-          'phone': phone,
-          'date_of_birth': dateOfBirth?.toIso8601String().split('T').first,
-        },
-      );
-      return response;
-    } on AuthException catch (e) {
-      throw AuthRepositoryException(
-        message: _translateAuthError(e.message),
-        originalError: e,
-      );
-    } catch (e) {
-      throw AuthRepositoryException(
-        message: 'Terjadi kesalahan saat mendaftar. Coba lagi.',
-        originalError: e,
-      );
-    }
-  }
-
-  /// ──────────────────────────────────────────────
   /// LOGIN — Nomor Telepon + Kata Sandi
   /// ──────────────────────────────────────────────
   /// Internally: phone → email sintetis, lalu signInWithPassword

@@ -61,9 +61,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final provider = context.read<VolcanoProvider>();
 
-    // Jika Supabase belum dikonfigurasi, gunakan mode demo
+    // Jangan pernah menyatakan login berhasil atau membuka Beranda tanpa
+    // autentikasi Supabase yang aktif.
     if (!SupabaseConfig.isConfigured) {
-      Navigator.pushReplacementNamed(context, AppRoutes.main);
+      _showError(
+        'Layanan login belum terhubung. Pasang versi aplikasi dengan konfigurasi Supabase yang benar, lalu coba lagi.',
+      );
       return;
     }
 
@@ -251,7 +254,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Align(
                                     alignment: Alignment.centerRight,
                                     child: TextButton(
-                                      onPressed: () {},
+                                      onPressed: () => Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.forgotPassword,
+                                        arguments: {'fromProfile': false},
+                                      ),
                                       style: TextButton.styleFrom(
                                         padding: EdgeInsets.zero,
                                         minimumSize: const Size(0, 32),
@@ -348,34 +355,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             .slideY(begin: 0.15, end: 0, duration: 600.ms),
 
                         const Spacer(flex: 1),
-
-                        // Supabase config warning (hanya tampil saat development)
-                        if (!SupabaseConfig.isConfigured)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.shade50,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.amber.shade200),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.info_outline, size: 16, color: Colors.amber.shade700),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    context.tr('loading'),
-                                    style: AppFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      color: Colors.amber.shade800,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ).animate().fadeIn(delay: 800.ms),
-                        
-                        if (!SupabaseConfig.isConfigured) const SizedBox(height: 12),
 
                         // Register link
                         Row(
