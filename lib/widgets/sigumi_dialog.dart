@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../config/fonts.dart';
 import '../config/theme.dart';
+import '../config/theme_extensions.dart';
 import '../services/localization_service.dart';
 
 enum SigumiDialogType { success, error, info }
@@ -50,7 +51,7 @@ class SigumiDialog extends StatelessWidget {
 
     switch (type) {
       case SigumiDialogType.success:
-        primaryColor = Colors.green.shade600;
+        primaryColor = context.adaptUiColor(Colors.green.shade600);
         icon = Icons.check_circle_outline_rounded;
         break;
       case SigumiDialogType.error:
@@ -115,7 +116,6 @@ class SigumiDialog extends StatelessWidget {
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
-              height: 48,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
@@ -125,15 +125,31 @@ class SigumiDialog extends StatelessWidget {
                   backgroundColor: primaryColor,
                   foregroundColor: Colors.white,
                   elevation: 0,
+                  minimumSize: const Size(0, 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: Text(
-                  buttonText ?? context.trText('Oke'),
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      buttonText ?? context.trText('Oke'),
+                      maxLines: 1,
+                      softWrap: false,
+                      textAlign: TextAlign.center,
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.1,
+                        height: 1.3,
+                      ),
+                    ),
                   ),
                 ),
               ),

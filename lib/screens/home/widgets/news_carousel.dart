@@ -4,6 +4,7 @@ import 'package:sigumi/config/fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../config/theme.dart';
 import '../../../config/routes.dart';
+import '../../../config/theme_extensions.dart';
 import '../../../models/news_item.dart';
 
 class NewsCarousel extends StatefulWidget {
@@ -34,16 +35,37 @@ class _NewsCarouselState extends State<NewsCarousel> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant NewsCarousel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.newsItems.length == widget.newsItems.length) return;
+
+    _timer?.cancel();
+    if (widget.newsItems.isEmpty) {
+      _currentPage = 0;
+      return;
+    }
+
+    _currentPage = _currentPage.clamp(0, widget.newsItems.length - 1).toInt();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(_currentPage);
+      }
+      _startAutoSlide();
+    });
+  }
+
   void _startAutoSlide() {
     _timer?.cancel();
+    if (!mounted || widget.newsItems.length < 2) return;
+
     _timer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (_currentPage < widget.newsItems.length - 1) {
-        _currentPage++;
-      } else {
-        _currentPage = 0;
-      }
-      _pageController.animateToPage(
-        _currentPage,
+      if (!_pageController.hasClients) return;
+      final currentPage = _pageController.page?.round() ?? _currentPage;
+      final nextPage = (currentPage + 1) % widget.newsItems.length;
+      _animateToPage(
+        nextPage,
         duration: const Duration(milliseconds: 600),
         curve: Curves.easeInOutCubic,
       );
@@ -51,42 +73,54 @@ class _NewsCarouselState extends State<NewsCarousel> {
   }
 
   void _onPageChanged(int index) {
-    setState(() {
-      _currentPage = index;
-    });
-    // Restart timer on manual swipe
+    if (_currentPage != index && mounted) {
+      setState(() => _currentPage = index);
+    }
     _startAutoSlide();
   }
 
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOutBack,
+  Future<void> _animateToPage(
+    int page, {
+    required Duration duration,
+    required Curve curve,
+    bool restartAutoSlide = false,
+  }) async {
+    if (!mounted ||
+        !_pageController.hasClients ||
+        widget.newsItems.length < 2) {
+      return;
+    }
+
+    try {
+      await _pageController.animateToPage(
+        page,
+        duration: duration,
+        curve: curve,
       );
-    } else {
-      _pageController.animateToPage(
-        widget.newsItems.length - 1,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeInOutCubic,
-      );
+    } finally {
+      if (restartAutoSlide && mounted) _startAutoSlide();
     }
   }
 
-  void _nextPage() {
-    if (_currentPage < widget.newsItems.length - 1) {
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOutBack,
-      );
-    } else {
-      _pageController.animateToPage(
-        0,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeInOutCubic,
-      );
-    }
+  void _navigateManually(int direction) {
+    final itemCount = widget.newsItems.length;
+    if (itemCount < 2 || !_pageController.hasClients) return;
+
+    _timer?.cancel();
+    final currentPage =
+        (_pageController.page ?? _currentPage.toDouble()).round();
+    final targetPage = (currentPage + direction + itemCount) % itemCount;
+    _animateToPage(
+      targetPage,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOutCubic,
+      restartAutoSlide: true,
+    );
   }
+
+  void _previousPage() => _navigateManually(-1);
+
+  void _nextPage() => _navigateManually(1);
 
   @override
   Widget build(BuildContext context) {
@@ -112,7 +146,7 @@ class _NewsCarouselState extends State<NewsCarousel> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 4),
+                  padding: const EdgeInsets.only(left: 8),
                   child: _ArrowButton(
                     icon: Icons.chevron_left_rounded,
                     onPressed: _previousPage,
@@ -124,7 +158,7 @@ class _NewsCarouselState extends State<NewsCarousel> {
               Align(
                 alignment: Alignment.centerRight,
                 child: Padding(
-                  padding: const EdgeInsets.only(right: 4),
+                  padding: const EdgeInsets.only(right: 8),
                   child: _ArrowButton(
                     icon: Icons.chevron_right_rounded,
                     onPressed: _nextPage,
@@ -242,14 +276,14 @@ class _NewsCard extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(news.categoryIcon, size: 12, color: news.categoryColor),
+                        Icon(news.categoryIcon, size: 12, color: context.adaptUiColor(news.categoryColor)),
                         const SizedBox(width: 4),
                         Text(
                           news.categoryLabel,
                           style: AppFonts.plusJakartaSans(
                             fontSize: 10,
                             fontWeight: FontWeight.w800,
-                            color: news.categoryColor,
+                            color: context.adaptUiColor(news.categoryColor),
                           ),
                         ),
                       ],
@@ -326,16 +360,20 @@ class _ArrowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.8),
-      shape: const CircleBorder(),
-      elevation: 4,
-      child: InkWell(
-        onTap: onPressed,
-        customBorder: const CircleBorder(),
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          child: Icon(icon, color: SigumiTheme.primaryBlue, size: 20),
+    return SizedBox(
+      width: 48,
+      height: 48,
+      child: IconButton(
+        onPressed: onPressed,
+        icon: Icon(icon),
+        iconSize: 20,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.tightFor(width: 48, height: 48),
+        style: IconButton.styleFrom(
+          foregroundColor: SigumiTheme.primaryBlue,
+          backgroundColor: Colors.white.withValues(alpha: 0.8),
+          elevation: 4,
+          shape: const CircleBorder(),
         ),
       ),
     );

@@ -133,8 +133,8 @@ class _MapScreenState extends State<MapScreen>
             ? SigumiTheme.hcStatusWaspada
             : Colors.orange.shade600
         : highContrast
-            ? SigumiTheme.hcStatusNormal
-            : Colors.green.shade600;
+            ? context.adaptUiColor(SigumiTheme.hcStatusNormal)
+            : context.adaptUiColor(Colors.green.shade600);
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -768,7 +768,7 @@ class _MapScreenState extends State<MapScreen>
                             value:
                                 '${volcano.latitude.toStringAsFixed(2)}°, '
                                 '${volcano.longitude.toStringAsFixed(2)}°',
-                            color: Colors.green,
+                            color: context.adaptUiColor(Colors.green),
                           ),
                         ),
                       ],
@@ -1155,9 +1155,9 @@ class _MapScreenState extends State<MapScreen>
                               point: volcanoPos,
                               radius: _kmToMeter(20),
                               useRadiusInMeter: true,
-                              color: SigumiTheme.statusNormal.withAlpha(20),
+                              color: context.adaptUiColor(SigumiTheme.statusNormal).withAlpha(20),
                               borderColor:
-                                  SigumiTheme.statusNormal.withAlpha(70),
+                                  context.adaptUiColor(SigumiTheme.statusNormal).withAlpha(70),
                               borderStrokeWidth: 1.5,
                             ),
                             CircleMarker(

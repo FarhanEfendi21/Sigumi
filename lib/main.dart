@@ -122,34 +122,45 @@ class _SigumiAppState extends State<SigumiApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<VolcanoProvider>(
-      builder: (context, provider, _) {
-        return ShadApp(
-          navigatorKey: globalNavigatorKey,
-          title: 'SIGUMI',
-          debugShowCheckedModeBanner: false,
-          materialThemeBuilder: (context, theme) {
-            return provider.highContrast
-                ? SigumiTheme.highContrastTheme
-                : SigumiTheme.lightTheme;
-          },
-          initialRoute: AppRoutes.splash,
-          routes: AppRoutes.routes,
-          builder: (context, child) {
-            return MediaQuery(
-              data: MediaQuery.of(
-                context,
-              ).copyWith(textScaler: TextScaler.linear(provider.fontSize)),
-              child: Stack(
-                textDirection: TextDirection.ltr,
-                children: [
-                  if (child != null) child,
-                  // Tampilkan overlay voice assistant secara global
-                  const Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: SigumiAssistantOverlay(),
-                  ),
-                ],
+    return ShadApp(
+      navigatorKey: globalNavigatorKey,
+      title: 'SIGUMI',
+      debugShowCheckedModeBanner: false,
+      // Pertahankan ThemeData Material internal agar AnimatedTheme milik
+      // ShadApp tidak menginterpolasi TextStyle saat mode kontras berubah.
+      // Tema preferensi dipasang langsung pada builder di bawah.
+      materialThemeBuilder: (context, _) => SigumiTheme.lightTheme,
+      initialRoute: AppRoutes.splash,
+      routes: AppRoutes.routes,
+      builder: (context, child) {
+        return Selector<
+          VolcanoProvider,
+          ({bool highContrast, double fontSize})
+        >(
+          selector: (_, provider) => (
+            highContrast: provider.highContrast,
+            fontSize: provider.fontSize,
+          ),
+          builder: (context, preferences, _) {
+            return Theme(
+              data: preferences.highContrast
+                  ? SigumiTheme.highContrastTheme
+                  : SigumiTheme.lightTheme,
+              child: MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.linear(preferences.fontSize),
+                ),
+                child: Stack(
+                  textDirection: TextDirection.ltr,
+                  children: [
+                    if (child != null) child,
+                    // Tampilkan overlay voice assistant secara global
+                    const Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: SigumiAssistantOverlay(),
+                    ),
+                  ],
+                ),
               ),
             );
           },

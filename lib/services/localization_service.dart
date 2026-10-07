@@ -5,12 +5,16 @@ import '../providers/volcano_provider.dart';
 /// Extension untuk akses terjemahan yang ringkas: context.tr('key')
 extension AppLocalizations on BuildContext {
   String tr(String key) {
-    final lang = select<VolcanoProvider, String>((provider) => provider.language);
+    final lang = select<VolcanoProvider, String>(
+      (provider) => provider.language,
+    );
     return LocalizationService.translate(key, lang);
   }
 
   String trText(String sourceText) {
-    final lang = select<VolcanoProvider, String>((provider) => provider.language);
+    final lang = select<VolcanoProvider, String>(
+      (provider) => provider.language,
+    );
     return LocalizationService.translateText(sourceText, lang);
   }
 
@@ -57,7 +61,8 @@ class LocalizationService {
       'activity_history_30_days': 'Riwayat Aktivitas 30 Hari',
       'view_observation_trends': 'Lihat catatan dan tren pengamatan harian',
       'activity_history': 'Riwayat Aktivitas',
-      'daily_activity_summary_30_days': 'Ringkasan aktivitas gunung harian (30 hari terakhir)',
+      'daily_activity_summary_30_days':
+          'Ringkasan aktivitas gunung harian (30 hari terakhir)',
       'loading_history': 'Memuat riwayat...',
       'no_activity_history': 'Belum ada data riwayat aktivitas',
       'elevation': 'Elevasi',
@@ -139,7 +144,7 @@ class LocalizationService {
       'latest_news_subtitle': 'Informasi resmi & aktivitas terkini',
       'find_destination': 'Temukan destinasi & agenda budaya menarik',
       'select_region': 'Pilih Daerah',
-      'monitor_volcano': 'Pantau gunung berapi aktif di daerah Anda',
+      'monitor_volcano': 'Pilih daerah untuk melihat kondisi gunung.',
       'from_summit': 'dari puncak',
       'your_location': 'Lokasi Anda',
 
@@ -165,8 +170,10 @@ class LocalizationService {
       'version': 'Versi 1.0.0',
       'logout_confirm_title': 'Keluar Akun',
       'logout_confirm_msg': 'Apakah kamu yakin ingin keluar dari akun SIGUMI?',
-      'about_desc': 'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMemberikan informasi terpercaya tentang aktivitas gunung berapi untuk mendukung keselamatan masyarakat.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
-      'language_note': 'Pengaturan bahasa akan diterapkan ke seluruh halaman aplikasi secara otomatis.',
+      'about_desc':
+          'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMemberikan informasi terpercaya tentang aktivitas gunung berapi untuk mendukung keselamatan masyarakat.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
+      'language_note':
+          'Pengaturan bahasa akan diterapkan ke seluruh halaman aplikasi secara otomatis.',
       'available_languages': 'BAHASA TERSEDIA',
       'choose_language': 'Pilih Bahasa',
 
@@ -179,15 +186,19 @@ class LocalizationService {
       'dob_ai_note': 'Untuk personalisasi AI informasi bencana',
       'register_btn': 'Daftar',
       'reg_success_title': 'Pendaftaran Berhasil',
-      'reg_success_msg': 'Akun Anda telah berhasil dibuat. Silakan masuk menggunakan nomor telepon dan kata sandi Anda.',
+      'reg_success_msg':
+          'Akun Anda telah berhasil dibuat. Silakan masuk menggunakan nomor telepon dan kata sandi Anda.',
       'login_now': 'Masuk Sekarang',
       'reg_fail_title': 'Pendaftaran Gagal',
       'login_fail_title': 'Gagal Masuk',
     },
     'en': {
-      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.': 'Report incidents in your area and help keep the community safe.',
-      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.': 'Ask Sigumi AI about disaster preparedness and response.',
-      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.': 'Manage your account, language preferences, and accessibility settings.',
+      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.':
+          'Report incidents in your area and help keep the community safe.',
+      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.':
+          'Ask Sigumi AI about disaster preparedness and response.',
+      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.':
+          'Manage your account, language preferences, and accessibility settings.',
       'Guguran Lava': 'Lava Avalanches',
       'Hujan Abu': 'Ashfall',
       'Lahar Dingin': 'Cold Lahar',
@@ -209,10 +220,14 @@ class LocalizationService {
       'Anak-Anak': 'Children',
       'Difabel': 'Accessibility',
       'Tracking Pendakian': 'Hiking Tracker',
-      'Anda Tidak Berada di\nWilayah Pendakian': 'You Are Outside the Hiking Area',
-      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.': 'Tracking is available when GPS detects you in the Mount Rinjani area, Lombok.',
-      'Masuk untuk Mulai\nTracking Pendakian': 'Sign In to Start\nHiking Tracking',
-      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.': 'Hiking tracking requires an account\nto save and monitor your route.',
+      'Anda Tidak Berada di\nWilayah Pendakian':
+          'You Are Outside the Hiking Area',
+      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.':
+          'Tracking is available when GPS detects you in the Mount Rinjani area, Lombok.',
+      'Masuk untuk Mulai\nTracking Pendakian':
+          'Sign In to Start\nHiking Tracking',
+      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.':
+          'Hiking tracking requires an account\nto save and monitor your route.',
       'Pusatkan ke Rinjani': 'Center on Rinjani',
       'Lokasi saya': 'My Location',
       'GUNUNG RINJANI · 3.726 MDPL': 'MOUNT RINJANI · 3,726 M AMSL',
@@ -221,7 +236,8 @@ class LocalizationService {
       'Menyelesaikan...': 'Finishing...',
       'Selesaikan Pendakian': 'Finish Hike',
       'Mulai Tracking': 'Start Tracking',
-      'Lokasi tersinkron ke Posko SAR selama tracking aktif.': 'Your location is shared with the SAR post while tracking is active.',
+      'Lokasi tersinkron ke Posko SAR selama tracking aktif.':
+          'Your location is shared with the SAR post while tracking is active.',
       'Tracking belum dapat dimulai.': 'Tracking could not be started.',
       'Tracking aktif': 'Tracking active',
       'GPS siap · Rinjani': 'GPS ready · Rinjani',
@@ -253,7 +269,8 @@ class LocalizationService {
       'activity_history_30_days': '30-Day Activity History',
       'view_observation_trends': 'View daily observation notes and trends',
       'activity_history': 'Activity History',
-      'daily_activity_summary_30_days': 'Daily volcano activity summary (last 30 days)',
+      'daily_activity_summary_30_days':
+          'Daily volcano activity summary (last 30 days)',
       'loading_history': 'Loading history...',
       'no_activity_history': 'No activity history available',
       'elevation': 'Elevation',
@@ -335,7 +352,7 @@ class LocalizationService {
       'latest_news_subtitle': 'Official updates & latest volcanic activity',
       'find_destination': 'Find destinations & cultural events',
       'select_region': 'Select Region',
-      'monitor_volcano': 'Monitor active volcanoes in your area',
+      'monitor_volcano': 'Choose an area to view volcano updates.',
       'from_summit': 'from summit',
       'your_location': 'Your Location',
 
@@ -361,29 +378,36 @@ class LocalizationService {
       'version': 'Version 1.0.0',
       'logout_confirm_title': 'Sign Out',
       'logout_confirm_msg': 'Are you sure you want to sign out of SIGUMI?',
-      'about_desc': 'Sigumi - Inclusive Volcano Information & Mitigation System\n\nProvides trusted information about volcanic activity to support community safety.\n\nDesigned by the Computer Engineering Capstone Team, Diponegoro University.\n\nVersion 1.0.0',
-      'language_note': 'Language settings will be applied to the entire application automatically.',
+      'about_desc':
+          'Sigumi - Inclusive Volcano Information & Mitigation System\n\nProvides trusted information about volcanic activity to support community safety.\n\nDesigned by the Computer Engineering Capstone Team, Diponegoro University.\n\nVersion 1.0.0',
+      'language_note':
+          'Language settings will be applied to the entire application automatically.',
       'available_languages': 'AVAILABLE LANGUAGES',
       'choose_language': 'Choose Language',
 
       // Register
       'register_title': 'Create Account',
-      'register_subtitle': 'Fill in your details for disaster info personalization',
+      'register_subtitle':
+          'Fill in your details for disaster info personalization',
       'date_of_birth': 'Date of Birth',
       'select': 'Select',
       'dob_hint': 'Select date of birth',
       'dob_ai_note': 'For AI personalization of disaster information',
       'register_btn': 'Register',
       'reg_success_title': 'Registration Successful',
-      'reg_success_msg': 'Your account has been created. Please sign in using your phone number and password.',
+      'reg_success_msg':
+          'Your account has been created. Please sign in using your phone number and password.',
       'login_now': 'Sign In Now',
       'reg_fail_title': 'Registration Failed',
       'login_fail_title': 'Sign In Failed',
     },
     'jv': {
-      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.': 'Laporna kedadeyan ing sakiwa-tengenmu lan tulung njaga keamanan bebarengan.',
-      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.': 'Takona babagan bencana marang asisten AI Sigumi.',
-      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.': 'Atur akun, pilihan basa, lan aksesibilitas sampeyan.',
+      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.':
+          'Laporna kedadeyan ing sakiwa-tengenmu lan tulung njaga keamanan bebarengan.',
+      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.':
+          'Takona babagan bencana marang asisten AI Sigumi.',
+      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.':
+          'Atur akun, pilihan basa, lan aksesibilitas sampeyan.',
       'Guguran Lava': 'Guguran Lava',
       'Hujan Abu': 'Udan Awu',
       'Lahar Dingin': 'Lahar Adhem',
@@ -404,16 +428,20 @@ class LocalizationService {
       'Umum': 'Umum',
       'Anak-Anak': 'Bocah-bocah',
       'Difabel': 'Pangguna Difabel',
-      'Akses laporan, AI, dan fitur lengkap': 'Mlebu kanggo ngakses laporan, AI, lan fitur lengkap',
-      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.': 'Sampeyan lagi njelajah SIGUMI minangka tamu tanpa akun.',
-      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.': 'Sampeyan arep nelpon kontak ing ngisor iki. Jelasna kahanan kanthi tenang.',
+      'Akses laporan, AI, dan fitur lengkap':
+          'Mlebu kanggo ngakses laporan, AI, lan fitur lengkap',
+      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.':
+          'Sampeyan lagi njelajah SIGUMI minangka tamu tanpa akun.',
+      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.':
+          'Sampeyan arep nelpon kontak ing ngisor iki. Jelasna kahanan kanthi tenang.',
       'Data nomor darurat belum tersedia.': 'Data nomer darurat durung ana.',
       'Daerah Pilihan': 'Wilayah Pilihan',
       'Deskripsi Laporan': 'Katrangan Laporan',
       'Durasi': 'Suwene',
       'Faskes': 'Fasilitas Kesehatan',
       'Foto Kondisi Saat Ini': 'Foto Kahanan Saiki',
-      'Foto langsung dari kamera untuk verifikasi': 'Foto langsung saka kamera kanggo verifikasi',
+      'Foto langsung dari kamera untuk verifikasi':
+          'Foto langsung saka kamera kanggo verifikasi',
       'Gagal membuka kamera:': 'Gagal mbukak kamera:',
       'Gagal mengirim laporan:': 'Gagal ngirim laporan:',
       'Gunung': 'Gunung',
@@ -430,23 +458,31 @@ class LocalizationService {
       'MCK': 'Toilet lan Kamar Adus',
       'Posko': 'Posko',
       'Pusatkan ke Rinjani': 'Pusatna menyang Rinjani',
-      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif': 'Sistem Informasi Gunung Api lan Mitigasi Inklusif',
-      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.': 'Matur nuwun wis nglaporake.\nLaporan sampeyan bakal diverifikasi.',
+      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif':
+          'Sistem Informasi Gunung Api lan Mitigasi Inklusif',
+      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.':
+          'Matur nuwun wis nglaporake.\nLaporan sampeyan bakal diverifikasi.',
       'Tracking belum dapat dimulai.': 'Pelacakan durung bisa diwiwiti.',
-      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.': 'Kanggo nggunakake input swara, Si Gumi mbutuhake akses mikropon.\n\nSwara sampeyan mung diproses kanggo ngenali prentah lan ora disimpen.',
+      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.':
+          'Kanggo nggunakake input swara, Si Gumi mbutuhake akses mikropon.\n\nSwara sampeyan mung diproses kanggo ngenali prentah lan ora disimpen.',
       'Wilayah Pilihan': 'Wilayah Pilihan',
       'Tracking Pendakian': 'Pelacakan Pendakian',
-      'Anda Tidak Berada di\nWilayah Pendakian': 'Sampeyan Ora Ana ing\nWilayah Pendakian',
-      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.': 'Fitur pelacakan aktif nalika GPS ndeteksi sampeyan ana ing dhaerah Gunung Rinjani, Lombok.',
-      'Masuk untuk Mulai\nTracking Pendakian': 'Mlebu kanggo Miwiti\nPelacakan Pendakian',
-      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.': 'Pelacakan pendakian mbutuhake akun kanggo nyimpen lan ngawasi dalan sampeyan.',
+      'Anda Tidak Berada di\nWilayah Pendakian':
+          'Sampeyan Ora Ana ing\nWilayah Pendakian',
+      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.':
+          'Fitur pelacakan aktif nalika GPS ndeteksi sampeyan ana ing dhaerah Gunung Rinjani, Lombok.',
+      'Masuk untuk Mulai\nTracking Pendakian':
+          'Mlebu kanggo Miwiti\nPelacakan Pendakian',
+      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.':
+          'Pelacakan pendakian mbutuhake akun kanggo nyimpen lan ngawasi dalan sampeyan.',
       'Lokasi saya': 'Papan Kula',
       'Jalur Sembalun': 'Dalan Sembalun',
       'Menyiapkan GPS...': 'Nyiyapake GPS...',
       'Menyelesaikan...': 'Ngrampungake...',
       'Selesaikan Pendakian': 'Rampungna Pendakian',
       'Mulai Tracking': 'Miwiti Pelacakan',
-      'Lokasi tersinkron ke Posko SAR selama tracking aktif.': 'Papan sampeyan disinkronake karo Posko SAR nalika pelacakan aktif.',
+      'Lokasi tersinkron ke Posko SAR selama tracking aktif.':
+          'Papan sampeyan disinkronake karo Posko SAR nalika pelacakan aktif.',
       'Tracking aktif': 'Pelacakan aktif',
       'GPS siap · Rinjani': 'GPS siap · Rinjani',
       'Menunggu GPS...': 'Ngenteni GPS...',
@@ -526,7 +562,7 @@ class LocalizationService {
       'latest_news_subtitle': 'Informasi resmi & aktivitas paling anyar',
       'find_destination': 'Golek papan wisata & agenda budaya',
       'select_region': 'Pilih Daerah',
-      'monitor_volcano': 'Pantau gunung berapi aktif ing daerahmu',
+      'monitor_volcano': 'Pilih daerah kanggo ndeleng kondisi gunung.',
       'from_summit': 'saka puncak',
       'your_location': 'Lokasi Sampeyan',
 
@@ -552,8 +588,10 @@ class LocalizationService {
       'version': 'Versi 1.0.0',
       'logout_confirm_title': 'Metu Akun',
       'logout_confirm_msg': 'Apa sampeyan yakin arep metu saka akun SIGUMI?',
-      'about_desc': 'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMenehi informasi sing dipercaya babagan aktivitas gunung berapi.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
-      'language_note': 'Pangaturan basa bakal diterapake ing kabeh kaca aplikasi.',
+      'about_desc':
+          'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMenehi informasi sing dipercaya babagan aktivitas gunung berapi.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
+      'language_note':
+          'Pangaturan basa bakal diterapake ing kabeh kaca aplikasi.',
       'available_languages': 'BASA KANG KASEDHIYA',
       'choose_language': 'Pilih Basa',
 
@@ -566,15 +604,19 @@ class LocalizationService {
       'dob_ai_note': 'Kanggo personalisasi AI informasi bencana',
       'register_btn': 'Daftar',
       'reg_success_title': 'Pendaftaran Kasil',
-      'reg_success_msg': 'Akun sampeyan wis kasil digawe. Mangga mlebu nggunakake nomer telpon lan sandi.',
+      'reg_success_msg':
+          'Akun sampeyan wis kasil digawe. Mangga mlebu nggunakake nomer telpon lan sandi.',
       'login_now': 'Mlebu Saiki',
       'reg_fail_title': 'Pendaftaran Gagal',
       'login_fail_title': 'Gagal Mlebu',
     },
     'ba': {
-      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.': 'Laporang kedadeyan ring wewidangan ragane mangda komunitas tetep aman.',
-      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.': 'Takon indik bencana sareng asisten AI Sigumi.',
-      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.': 'Atur akun, pilihan basa, miwah aksesibilitas ragane.',
+      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.':
+          'Laporang kedadeyan ring wewidangan ragane mangda komunitas tetep aman.',
+      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.':
+          'Takon indik bencana sareng asisten AI Sigumi.',
+      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.':
+          'Atur akun, pilihan basa, miwah aksesibilitas ragane.',
       'Guguran Lava': 'Guguran Lava',
       'Hujan Abu': 'Hujan Abu',
       'Lahar Dingin': 'Lahar Dingin',
@@ -595,16 +637,20 @@ class LocalizationService {
       'Umum': 'Umum',
       'Anak-Anak': 'Rare',
       'Difabel': 'Pangguna Difabel',
-      'Akses laporan, AI, dan fitur lengkap': 'Mlebet mangda ngaksés laporan, AI, miwah fitur lengkap',
-      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.': 'Ragane sedeng ngajelajah SIGUMI pinaka tamu tanpa akun.',
-      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.': 'Ragane jagi nelepon kontak ring sor puniki. Jelasang kaadaan antuk tenang.',
+      'Akses laporan, AI, dan fitur lengkap':
+          'Mlebet mangda ngaksés laporan, AI, miwah fitur lengkap',
+      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.':
+          'Ragane sedeng ngajelajah SIGUMI pinaka tamu tanpa akun.',
+      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.':
+          'Ragane jagi nelepon kontak ring sor puniki. Jelasang kaadaan antuk tenang.',
       'Data nomor darurat belum tersedia.': 'Data nomer darurat durung wenten.',
       'Daerah Pilihan': 'Wewidangan Kapilih',
       'Deskripsi Laporan': 'Pawarah Laporan',
       'Durasi': 'Durasi',
       'Faskes': 'Fasilitas Kesehatan',
       'Foto Kondisi Saat Ini': 'Foto Kaadaan Mangkin',
-      'Foto langsung dari kamera untuk verifikasi': 'Foto langsung saking kamera antuk verifikasi',
+      'Foto langsung dari kamera untuk verifikasi':
+          'Foto langsung saking kamera antuk verifikasi',
       'Gagal membuka kamera:': 'Gagal ngaba kamera:',
       'Gagal mengirim laporan:': 'Gagal ngirim laporan:',
       'Gunung': 'Gunung',
@@ -621,22 +667,30 @@ class LocalizationService {
       'MCK': 'Toilet miwah Kamar Mandi',
       'Posko': 'Posko',
       'Pusatkan ke Rinjani': 'Pusatang ka Rinjani',
-      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif': 'Sistem Informasi Gunung Api miwah Mitigasi Inklusif',
-      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.': 'Matur suksma sampun nglapor.\nLaporan ragane jagi kami verifikasi.',
+      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif':
+          'Sistem Informasi Gunung Api miwah Mitigasi Inklusif',
+      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.':
+          'Matur suksma sampun nglapor.\nLaporan ragane jagi kami verifikasi.',
       'Tracking belum dapat dimulai.': 'Pelacakan durung prasida kawitin.',
-      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.': 'Mangda nganggen input swara, Si Gumi perlu akses mikropon.\n\nSwara ragane wantah kaproses antuk ngenalin parentah tur nenten kaarsipang.',
+      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.':
+          'Mangda nganggen input swara, Si Gumi perlu akses mikropon.\n\nSwara ragane wantah kaproses antuk ngenalin parentah tur nenten kaarsipang.',
       'Tracking Pendakian': 'Pelacakan Pendakian',
-      'Anda Tidak Berada di\nWilayah Pendakian': 'Ragane Nenten Wenten ring\nWilayah Pendakian',
-      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.': 'Fitur pelacakan aktif yening GPS manggihin ragane ring wewidangan Gunung Rinjani, Lombok.',
-      'Masuk untuk Mulai\nTracking Pendakian': 'Mlebet mangda Ngawitin\nPelacakan Pendakian',
-      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.': 'Pelacakan pendakian mrelukeun akun mangda nyimpen miwah ngawasin rute ragane.',
+      'Anda Tidak Berada di\nWilayah Pendakian':
+          'Ragane Nenten Wenten ring\nWilayah Pendakian',
+      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.':
+          'Fitur pelacakan aktif yening GPS manggihin ragane ring wewidangan Gunung Rinjani, Lombok.',
+      'Masuk untuk Mulai\nTracking Pendakian':
+          'Mlebet mangda Ngawitin\nPelacakan Pendakian',
+      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.':
+          'Pelacakan pendakian mrelukeun akun mangda nyimpen miwah ngawasin rute ragane.',
       'Lokasi saya': 'Genah Tiang',
       'Jalur Sembalun': 'Rute Sembalun',
       'Menyiapkan GPS...': 'Nyiapang GPS...',
       'Menyelesaikan...': 'Ngawentenang...',
       'Selesaikan Pendakian': 'Pungkasin Pendakian',
       'Mulai Tracking': 'Ngawitin Pelacakan',
-      'Lokasi tersinkron ke Posko SAR selama tracking aktif.': 'Genah ragane kasinkronang sareng Posko SAR salami pelacakan aktif.',
+      'Lokasi tersinkron ke Posko SAR selama tracking aktif.':
+          'Genah ragane kasinkronang sareng Posko SAR salami pelacakan aktif.',
       'Tracking aktif': 'Pelacakan aktif',
       'GPS siap · Rinjani': 'GPS siap · Rinjani',
       'Menunggu GPS...': 'Nantos GPS...',
@@ -717,7 +771,7 @@ class LocalizationService {
       'latest_news_subtitle': 'Informasi resmi & aktivitas anyar',
       'find_destination': 'Golek destinasi & agenda budaya',
       'select_region': 'Pilih Daerah',
-      'monitor_volcano': 'Pantau gunung berapi aktif ring daerah',
+      'monitor_volcano': 'Pilih daerah untuk melihat kondisi gunung.',
       'from_summit': 'saking puncak',
       'your_location': 'Lokasi Sami',
 
@@ -743,8 +797,10 @@ class LocalizationService {
       'version': 'Versi 1.0.0',
       'logout_confirm_title': 'Medal Akun',
       'logout_confirm_msg': 'Apa iraq yakin arep medal saking akun SIGUMI?',
-      'about_desc': 'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMenehi informasi babagan aktivitas gunung berapi.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
-      'language_note': 'Pengaturan basa lakar diterapang ring kabeh kaca aplikasi.',
+      'about_desc':
+          'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMenehi informasi babagan aktivitas gunung berapi.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
+      'language_note':
+          'Pengaturan basa lakar diterapang ring kabeh kaca aplikasi.',
       'available_languages': 'BASA KANG TERSEDIA',
       'choose_language': 'Pilih Basa',
 
@@ -757,15 +813,19 @@ class LocalizationService {
       'dob_ai_note': 'Kanggo personalisasi AI informasi bencana',
       'register_btn': 'Daftar',
       'reg_success_title': 'Pendaftaran Kasil',
-      'reg_success_msg': 'Akun sampun kasil digawe. Mangga marak nggunakang nomer telpon lan sandi.',
+      'reg_success_msg':
+          'Akun sampun kasil digawe. Mangga marak nggunakang nomer telpon lan sandi.',
       'login_now': 'Marak Saiki',
       'reg_fail_title': 'Pendaftaran Gagal',
       'login_fail_title': 'Gagal Marak',
     },
     'sa': {
-      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.': 'Laporang kejadian leq daerah side le komunitas tetep aman.',
-      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.': 'Betakon soal bencana le asisten AI Sigumi.',
-      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.': 'Atur akun, pilihan bahasa, le aksesibilitas side.',
+      'Laporkan kejadian di sekitar Anda dan bantu komunitas tetap aman.':
+          'Laporang kejadian leq daerah side le komunitas tetep aman.',
+      'Tanya jawab seputar kebencanaan dengan asisten AI Sigumi.':
+          'Betakon soal bencana le asisten AI Sigumi.',
+      'Kelola akun, preferensi bahasa, dan aksesibilitas Anda.':
+          'Atur akun, pilihan bahasa, le aksesibilitas side.',
       'Guguran Lava': 'Guguran Lava',
       'Hujan Abu': 'Hujan Abu',
       'Lahar Dingin': 'Lahar Dingin',
@@ -786,16 +846,20 @@ class LocalizationService {
       'Umum': 'Umum',
       'Anak-Anak': 'Anak-anak',
       'Difabel': 'Pangguna Difabel',
-      'Akses laporan, AI, dan fitur lengkap': 'Masuk kanggo ngakses laporan, AI, le fitur lengkap',
-      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.': 'Side sedang ngajelajah SIGUMI sebagai tamu ndek ara akun.',
-      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.': 'Side mau telepon kontak leq bawah ini. Jelasang keadaan dengan tenang.',
+      'Akses laporan, AI, dan fitur lengkap':
+          'Masuk kanggo ngakses laporan, AI, le fitur lengkap',
+      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.':
+          'Side sedang ngajelajah SIGUMI sebagai tamu ndek ara akun.',
+      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.':
+          'Side mau telepon kontak leq bawah ini. Jelasang keadaan dengan tenang.',
       'Data nomor darurat belum tersedia.': 'Data nomer darurat ndek ara.',
       'Daerah Pilihan': 'Daerah Pilihan',
       'Deskripsi Laporan': 'Deskripsi Laporan',
       'Durasi': 'Durasi',
       'Faskes': 'Fasilitas Kesehatan',
       'Foto Kondisi Saat Ini': 'Foto Keadaan Sak Niki',
-      'Foto langsung dari kamera untuk verifikasi': 'Foto langsung leq kamera kanggo verifikasi',
+      'Foto langsung dari kamera untuk verifikasi':
+          'Foto langsung leq kamera kanggo verifikasi',
       'Gagal membuka kamera:': 'Gagal buka kamera:',
       'Gagal mengirim laporan:': 'Gagal ngirim laporan:',
       'Gunung': 'Gunung',
@@ -812,22 +876,30 @@ class LocalizationService {
       'MCK': 'Toilet le Kamar Mandi',
       'Posko': 'Posko',
       'Pusatkan ke Rinjani': 'Pusatang leq Rinjani',
-      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif': 'Sistem Informasi Gunung Api le Mitigasi Inklusif',
-      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.': 'Matur tampiasih wah ngelaporang.\nLaporan side akan kami verifikasi.',
+      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif':
+          'Sistem Informasi Gunung Api le Mitigasi Inklusif',
+      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.':
+          'Matur tampiasih wah ngelaporang.\nLaporan side akan kami verifikasi.',
       'Tracking belum dapat dimulai.': 'Pelacakan ndek bau mulai.',
-      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.': 'Kanggo nganggon input suara, Si Gumi perlu akses mikrofon.\n\nSuara side cuma diproses kanggo ngenal perintah le ndek disimpan.',
+      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda.\n\nSuara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.':
+          'Kanggo nganggon input suara, Si Gumi perlu akses mikrofon.\n\nSuara side cuma diproses kanggo ngenal perintah le ndek disimpan.',
       'Tracking Pendakian': 'Pelacakan Pendakian',
-      'Anda Tidak Berada di\nWilayah Pendakian': 'Side Ndek Ara leq\nWilayah Pendakian',
-      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.': 'Fitur pelacakan aktif leq saat GPS ngenal side leq daerah Gunung Rinjani, Lombok.',
-      'Masuk untuk Mulai\nTracking Pendakian': 'Masuk kanggo Mulai\nPelacakan Pendakian',
-      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.': 'Pelacakan pendakian perlu akun kanggo nyimpen le ngawasi jalur side.',
+      'Anda Tidak Berada di\nWilayah Pendakian':
+          'Side Ndek Ara leq\nWilayah Pendakian',
+      'Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.':
+          'Fitur pelacakan aktif leq saat GPS ngenal side leq daerah Gunung Rinjani, Lombok.',
+      'Masuk untuk Mulai\nTracking Pendakian':
+          'Masuk kanggo Mulai\nPelacakan Pendakian',
+      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.':
+          'Pelacakan pendakian perlu akun kanggo nyimpen le ngawasi jalur side.',
       'Lokasi saya': 'Lokasi side',
       'Jalur Sembalun': 'Jalur Sembalun',
       'Menyiapkan GPS...': 'Nyiapang GPS...',
       'Menyelesaikan...': 'Nuntasin...',
       'Selesaikan Pendakian': 'Tuntasin Pendakian',
       'Mulai Tracking': 'Mulai Pelacakan',
-      'Lokasi tersinkron ke Posko SAR selama tracking aktif.': 'Lokasi side kesinkron leq Posko SAR selama pelacakan aktif.',
+      'Lokasi tersinkron ke Posko SAR selama tracking aktif.':
+          'Lokasi side kesinkron leq Posko SAR selama pelacakan aktif.',
       'Tracking aktif': 'Pelacakan aktif',
       'GPS siap · Rinjani': 'GPS siap · Rinjani',
       'Menunggu GPS...': 'Nunggu GPS...',
@@ -908,7 +980,7 @@ class LocalizationService {
       'latest_news_subtitle': 'Informasi resmi & aktivitas paling anyar',
       'find_destination': 'Golek destinasi & agenda budaya',
       'select_region': 'Pilih Daerah',
-      'monitor_volcano': 'Pantau gunung berapi aktif leq daerah side',
+      'monitor_volcano': 'Pilih daerah kanggo ndeleng kondisi gunung.',
       'from_summit': 'saking puncak',
       'your_location': 'Lokasi Side',
 
@@ -934,8 +1006,10 @@ class LocalizationService {
       'version': 'Versi 1.0.0',
       'logout_confirm_title': 'Medal Akun',
       'logout_confirm_msg': 'Ape side yakin mele medal leq akun SIGUMI?',
-      'about_desc': 'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMenehi informasi babagan aktivitas gunung berapi.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
-      'language_note': 'Pengaturan basa lakar diterapang leq semua halaman aplikasi.',
+      'about_desc':
+          'Sigumi - Sistem Informasi Gunung Berapi Mitigasi Inklusif\n\nMenehi informasi babagan aktivitas gunung berapi.\n\nDirancang oleh Tim Capstone Teknik Komputer Universitas Diponegoro.\n\nVersi 1.0.0',
+      'language_note':
+          'Pengaturan basa lakar diterapang leq semua halaman aplikasi.',
       'available_languages': 'BASA KANG TERSEDIA',
       'choose_language': 'Pilih Basa',
 
@@ -948,13 +1022,13 @@ class LocalizationService {
       'dob_ai_note': 'Untuk personalisasi AI informasi bencana',
       'register_btn': 'Daftar',
       'reg_success_title': 'Pendaftaran Kasil',
-      'reg_success_msg': 'Akun side sampun kasil digawe. Mangga marak nggunakang nomer telpon lan sandi.',
+      'reg_success_msg':
+          'Akun side sampun kasil digawe. Mangga marak nggunakang nomer telpon lan sandi.',
       'login_now': 'Marak Saiki',
       'reg_fail_title': 'Pendaftaran Gagal',
       'login_fail_title': 'Gagal Marak',
     },
   };
-
 
   static const Map<String, Map<String, String>> _additionalTranslations = {
     'id': {
@@ -1121,9 +1195,11 @@ class LocalizationService {
       'no_recent_summary': 'Durung ana ringkesan paling anyar',
       'history': 'Riwayat',
       'activity_history_30_days': 'Riwayat Aktivitas 30 Dina',
-      'view_observation_trends': 'Deleng cathetan lan tren pengamatan saben dina',
+      'view_observation_trends':
+          'Deleng cathetan lan tren pengamatan saben dina',
       'activity_history': 'Riwayat Aktivitas',
-      'daily_activity_summary_30_days': 'Ringkesan aktivitas gunung saben dina (30 dina pungkasan)',
+      'daily_activity_summary_30_days':
+          'Ringkesan aktivitas gunung saben dina (30 dina pungkasan)',
       'loading_history': 'Ngemot riwayat...',
       'no_activity_history': 'Durung ana riwayat aktivitas',
       'elevation': 'Dhuwuré',
@@ -1199,8 +1275,10 @@ class LocalizationService {
       'people': 'tiang',
       'call': 'Telepon',
       'refresh_nearest': 'Anyarin genah paling nampek',
-      'no_results_for_filter': 'Nenten wenten {category} ring wewidangan puniki.',
-      'no_evacuation_points': 'Nenten wenten titik evakuasi ring wewidangan puniki.',
+      'no_results_for_filter':
+          'Nenten wenten {category} ring wewidangan puniki.',
+      'no_evacuation_points':
+          'Nenten wenten titik evakuasi ring wewidangan puniki.',
       'weather': 'Cuaca',
       'wind_speed': 'Kacepetan Angin',
       'temperature': 'Suhu',
@@ -1213,9 +1291,11 @@ class LocalizationService {
       'no_recent_summary': 'Durung wenten ringkesan anyar',
       'history': 'Riwayat',
       'activity_history_30_days': 'Riwayat Aktivitas 30 Rahina',
-      'view_observation_trends': 'Tingalin catetan miwah tren pangamatan rahina',
+      'view_observation_trends':
+          'Tingalin catetan miwah tren pangamatan rahina',
       'activity_history': 'Riwayat Aktivitas',
-      'daily_activity_summary_30_days': 'Ringkesan aktivitas gunung saben rahina (30 rahina pungkasan)',
+      'daily_activity_summary_30_days':
+          'Ringkesan aktivitas gunung saben rahina (30 rahina pungkasan)',
       'loading_history': 'Ngemuat riwayat...',
       'no_activity_history': 'Durung wenten riwayat aktivitas',
       'elevation': 'Elevasi',
@@ -1257,7 +1337,8 @@ class LocalizationService {
       'crater_temp': 'Suhu Kawah',
       'wind_direction': 'Arah Angin',
       'activity_report': 'Laporan Aktivitas',
-      'no_facility_desc': 'Nenten wenten fasilitas antuk kategori puniki mangkin.',
+      'no_facility_desc':
+          'Nenten wenten fasilitas antuk kategori puniki mangkin.',
       'open_maps': 'Buka ring Peta',
       'see_all': 'Tingalin Sami',
       'open_map': 'Buka Peta',
@@ -1274,7 +1355,8 @@ class LocalizationService {
       'entry_ticket': 'Tiket Lebet',
       'select_incident': 'Pilih Jinah Kedadeyan',
       'help_verification': 'Bantu tim verifikasi laporan',
-      'tell_incident_detail': 'Ceritayang detail kejadian kanthi cingak miwah jelas',
+      'tell_incident_detail':
+          'Ceritayang detail kejadian kanthi cingak miwah jelas',
       'tourism_destination': 'Genah Wisata',
       'login_failed': 'Ten dados mlebet. Cek nomor telepon miwah sandi.',
       'finish_tracking': 'Pungkasin Pelacakan',
@@ -1305,9 +1387,11 @@ class LocalizationService {
       'no_recent_summary': 'Ndek ara ringkasan anyar',
       'history': 'Riwayat',
       'activity_history_30_days': 'Riwayat Aktivitas 30 Hari',
-      'view_observation_trends': 'Tingalin catatan le tren pengamatan saban hari',
+      'view_observation_trends':
+          'Tingalin catatan le tren pengamatan saban hari',
       'activity_history': 'Riwayat Aktivitas',
-      'daily_activity_summary_30_days': 'Ringkasan aktivitas gunung saban hari (30 hari terakhir)',
+      'daily_activity_summary_30_days':
+          'Ringkasan aktivitas gunung saban hari (30 hari terakhir)',
       'loading_history': 'Muatan riwayat...',
       'no_activity_history': 'Ndek ara riwayat aktivitas',
       'elevation': 'Ketinggian',
@@ -1381,7 +1465,9 @@ class LocalizationService {
 
     if (!translations.containsKey(lang)) {
       // Fallback ke Indonesian jika bahasa tidak tersedia
-      return translations['id']?[key] ?? _additionalTranslations['id']?[key] ?? key;
+      return translations['id']?[key] ??
+          _additionalTranslations['id']?[key] ??
+          key;
     }
 
     return translations[lang]?[key] ??
@@ -1394,7 +1480,8 @@ class LocalizationService {
     final lang = language.toLowerCase();
     if (lang == 'id') return sourceText;
 
-    final directTranslation = translations[lang]?[sourceText] ??
+    final directTranslation =
+        translations[lang]?[sourceText] ??
         _additionalTranslations[lang]?[sourceText];
     if (directTranslation != null) return directTranslation;
 
@@ -1424,25 +1511,31 @@ class LocalizationService {
     'en': {
       'Agenda Mendatang': 'Upcoming Events',
       'Akses Mikrofon Ditolak': 'Microphone Access Denied',
-      'Akses laporan, AI, dan fitur lengkap': 'Sign in for reports, AI, and all features',
+      'Akses laporan, AI, dan fitur lengkap':
+          'Sign in for reports, AI, and all features',
       'Aktif': 'Active',
       'Alamat': 'Address',
       'Ambil foto dari kamera': 'Take a photo with the camera',
       'Anda': 'You',
-      'Anda Tidak Berada di Wilayah Pendakian': 'You Are Outside the Hiking Area',
-      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.': 'You are about to place a regular phone call to the contact below. Please explain your situation calmly.',
-      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.': 'You are exploring SIGUMI as a guest without an account.',
+      'Anda Tidak Berada di Wilayah Pendakian':
+          'You Are Outside the Hiking Area',
+      'Anda akan membuat panggilan telepon biasa menuju kontak di bawah ini. Pastikan untuk menjelaskan situasi Anda dengan tenang.':
+          'You are about to place a regular phone call to the contact below. Please explain your situation calmly.',
+      'Anda sedang menjelajahi SIGUMI sebagai tamu tanpa akun.':
+          'You are exploring SIGUMI as a guest without an account.',
       'Bagikan Berita': 'Share News',
       'Belum ada agenda mendatang': 'No upcoming events',
       'Belum ada data ringkasan aktivitas': 'No activity summary available',
       'Belum ada data ringkasan terbaru': 'No recent summaries available',
       'Belum ada data riwayat aktivitas': 'No activity history available',
       'Belum ada destinasi': 'No destinations available',
-      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.': 'No CCTV system is available. See the details below.',
+      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.':
+          'No CCTV system is available. See the details below.',
       'Buka di Google Maps': 'Open in Google Maps',
       'CCTV Tidak Tersedia': 'CCTV Unavailable',
       'Coba pilih kategori lain': 'Try another category',
-      'Data nomor darurat belum tersedia.': 'Emergency contact data is not available.',
+      'Data nomor darurat belum tersedia.':
+          'Emergency contact data is not available.',
       'Dengan akun, Anda bisa:': 'With an account, you can:',
       'Dengarkan': 'Listen',
       'Detail': 'Details',
@@ -1450,14 +1543,20 @@ class LocalizationService {
       'Dipantau Sigumi': 'Monitored by Sigumi',
       'Edukasi Bencana': 'Disaster Education',
       'FASILITAS': 'FACILITIES',
-      'Fitur tracking aktif saat GPS Anda terdeteksi di area Gunung Rinjani, Lombok.': 'Tracking is available when your GPS detects that you are in the Mount Rinjani area, Lombok.',
-      'Fitur tracking pendakian memerlukan akun untuk menyimpan dan memantau jalur Anda.': 'Hiking tracking requires an account to save and monitor your route.',
-      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.': 'Voice input requires microphone access. You can still type your questions. To enable the microphone, open Settings > App permissions.',
-      'Foto langsung dari kamera untuk verifikasi': 'Take a live camera photo for verification',
+      'Fitur tracking aktif saat GPS Anda terdeteksi di area Gunung Rinjani, Lombok.':
+          'Tracking is available when your GPS detects that you are in the Mount Rinjani area, Lombok.',
+      'Fitur tracking pendakian memerlukan akun untuk menyimpan dan memantau jalur Anda.':
+          'Hiking tracking requires an account to save and monitor your route.',
+      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.':
+          'Voice input requires microphone access. You can still type your questions. To enable the microphone, open Settings > App permissions.',
+      'Foto langsung dari kamera untuk verifikasi':
+          'Take a live camera photo for verification',
       'GUNUNG RINJANI · 3.726 MDPL': 'MOUNT RINJANI · 3,726 M AMSL',
       'Gagal memuat siaran': 'Unable to load the stream',
-      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.': 'This volcano is not currently monitored by Sigumi.',
-      'Harap selalu berhati-hati dan utamakan keselamatan Anda.': 'Please stay alert and put your safety first.',
+      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.':
+          'This volcano is not currently monitored by Sigumi.',
+      'Harap selalu berhati-hati dan utamakan keselamatan Anda.':
+          'Please stay alert and put your safety first.',
       'Hubungi Layanan?': 'Call this service?',
       'Informasi Terkini': 'Latest Information',
       'Izin Akses Mikrofon': 'Microphone Permission',
@@ -1467,9 +1566,11 @@ class LocalizationService {
       'Jarak ke gunung:': 'Distance to volcano:',
       'Jelajah': 'Explore',
       'Kategori Pilihan': 'Featured Categories',
-      'Kawasan Rawan Bencana berdasarkan jarak dari puncak': 'Hazard zones based on distance from the summit',
+      'Kawasan Rawan Bencana berdasarkan jarak dari puncak':
+          'Hazard zones based on distance from the summit',
       'Ketuk untuk batal': 'Tap to cancel',
-      'Ketuk untuk melihat pembagian zona kawasan rawan bencana': 'Tap to view the hazard zone breakdown',
+      'Ketuk untuk melihat pembagian zona kawasan rawan bencana':
+          'Tap to view the hazard zone breakdown',
       'Kirim Laporan': 'Submit Report',
       'LIVE': 'LIVE',
       'Lapor Kejadian': 'Report an Incident',
@@ -1477,12 +1578,15 @@ class LocalizationService {
       'Lewati': 'Skip',
       'Lihat Detail Lengkap': 'View Full Details',
       'Lihat Rute Evakuasi': 'View Evacuation Route',
-      'Lihat catatan dan tren pengamatan harian': 'View daily observation notes and trends',
+      'Lihat catatan dan tren pengamatan harian':
+          'View daily observation notes and trends',
       'Lokasi Terdekat': 'Nearest Location',
       'Lokasi Terpilih': 'Selected Location',
-      'Lokasi tersinkron ke Posko SAR selama tracking aktif.': 'Your location is shared with the SAR post while tracking is active.',
+      'Lokasi tersinkron ke Posko SAR selama tracking aktif.':
+          'Your location is shared with the SAR post while tracking is active.',
       'Masuk Akun': 'Sign In',
-      'Masuk untuk Mulai Tracking Pendakian': 'Sign In to Start Hiking Tracking',
+      'Masuk untuk Mulai Tracking Pendakian':
+          'Sign In to Start Hiking Tracking',
       'Matikan Alarm Getar': 'Turn Off Vibration Alert',
       'Memuat data ringkasan...': 'Loading summary...',
       'Memuat riwayat...': 'Loading history...',
@@ -1497,45 +1601,58 @@ class LocalizationService {
       'PANDUAN MATERI': 'LEARNING GUIDE',
       'Panggil': 'Call',
       'Pembagian Zona KRB': 'Hazard Zone Breakdown',
-      'Perangkat bergetar karena Anda terdeteksi berada dalam jarak kritis dari kawah aktif.': 'Your device is vibrating because you are within the critical distance of an active crater.',
+      'Perangkat bergetar karena Anda terdeteksi berada dalam jarak kritis dari kawah aktif.':
+          'Your device is vibrating because you are within the critical distance of an active crater.',
       'Periksa koneksi internet kamu': 'Check your internet connection',
       'Peringatan Getar': 'Vibration Alert',
       'Peringatan Penting': 'Important Warning',
-      'Pertunjukan, festival, & ritual budaya': 'Performances, festivals, and cultural rituals',
+      'Pertunjukan, festival, & ritual budaya':
+          'Performances, festivals, and cultural rituals',
       'Pesan Suara': 'Voice Message',
       'Pilih Lokasi Pemantauan': 'Choose a Monitoring Location',
-      'Pilih kategori dan isi deskripsi terlebih dahulu': 'Select a category and enter a description first',
-      'Pilih wilayah gunung api yang ingin dipantau': 'Choose the volcano region you want to monitor',
+      'Pilih kategori dan isi deskripsi terlebih dahulu':
+          'Select a category and enter a description first',
+      'Pilih wilayah gunung api yang ingin dipantau':
+          'Choose the volcano region you want to monitor',
       'Posko & Faskes Terdekat': 'Nearest Posts & Medical Facilities',
       'Posko & Layanan Kesehatan': 'Emergency Posts & Health Services',
-      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.': 'The SAR post will stop receiving your coordinates when this session ends.',
+      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.':
+          'The SAR post will stop receiving your coordinates when this session ends.',
       'Preview Status MAGMA': 'MAGMA Status Preview',
       'Radius Bahaya Puncak': 'Summit Danger Radius',
       'Refresh': 'Refresh',
       'Reset Riwayat Tracking': 'Reset Tracking History',
       'Reset Riwayat Tracking?': 'Reset Tracking History?',
-      'Ringkasan aktivitas gunung harian (30 hari terakhir)': 'Daily volcano activity summary (last 30 days)',
+      'Ringkasan aktivitas gunung harian (30 hari terakhir)':
+          'Daily volcano activity summary (last 30 days)',
       'Riwayat': 'History',
       'Riwayat Aktivitas': 'Activity History',
       'Riwayat Aktivitas 30 Hari': '30-Day Activity History',
       'Riwayat tracking berhasil di-reset.': 'Tracking history was reset.',
-      'SIGUMI dirancang inklusif untuk semua pengguna —': 'SIGUMI is designed to be inclusive for everyone —',
+      'SIGUMI dirancang inklusif untuk semua pengguna —':
+          'SIGUMI is designed to be inclusive for everyone —',
       'SIGUMI v1.0.0': 'SIGUMI v1.0.0',
       'SIGUMI · Aksesibilitas Inklusif': 'SIGUMI · Inclusive Accessibility',
       'Selesaikan': 'Finish',
-      'Sesuaikan warna status MAGMA agar mudah dibaca': 'Adjust MAGMA status colors for easier reading',
-      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.': 'CCTV streams are only available on Android, iOS, or macOS devices.',
-      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif': 'Volcano Information and Inclusive Mitigation System',
+      'Sesuaikan warna status MAGMA agar mudah dibaca':
+          'Adjust MAGMA status colors for easier reading',
+      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.':
+          'CCTV streams are only available on Android, iOS, or macOS devices.',
+      'Sistem Informasi Gunung Berapi\nMitigasi Inklusif':
+          'Volcano Information and Inclusive Mitigation System',
       'Status Zona': 'Zone Status',
-      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD': 'Data sources: MAGMA Indonesia, PVMBG, BPPTKG, and BPBD',
+      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD':
+          'Data sources: MAGMA Indonesia, PVMBG, BPPTKG, and BPBD',
       'Sumber: MAGMA Indonesia': 'Source: MAGMA Indonesia',
       'TERDEKAT': 'NEAREST',
       'Tahukah Kamu?': 'Did You Know?',
       'Tampilkan Semua': 'Show All',
       'Tanya Si Gumi': 'Ask Si Gumi',
       'Tentang Tempat Ini': 'About This Place',
-      'Terima kasih telah melaporkan. Laporan Anda akan kami verifikasi.': 'Thank you for your report. We will verify it.',
-      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda. Suara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.': 'Si Gumi needs microphone access for voice input. Your audio is only processed to recognize commands and is not stored.',
+      'Terima kasih telah melaporkan. Laporan Anda akan kami verifikasi.':
+          'Thank you for your report. We will verify it.',
+      'Untuk menggunakan fitur voice input, Si Gumi memerlukan akses ke mikrofon perangkat Anda. Suara Anda hanya diproses untuk mengenali perintah dan tidak disimpan.':
+          'Si Gumi needs microphone access for voice input. Your audio is only processed to recognize commands and is not stored.',
       'Ya, Reset': 'Yes, Reset',
       'ZONA BAHAYA ERUPSI': 'ERUPTION DANGER ZONE',
       'Mendengarkan...': 'Listening...',
@@ -1563,13 +1680,17 @@ class LocalizationService {
       'Nama lengkap harus diisi.': 'Full name is required.',
       'Nomor telepon harus diisi.': 'Phone number is required.',
       'Kata sandi harus diisi.': 'Password is required.',
-      'Kata sandi minimal 6 karakter.': 'Password must be at least 6 characters.',
+      'Kata sandi minimal 6 karakter.':
+          'Password must be at least 6 characters.',
       'Batal': 'Cancel',
       'Pilih': 'Select',
       'Kembali': 'Back',
-      'Laporan hanya dapat dikirim dari dalam radius': 'Reports can only be submitted from within',
-      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.': 'Tracking is active. Resetting will end the session and clear its duration, route, and distance.',
-      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.': 'All local tracking history, including duration, distance, and route coordinates, will be deleted.',
+      'Laporan hanya dapat dikirim dari dalam radius':
+          'Reports can only be submitted from within',
+      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.':
+          'Tracking is active. Resetting will end the session and clear its duration, route, and distance.',
+      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.':
+          'All local tracking history, including duration, distance, and route coordinates, will be deleted.',
       'Di Luar Radius Pelaporan': 'Outside the Reporting Radius',
       'dan Nasional.': 'and nationwide.',
       'Jarak Anda': 'Your distance',
@@ -1602,8 +1723,10 @@ class LocalizationService {
       'Lihat Layar Penuh': 'View Full Screen',
       'Ke Merapi': 'Go to Merapi',
       'Lokasi Saya': 'My Location',
-      'Gagal memuat data. Periksa koneksi internet Anda.': 'Could not load data. Check your internet connection.',
-      'Gagal memuat data. Periksa koneksi internet.': 'Could not load data. Check your internet connection.',
+      'Gagal memuat data. Periksa koneksi internet Anda.':
+          'Could not load data. Check your internet connection.',
+      'Gagal memuat data. Periksa koneksi internet.':
+          'Could not load data. Check your internet connection.',
       'Daerah Pilihan': 'Selected Area',
       'Faskes': 'Medical Facility',
       'Gagal mengirim laporan:': 'Unable to submit report:',
@@ -1612,27 +1735,42 @@ class LocalizationService {
       'Lokasi Anda': 'Your Location',
       'MCK': 'Toilet Facilities',
       'Posko': 'Emergency Post',
-      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.': 'Adjust MAGMA status colors to improve readability for users with color vision deficiencies.',
-      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.': 'SIGUMI is designed for everyone, including blind users and people with color vision or other visual impairments.',
+      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.':
+          'Adjust MAGMA status colors to improve readability for users with color vision deficiencies.',
+      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.':
+          'SIGUMI is designed for everyone, including blind users and people with color vision or other visual impairments.',
       'Jarak dari Puncak': 'Distance from the Summit',
       'Zona Saat Ini': 'Current Zone',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.': 'High risk of pyroclastic flows, lava flows, rockfalls, and toxic gases.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.': 'Risk of pyroclastic flows, lava flows, rockfalls, and toxic gases.',
-      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.': 'Risk of lahars and possible expansion of pyroclastic flows.',
-      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.': 'High risk of pyroclastic flows, lava flows, lava avalanches, and hazardous gases.',
-      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.': 'Moderate risk of pyroclastic flows, lava flows, and lahars.',
-      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.': 'Risk of lahars or flooding, possible pyroclastic flows, and cliff collapses.',
-      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.': 'Very high risk of pyroclastic flows, lava flows, base surges, toxic gases, ballistic rocks, and heavy ashfall.',
-      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.': 'Risk of pyroclastic and lava flows, ballistic rocks, heavy ashfall, hot mud, lahars, and toxic gases.',
-      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).': 'Risk of lahars, ashfall regardless of wind direction, and possible ballistic rocks.',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.': 'High risk of pyroclastic flows, lava flows, and toxic gases.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.': 'Risk of pyroclastic flows, lava flows, and lahars.',
-      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.': 'Risk of lahars and volcanic ashfall.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.':
+          'High risk of pyroclastic flows, lava flows, rockfalls, and toxic gases.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.':
+          'Risk of pyroclastic flows, lava flows, rockfalls, and toxic gases.',
+      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.':
+          'Risk of lahars and possible expansion of pyroclastic flows.',
+      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.':
+          'High risk of pyroclastic flows, lava flows, lava avalanches, and hazardous gases.',
+      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.':
+          'Moderate risk of pyroclastic flows, lava flows, and lahars.',
+      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.':
+          'Risk of lahars or flooding, possible pyroclastic flows, and cliff collapses.',
+      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.':
+          'Very high risk of pyroclastic flows, lava flows, base surges, toxic gases, ballistic rocks, and heavy ashfall.',
+      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.':
+          'Risk of pyroclastic and lava flows, ballistic rocks, heavy ashfall, hot mud, lahars, and toxic gases.',
+      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).':
+          'Risk of lahars, ashfall regardless of wind direction, and possible ballistic rocks.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.':
+          'High risk of pyroclastic flows, lava flows, and toxic gases.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.':
+          'Risk of pyroclastic flows, lava flows, and lahars.',
+      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.':
+          'Risk of lahars and volcanic ashfall.',
       'Lokasi Laporan Valid': 'Report Location Valid',
       'Kategori Kejadian': 'Incident Category',
       'Foto Kondisi Saat Ini': 'Current Condition Photo',
       'Deskripsi Laporan': 'Report Description',
-      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.': 'Thank you for your report.\nWe will verify it.',
+      'Terima kasih telah melaporkan.\nLaporan Anda akan kami verifikasi.':
+          'Thank you for your report.\nWe will verify it.',
       'Umum': 'General',
       'Anak-Anak': 'Children',
       'Difabel': 'Accessibility',
@@ -1644,8 +1782,10 @@ class LocalizationService {
       'Balai Desa': 'Village Hall',
       'GOR / Gedung': 'Sports Hall',
       'Gagal memuat data edukasi.': 'Unable to load educational content.',
-      'Gagal memuat data edukasi anak-anak.': 'Unable to load children\'s educational content.',
-      'Gagal memuat data edukasi difabel.': 'Unable to load accessibility education content.',
+      'Gagal memuat data edukasi anak-anak.':
+          'Unable to load children\'s educational content.',
+      'Gagal memuat data edukasi difabel.':
+          'Unable to load accessibility education content.',
       'v1.0.0': 'v1.0.0',
     },
     'jv': {
@@ -1684,8 +1824,10 @@ class LocalizationService {
       'Lihat Layar Penuh': 'Deleng layar wutuh',
       'Ke Merapi': 'Menyang Merapi',
       'Lokasi Saya': 'Papan Kula',
-      'Gagal memuat data. Periksa koneksi internet Anda.': 'Gagal ngemot data. Priksa sambungan internet sampeyan.',
-      'Gagal memuat data. Periksa koneksi internet.': 'Gagal ngemot data. Priksa sambungan internet.',
+      'Gagal memuat data. Periksa koneksi internet Anda.':
+          'Gagal ngemot data. Priksa sambungan internet sampeyan.',
+      'Gagal memuat data. Periksa koneksi internet.':
+          'Gagal ngemot data. Priksa sambungan internet.',
       'Oke': 'Inggih',
       'Posko Evakuasi': 'Posko Evakuasi',
       'Rumah Sakit': 'Omah Sakit',
@@ -1694,8 +1836,10 @@ class LocalizationService {
       'Balai Desa': 'Balai Desa',
       'GOR / Gedung': 'GOR / Gedhung',
       'Gagal memuat data edukasi.': 'Gagal ngemot materi edukasi.',
-      'Gagal memuat data edukasi anak-anak.': 'Gagal ngemot materi edukasi bocah.',
-      'Gagal memuat data edukasi difabel.': 'Gagal ngemot materi edukasi difabel.',
+      'Gagal memuat data edukasi anak-anak.':
+          'Gagal ngemot materi edukasi bocah.',
+      'Gagal memuat data edukasi difabel.':
+          'Gagal ngemot materi edukasi difabel.',
       'Mendengarkan...': 'Lagi ngrungokake...',
       'Memproses...': 'Lagi ngolah...',
       'Berbicara...': 'Lagi ngomong...',
@@ -1717,49 +1861,76 @@ class LocalizationService {
       'Pilih': 'Pilih',
       'Kembali': 'Bali',
       'LIVE': 'LANGSUNG',
-      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.': 'Durung ana sistem CCTV. Mangga delengen katrangan rinci ing ngisor iki.',
+      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.':
+          'Durung ana sistem CCTV. Mangga delengen katrangan rinci ing ngisor iki.',
       'Dipantau Sigumi': 'Diawasi Sigumi',
-      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.': 'Input swara mbutuhake akses mikropon. Sampeyan isih bisa ngetik pitakon. Bukak Setelan > Idin Aplikasi kanggo nguripake mikropon.',
-      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.': 'Gunung iki durung diawasi aktif dening Sigumi.',
+      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.':
+          'Input swara mbutuhake akses mikropon. Sampeyan isih bisa ngetik pitakon. Bukak Setelan > Idin Aplikasi kanggo nguripake mikropon.',
+      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.':
+          'Gunung iki durung diawasi aktif dening Sigumi.',
       'GUNUNG RINJANI · 3.726 MDPL': 'GUNUNG RINJANI · 3.726 M SAKA SEGARA',
       'Kata sandi harus diisi.': 'Sandi kudu diisi.',
       'Kata sandi minimal 6 karakter.': 'Sandi paling ora 6 aksara.',
-      'Kawasan Rawan Bencana berdasarkan jarak dari puncak': 'Wilayah Rawan Bencana manut jarak saka pucuk',
+      'Kawasan Rawan Bencana berdasarkan jarak dari puncak':
+          'Wilayah Rawan Bencana manut jarak saka pucuk',
       'Ketuk untuk batal': 'Tutul kanggo mbatalake',
-      'Laporan hanya dapat dikirim dari dalam radius': 'Laporan mung bisa dikirim saka njero jarak',
+      'Laporan hanya dapat dikirim dari dalam radius':
+          'Laporan mung bisa dikirim saka njero jarak',
       'Menghubungkan ke Kamera...': 'Nyambung menyang Kamera...',
       'Nama lengkap harus diisi.': 'Jeneng lengkap kudu diisi.',
       'Nanti Saja': 'Mengko Dhisik',
       'Nomor telepon harus diisi.': 'Nomer telpon kudu diisi.',
       'PANDUAN MATERI': 'PANDHUAN MATERI',
       'Periksa koneksi internet kamu': 'Priksa sambungan internet sampeyan',
-      'Pertunjukan, festival, & ritual budaya': 'Pagelaran, festival, lan ritual budaya',
-      'Pilih kategori dan isi deskripsi terlebih dahulu': 'Pilih kategori lan isi katrangan dhisik',
-      'Pilih wilayah gunung api yang ingin dipantau': 'Pilih wilayah gunung geni sing arep diawasi',
-      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.': 'Posko SAR ora bakal nampa nganyari koordinat sawise sesi rampung.',
+      'Pertunjukan, festival, & ritual budaya':
+          'Pagelaran, festival, lan ritual budaya',
+      'Pilih kategori dan isi deskripsi terlebih dahulu':
+          'Pilih kategori lan isi katrangan dhisik',
+      'Pilih wilayah gunung api yang ingin dipantau':
+          'Pilih wilayah gunung geni sing arep diawasi',
+      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.':
+          'Posko SAR ora bakal nampa nganyari koordinat sawise sesi rampung.',
       'Preview Status MAGMA': 'Pratinjau Status MAGMA',
       'Riwayat tracking berhasil di-reset.': 'Riwayat pelacakan kasil direset.',
-      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.': 'Kabeh riwayat pelacakan lokal, wektu, jarak, lan koordinat rute bakal dibusak.',
-      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.': 'Siaran CCTV mung bisa dibukak ing piranti Android, iOS, utawa macOS.',
+      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.':
+          'Kabeh riwayat pelacakan lokal, wektu, jarak, lan koordinat rute bakal dibusak.',
+      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.':
+          'Siaran CCTV mung bisa dibukak ing piranti Android, iOS, utawa macOS.',
       'SIGUMI · Aksesibilitas Inklusif': 'SIGUMI · Aksesibilitas Inklusif',
       'SIGUMI v1.0.0': 'SIGUMI v1.0.0',
-      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD': 'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG lan BPBD',
+      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD':
+          'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG lan BPBD',
       'TERDEKAT': 'PALING CEDHAK',
-      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.': 'Pelacakan isih aktif. Reset bakal mungkasi sesi lan mbusak wektu, rute, lan jarak saiki.',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.': 'Wilayah iki banget rawan kena awan panas, aliran lahar, guguran watu, lan gas beracun.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.': 'Wilayah iki rawan kena awan panas, aliran lahar, guguran watu, lan gas beracun.',
-      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.': 'Wilayah iki rawan kena lahar lan bisa kena perluasan awan panas.',
-      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.': 'Bebaya dhuwur saka awan panas, aliran lahar, guguran lahar, lan gas beracun.',
-      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.': 'Bebaya sedheng saka awan panas, aliran lahar, lan aliran lahar.',
-      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.': 'Bisa kena lahar utawa banjir, awan panas, lan longsoran tebing.',
-      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.': 'Wilayah iki banget rawan awan panas, lahar, gas beracun, watu muntahan, lan udan awu deres.',
-      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.': 'Wilayah iki rawan awan panas, lahar, watu muntahan, udan awu deres, lumpur panas, lan gas beracun.',
-      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).': 'Wilayah iki rawan lahar, udan awu tanpa gumantung arah angin, lan watu muntahan.',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.': 'Wilayah iki banget rawan awan panas, lahar, lan gas beracun.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.': 'Wilayah iki rawan awan panas, lahar, lan aliran lahar.',
-      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.': 'Wilayah iki rawan lahar lan udan awu vulkanik.',
-      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.': 'Atur warna status MAGMA supaya gampang diwaca wong sing angel mbedakake warna.',
-      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.': 'SIGUMI dirancang kanggo kabeh pangguna, kalebu wong wuta lan sing duwe gangguan pandeleng.',
+      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.':
+          'Pelacakan isih aktif. Reset bakal mungkasi sesi lan mbusak wektu, rute, lan jarak saiki.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.':
+          'Wilayah iki banget rawan kena awan panas, aliran lahar, guguran watu, lan gas beracun.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.':
+          'Wilayah iki rawan kena awan panas, aliran lahar, guguran watu, lan gas beracun.',
+      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.':
+          'Wilayah iki rawan kena lahar lan bisa kena perluasan awan panas.',
+      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.':
+          'Bebaya dhuwur saka awan panas, aliran lahar, guguran lahar, lan gas beracun.',
+      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.':
+          'Bebaya sedheng saka awan panas, aliran lahar, lan aliran lahar.',
+      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.':
+          'Bisa kena lahar utawa banjir, awan panas, lan longsoran tebing.',
+      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.':
+          'Wilayah iki banget rawan awan panas, lahar, gas beracun, watu muntahan, lan udan awu deres.',
+      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.':
+          'Wilayah iki rawan awan panas, lahar, watu muntahan, udan awu deres, lumpur panas, lan gas beracun.',
+      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).':
+          'Wilayah iki rawan lahar, udan awu tanpa gumantung arah angin, lan watu muntahan.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.':
+          'Wilayah iki banget rawan awan panas, lahar, lan gas beracun.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.':
+          'Wilayah iki rawan awan panas, lahar, lan aliran lahar.',
+      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.':
+          'Wilayah iki rawan lahar lan udan awu vulkanik.',
+      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.':
+          'Atur warna status MAGMA supaya gampang diwaca wong sing angel mbedakake warna.',
+      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.':
+          'SIGUMI dirancang kanggo kabeh pangguna, kalebu wong wuta lan sing duwe gangguan pandeleng.',
       'Agenda Mendatang': 'Acara sing Bakal Rawuh',
       'Akses Mikrofon Ditolak': 'Idin Mikrofon Ditampik',
       'Aktif': 'Aktif',
@@ -1858,8 +2029,10 @@ class LocalizationService {
       'Lihat Layar Penuh': 'Tingalin layar penuh',
       'Ke Merapi': 'Ka Merapi',
       'Lokasi Saya': 'Genah Tiang',
-      'Gagal memuat data. Periksa koneksi internet Anda.': 'Gagal ngemuat data. Cek sambungan internet ragane.',
-      'Gagal memuat data. Periksa koneksi internet.': 'Gagal ngemuat data. Cek sambungan internet.',
+      'Gagal memuat data. Periksa koneksi internet Anda.':
+          'Gagal ngemuat data. Cek sambungan internet ragane.',
+      'Gagal memuat data. Periksa koneksi internet.':
+          'Gagal ngemuat data. Cek sambungan internet.',
       'Oke': 'Inggih',
       'Posko Evakuasi': 'Posko Evakuasi',
       'Rumah Sakit': 'Rumah Sakit',
@@ -1868,8 +2041,10 @@ class LocalizationService {
       'Balai Desa': 'Balai Desa',
       'GOR / Gedung': 'GOR / Gedung',
       'Gagal memuat data edukasi.': 'Gagal ngemuat materi edukasi.',
-      'Gagal memuat data edukasi anak-anak.': 'Gagal ngemuat materi edukasi anak-anak.',
-      'Gagal memuat data edukasi difabel.': 'Gagal ngemuat materi aksesibilitas.',
+      'Gagal memuat data edukasi anak-anak.':
+          'Gagal ngemuat materi edukasi anak-anak.',
+      'Gagal memuat data edukasi difabel.':
+          'Gagal ngemuat materi aksesibilitas.',
       'Mendengarkan...': 'Sedeng mirengang...',
       'Memproses...': 'Sedeng ngolah...',
       'Berbicara...': 'Sedeng maos...',
@@ -1891,49 +2066,77 @@ class LocalizationService {
       'Pilih': 'Pilih',
       'Kembali': 'Malih',
       'LIVE': 'LANGSUNG',
-      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.': 'Durung wenten sistem CCTV. Mangda tingalin katrangan rinci ring sor puniki.',
+      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.':
+          'Durung wenten sistem CCTV. Mangda tingalin katrangan rinci ring sor puniki.',
       'Dipantau Sigumi': 'Kaawasin olih Sigumi',
-      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.': 'Input swara mrelukeun akses mikropon. Ragane prasida ngetik pitaken. Buka Setelan > Idin Aplikasi mangda nguripang mikropon.',
-      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.': 'Gunung puniki durung kaawasin aktif olih Sigumi.',
-      'GUNUNG RINJANI · 3.726 MDPL': 'GUNUNG RINJANI · 3.726 M RING DUUR SEGARA',
+      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.':
+          'Input swara mrelukeun akses mikropon. Ragane prasida ngetik pitaken. Buka Setelan > Idin Aplikasi mangda nguripang mikropon.',
+      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.':
+          'Gunung puniki durung kaawasin aktif olih Sigumi.',
+      'GUNUNG RINJANI · 3.726 MDPL':
+          'GUNUNG RINJANI · 3.726 M RING DUUR SEGARA',
       'Kata sandi harus diisi.': 'Kata sandi patut kaisi.',
       'Kata sandi minimal 6 karakter.': 'Kata sandi minimal 6 karakter.',
-      'Kawasan Rawan Bencana berdasarkan jarak dari puncak': 'Wewidangan Bhaya Bencana manut jarak saking puncak',
+      'Kawasan Rawan Bencana berdasarkan jarak dari puncak':
+          'Wewidangan Bhaya Bencana manut jarak saking puncak',
       'Ketuk untuk batal': 'Tutul mangda batal',
-      'Laporan hanya dapat dikirim dari dalam radius': 'Laporan wantah prasida kakirim saking ring radius',
+      'Laporan hanya dapat dikirim dari dalam radius':
+          'Laporan wantah prasida kakirim saking ring radius',
       'Menghubungkan ke Kamera...': 'Nyambung ka Kamera...',
       'Nama lengkap harus diisi.': 'Wastan lengkap patut kaisi.',
       'Nanti Saja': 'Mangkin Malih',
       'Nomor telepon harus diisi.': 'Nomer telepon patut kaisi.',
       'PANDUAN MATERI': 'PITEDAH MATERI',
       'Periksa koneksi internet kamu': 'Cek sambungan internet ragane',
-      'Pertunjukan, festival, & ritual budaya': 'Pagelaran, festival, miwah ritual budaya',
-      'Pilih kategori dan isi deskripsi terlebih dahulu': 'Pilih kategori miwah isi katrangan rumiyin',
-      'Pilih wilayah gunung api yang ingin dipantau': 'Pilih wewidangan gunung api sane jagi kaawasin',
-      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.': 'Posko SAR nenten jagi nampi pembaruan koordinat sasampun sesi pungkasan.',
+      'Pertunjukan, festival, & ritual budaya':
+          'Pagelaran, festival, miwah ritual budaya',
+      'Pilih kategori dan isi deskripsi terlebih dahulu':
+          'Pilih kategori miwah isi katrangan rumiyin',
+      'Pilih wilayah gunung api yang ingin dipantau':
+          'Pilih wewidangan gunung api sane jagi kaawasin',
+      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.':
+          'Posko SAR nenten jagi nampi pembaruan koordinat sasampun sesi pungkasan.',
       'Preview Status MAGMA': 'Pratinjau Status MAGMA',
       'Riwayat tracking berhasil di-reset.': 'Riwayat pelacakan kasil kareset.',
-      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.': 'Sami riwayat pelacakan lokal, durasi, jarak, miwah koordinat rute jagi kaapus.',
-      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.': 'Siaran CCTV wantah prasida kabuka ring piranti Android, iOS, utawi macOS.',
+      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.':
+          'Sami riwayat pelacakan lokal, durasi, jarak, miwah koordinat rute jagi kaapus.',
+      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.':
+          'Siaran CCTV wantah prasida kabuka ring piranti Android, iOS, utawi macOS.',
       'SIGUMI · Aksesibilitas Inklusif': 'SIGUMI · Aksesibilitas Inklusif',
       'SIGUMI v1.0.0': 'SIGUMI v1.0.0',
-      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD': 'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG miwah BPBD',
+      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD':
+          'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG miwah BPBD',
       'TERDEKAT': 'PALING NAMPEK',
-      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.': 'Pelacakan masih aktif. Reset bakal ngamol sesi le ngapus durasi, rute, le jarak niki.',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.': 'Wewidangan puniki banget rawan awan panas, aliran lava, guguran batu, miwah gas beracun.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.': 'Wewidangan puniki rawan awan panas, aliran lava, guguran batu, miwah gas beracun.',
-      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.': 'Wewidangan puniki rawan lahar miwah kamungkinan perluasan awan panas.',
-      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.': 'Rawan pisan awan panas, aliran lava, guguran lava, miwah gas bhaya.',
-      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.': 'Rawan sedeng awan panas, aliran lava, miwah lahar.',
-      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.': 'Rawan lahar utawi banjir, awan panas, miwah longsor tebing.',
-      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.': 'Wewidangan puniki rawan pisan awan panas, lava, gas beracun, watu panas, miwah udan abu lebat.',
-      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.': 'Wewidangan puniki rawan awan panas, lava, watu panas, udan abu lebat, lumpur panas, lahar, miwah gas beracun.',
-      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).': 'Wewidangan puniki rawan lahar, udan abu, miwah lontaran watu panas.',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.': 'Wewidangan puniki rawan pisan awan panas, lava, miwah gas beracun.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.': 'Wewidangan puniki rawan awan panas, lava, miwah lahar.',
-      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.': 'Wewidangan puniki rawan lahar miwah udan abu vulkanik.',
-      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.': 'Setel warna status MAGMA mangda gampil kauningin olih pangguna sane nenten prasida nguningin warna.',
-      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.': 'SIGUMI kaedesain antuk sareng sami, kalebet pangguna tunanetra miwah gangguan pangresep warna.',
+      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.':
+          'Pelacakan masih aktif. Reset bakal ngamol sesi le ngapus durasi, rute, le jarak niki.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.':
+          'Wewidangan puniki banget rawan awan panas, aliran lava, guguran batu, miwah gas beracun.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.':
+          'Wewidangan puniki rawan awan panas, aliran lava, guguran batu, miwah gas beracun.',
+      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.':
+          'Wewidangan puniki rawan lahar miwah kamungkinan perluasan awan panas.',
+      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.':
+          'Rawan pisan awan panas, aliran lava, guguran lava, miwah gas bhaya.',
+      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.':
+          'Rawan sedeng awan panas, aliran lava, miwah lahar.',
+      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.':
+          'Rawan lahar utawi banjir, awan panas, miwah longsor tebing.',
+      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.':
+          'Wewidangan puniki rawan pisan awan panas, lava, gas beracun, watu panas, miwah udan abu lebat.',
+      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.':
+          'Wewidangan puniki rawan awan panas, lava, watu panas, udan abu lebat, lumpur panas, lahar, miwah gas beracun.',
+      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).':
+          'Wewidangan puniki rawan lahar, udan abu, miwah lontaran watu panas.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.':
+          'Wewidangan puniki rawan pisan awan panas, lava, miwah gas beracun.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.':
+          'Wewidangan puniki rawan awan panas, lava, miwah lahar.',
+      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.':
+          'Wewidangan puniki rawan lahar miwah udan abu vulkanik.',
+      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.':
+          'Setel warna status MAGMA mangda gampil kauningin olih pangguna sane nenten prasida nguningin warna.',
+      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.':
+          'SIGUMI kaedesain antuk sareng sami, kalebet pangguna tunanetra miwah gangguan pangresep warna.',
       'Agenda Mendatang': 'Acara Sané Rauh',
       'Akses Mikrofon Ditolak': 'Akses Mikrofon Katolak',
       'Aktif': 'Aktif',
@@ -2032,8 +2235,10 @@ class LocalizationService {
       'Lihat Layar Penuh': 'Tingalin layar penuh',
       'Ke Merapi': 'Leq Merapi',
       'Lokasi Saya': 'Lokasi side',
-      'Gagal memuat data. Periksa koneksi internet Anda.': 'Gagal muat data. Cek sambungan internet side.',
-      'Gagal memuat data. Periksa koneksi internet.': 'Gagal muat data. Cek sambungan internet.',
+      'Gagal memuat data. Periksa koneksi internet Anda.':
+          'Gagal muat data. Cek sambungan internet side.',
+      'Gagal memuat data. Periksa koneksi internet.':
+          'Gagal muat data. Cek sambungan internet.',
       'Oke': 'Aok',
       'Posko Evakuasi': 'Posko Evakuasi',
       'Rumah Sakit': 'Rumah Sakit',
@@ -2042,7 +2247,8 @@ class LocalizationService {
       'Balai Desa': 'Balai Desa',
       'GOR / Gedung': 'GOR / Gedung',
       'Gagal memuat data edukasi.': 'Gagal muat materi edukasi.',
-      'Gagal memuat data edukasi anak-anak.': 'Gagal muat materi edukasi anak-anak.',
+      'Gagal memuat data edukasi anak-anak.':
+          'Gagal muat materi edukasi anak-anak.',
       'Gagal memuat data edukasi difabel.': 'Gagal muat materi aksesibilitas.',
       'Mendengarkan...': 'Sedang dengerang...',
       'Memproses...': 'Sedang ngolah...',
@@ -2065,49 +2271,77 @@ class LocalizationService {
       'Pilih': 'Pilih',
       'Kembali': 'Balik',
       'LIVE': 'LANGSUNG',
-      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.': 'Ndek ara sistem CCTV. Silak tingalin keterangan leq bawah.',
+      'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.':
+          'Ndek ara sistem CCTV. Silak tingalin keterangan leq bawah.',
       'Dipantau Sigumi': 'Diawasi Sigumi',
-      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.': 'Input suara perlu akses mikrofon. Side masih bau ngetik pertanyaan. Buka Setelan > Izin Aplikasi kanggo nguripang mikrofon.',
-      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.': 'Gunung niki ndek ara leq pengawasan aktif Sigumi.',
+      'Fitur voice input memerlukan akses ke mikrofon. Anda masih bisa mengetik pertanyaan secara manual. Untuk mengaktifkan mikrofon, buka Pengaturan > Izin Aplikasi.':
+          'Input suara perlu akses mikrofon. Side masih bau ngetik pertanyaan. Buka Setelan > Izin Aplikasi kanggo nguripang mikrofon.',
+      'Gunung ini belum masuk dalam pemantauan aktif Sigumi.':
+          'Gunung niki ndek ara leq pengawasan aktif Sigumi.',
       'GUNUNG RINJANI · 3.726 MDPL': 'GUNUNG RINJANI · 3.726 M LEQ ATAS LAUT',
       'Kata sandi harus diisi.': 'Kata sandi harus terisi.',
       'Kata sandi minimal 6 karakter.': 'Kata sandi paling sedikit 6 karakter.',
-      'Kawasan Rawan Bencana berdasarkan jarak dari puncak': 'Daerah Rawan Bencana berdasarkan jarak saking puncak',
+      'Kawasan Rawan Bencana berdasarkan jarak dari puncak':
+          'Daerah Rawan Bencana berdasarkan jarak saking puncak',
       'Ketuk untuk batal': 'Tutul kanggo batal',
-      'Laporan hanya dapat dikirim dari dalam radius': 'Laporan cuma bau dikirim dari dalam radius',
+      'Laporan hanya dapat dikirim dari dalam radius':
+          'Laporan cuma bau dikirim dari dalam radius',
       'Menghubungkan ke Kamera...': 'Nyambung leq Kamera...',
       'Nama lengkap harus diisi.': 'Nama lengkap harus terisi.',
       'Nanti Saja': 'Nanti Side',
       'Nomor telepon harus diisi.': 'Nomer telepon harus terisi.',
       'PANDUAN MATERI': 'PANDUAN MATERI',
       'Periksa koneksi internet kamu': 'Cek sambungan internet side',
-      'Pertunjukan, festival, & ritual budaya': 'Pertunjukan, festival, le ritual budaya',
-      'Pilih kategori dan isi deskripsi terlebih dahulu': 'Pilih kategori le isi deskripsi dulu',
-      'Pilih wilayah gunung api yang ingin dipantau': 'Pilih daerah gunung api sak mau diawasi',
-      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.': 'Posko SAR ndek bakal nerima update koordinat setelah sesi tuntas.',
+      'Pertunjukan, festival, & ritual budaya':
+          'Pertunjukan, festival, le ritual budaya',
+      'Pilih kategori dan isi deskripsi terlebih dahulu':
+          'Pilih kategori le isi deskripsi dulu',
+      'Pilih wilayah gunung api yang ingin dipantau':
+          'Pilih daerah gunung api sak mau diawasi',
+      'Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.':
+          'Posko SAR ndek bakal nerima update koordinat setelah sesi tuntas.',
       'Preview Status MAGMA': 'Tampilan Status MAGMA',
-      'Riwayat tracking berhasil di-reset.': 'Riwayat pelacakan berhasil direset.',
-      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.': 'Semua riwayat lokal, durasi, jarak, le koordinat rute akan dihapus.',
-      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.': 'Siaran CCTV cuma bau dibuka leq perangkat Android, iOS, atau macOS.',
+      'Riwayat tracking berhasil di-reset.':
+          'Riwayat pelacakan berhasil direset.',
+      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.':
+          'Semua riwayat lokal, durasi, jarak, le koordinat rute akan dihapus.',
+      'Siaran CCTV hanya dapat dibuka pada perangkat Android, iOS, atau macOS.':
+          'Siaran CCTV cuma bau dibuka leq perangkat Android, iOS, atau macOS.',
       'SIGUMI · Aksesibilitas Inklusif': 'SIGUMI · Aksesibilitas Inklusif',
       'SIGUMI v1.0.0': 'SIGUMI v1.0.0',
-      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD': 'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG le BPBD',
+      'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG & BPBD':
+          'Sumber data: MAGMA Indonesia, PVMBG, BPPTKG le BPBD',
       'TERDEKAT': 'PALING DEKAT',
-      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.': 'Pelacakan masih aktif. Reset akan menghentikan sesi le ngapus durasi, rute, le jarak sekarang.',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.': 'Daerah ini rawan awan panas, aliran lava, batu panas, le gas beracun.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.': 'Daerah ini rawan awan panas, aliran lava, batu panas, le gas beracun.',
-      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.': 'Daerah ini rawan lahar le mungkin awan panas meluas.',
-      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.': 'Bahaya tinggi awan panas, aliran lava, guguran lava, le gas berbahaya.',
-      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.': 'Bahaya sedang awan panas, aliran lava, le lahar.',
-      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.': 'Rawan lahar atau banjir, awan panas, le longsor tebing.',
-      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.': 'Daerah ini rawan awan panas, lava, gas beracun, batu panas, le hujan abu lebat.',
-      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.': 'Daerah ini rawan awan panas, lava, batu panas, abu lebat, lumpur panas, lahar, le gas beracun.',
-      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).': 'Daerah ini rawan lahar, hujan abu, le batu panas.',
-      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.': 'Daerah ini rawan awan panas, lava, le gas beracun.',
-      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.': 'Daerah ini rawan awan panas, lava, le lahar.',
-      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.': 'Daerah ini rawan lahar le hujan abu vulkanik.',
-      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.': 'Atur warna status MAGMA mangkin gampang te baca.',
-      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.': 'SIGUMI dirancang kanggo semua pengguna, termasuk tunanetra le gangguan penglihatan.',
+      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.':
+          'Pelacakan masih aktif. Reset akan menghentikan sesi le ngapus durasi, rute, le jarak sekarang.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas beracun.':
+          'Daerah ini rawan awan panas, aliran lava, batu panas, le gas beracun.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, guguran batu (pijar), dan gas racun.':
+          'Daerah ini rawan awan panas, aliran lava, batu panas, le gas beracun.',
+      'Kawasan berpotensi terlanda lahar dan kemungkinan perluasan awan panas.':
+          'Daerah ini rawan lahar le mungkin awan panas meluas.',
+      'Berpotensi tinggi terlanda awan panas, aliran lava, guguran lava, dan gas berbahaya.':
+          'Bahaya tinggi awan panas, aliran lava, guguran lava, le gas berbahaya.',
+      'Berpotensi sedang terlanda awan panas, aliran lava, dan aliran lahar.':
+          'Bahaya sedang awan panas, aliran lava, le lahar.',
+      'Berpotensi terlanda aliran lahar/banjir dan kemungkinan dapat terkena perluasan awan panas serta longsoran/runtuhan tebing.':
+          'Rawan lahar atau banjir, awan panas, le longsor tebing.',
+      'Kawasan yang sangat berpotensi terlanda awan panas, aliran lava, kemungkinan base surge, dan gas beracun. Sangat berpotensi terlanda lontaran batu (pijar) dan hujan abu lebat.':
+          'Daerah ini rawan awan panas, lava, gas beracun, batu panas, le hujan abu lebat.',
+      'Kawasan yang berpotensi terlanda awan panas dan aliran lava. Berpotensi terlanda lontaran batu (pijar), hujan abu lebat, hujan lumpur (panas), lahar, dan gas beracun.':
+          'Daerah ini rawan awan panas, lava, batu panas, abu lebat, lumpur panas, lahar, le gas beracun.',
+      'Kawasan yang berpotensi terlanda lahar. Rawan terhadap material jatuhan berupa hujan abu tanpa memerhatikan arah tiupan angin dan kemungkinan dapat terkena lontaran batu (pijar).':
+          'Daerah ini rawan lahar, hujan abu, le batu panas.',
+      'Kawasan sangat berpotensi terlanda awan panas, aliran lava, dan gas beracun.':
+          'Daerah ini rawan awan panas, lava, le gas beracun.',
+      'Kawasan berpotensi terlanda awan panas, aliran lava, dan lahar.':
+          'Daerah ini rawan awan panas, lava, le lahar.',
+      'Kawasan berpotensi terlanda lahar dan hujan abu vulkanik.':
+          'Daerah ini rawan lahar le hujan abu vulkanik.',
+      'Sesuaikan warna status MAGMA agar mudah dibaca bagi pengguna dengan gangguan penglihatan warna.':
+          'Atur warna status MAGMA mangkin gampang te baca.',
+      'SIGUMI dirancang inklusif untuk semua pengguna — termasuk tunanetra, buta warna, dan gangguan penglihatan lainnya.':
+          'SIGUMI dirancang kanggo semua pengguna, termasuk tunanetra le gangguan penglihatan.',
       'Agenda Mendatang': 'Acara Sak Lalo',
       'Akses Mikrofon Ditolak': 'Izin Mikrofon Ditolak',
       'Aktif': 'Aktif',

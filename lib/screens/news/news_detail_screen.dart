@@ -85,7 +85,7 @@ class NewsDetailScreen extends StatelessWidget {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: newsItem.categoryColor.withValues(
+                                  color: context.adaptUiColor(newsItem.categoryColor).withValues(
                                     alpha: 0.1,
                                   ),
                                   borderRadius: BorderRadius.circular(6),
@@ -93,7 +93,7 @@ class NewsDetailScreen extends StatelessWidget {
                                 child: Text(
                                   newsItem.categoryLabel.toUpperCase(),
                                   style: AppFonts.plusJakartaSans(
-                                    color: context.contrastColor(newsItem.categoryColor),
+                                    color: context.contrastColor(context.adaptUiColor(newsItem.categoryColor)),
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
                                     letterSpacing: 0.5,
@@ -259,14 +259,18 @@ class NewsDetailScreen extends StatelessWidget {
                             children: [
                               Icon(
                                 CupertinoIcons.share,
-                                color: context.isHighContrast ? context.bgPrimary : context.textPrimary,
+                                color: context.isHighContrast
+                                    ? context.bgPrimary
+                                    : Colors.white,
                                 size: 20,
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 context.trText('Bagikan Berita'),
                                 style: AppFonts.plusJakartaSans(
-                                  color: context.isHighContrast ? context.bgPrimary : context.textPrimary,
+                                  color: context.isHighContrast
+                                      ? context.bgPrimary
+                                      : Colors.white,
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                 ),

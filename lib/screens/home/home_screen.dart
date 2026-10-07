@@ -126,374 +126,339 @@ class _HomeScreenState extends State<HomeScreen> {
                 const Positioned.fill(
                   child: IgnorePointer(
                     child: RepaintBoundary(
-                      child: CustomPaint(
-                        painter: HomeAmbientBackdropPainter(),
-                      ),
+                      child: CustomPaint(painter: HomeAmbientBackdropPainter()),
                     ),
                   ),
                 ),
               RefreshIndicator(
-              onRefresh: () async {
-                // Get provider before async gap
-                final newsProvider = Provider.of<NewsProvider>(
-                  context,
-                  listen: false,
-                );
+                onRefresh: () async {
+                  // Get provider before async gap
+                  final newsProvider = Provider.of<NewsProvider>(
+                    context,
+                    listen: false,
+                  );
 
-                await provider.forceRefresh();
+                  await provider.forceRefresh();
 
-                if (!mounted) return;
+                  if (!mounted) return;
 
-                // Refresh berita juga, filtered by selected region
-                await newsProvider.refreshLatestNews(
-                  limit: 5,
-                  lokasi: provider.selectedRegion,
-                );
-              },
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header
-                      Container(
-                        width: double.infinity,
-                        clipBehavior:
-                            isHighContrast ? Clip.antiAlias : Clip.none,
-                        decoration: isHighContrast
-                            ? BoxDecoration(
-                                color: context.bgSurface,
-                                borderRadius: const BorderRadius.only(
-                                  bottomLeft: Radius.circular(28),
-                                  bottomRight: Radius.circular(28),
+                  // Refresh berita juga, filtered by selected region
+                  await newsProvider.refreshLatestNews(
+                    limit: 5,
+                    lokasi: provider.selectedRegion,
+                  );
+                },
+                child: SafeArea(
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        Container(
+                          width: double.infinity,
+                          clipBehavior:
+                              isHighContrast ? Clip.antiAlias : Clip.none,
+                          decoration:
+                              isHighContrast
+                                  ? BoxDecoration(
+                                    color: context.bgSurface,
+                                    borderRadius: const BorderRadius.only(
+                                      bottomLeft: Radius.circular(28),
+                                      bottomRight: Radius.circular(28),
+                                    ),
+                                    border: Border.all(
+                                      color: context.borderColor,
+                                      width: context.borderWidth,
+                                    ),
+                                  )
+                                  : null,
+                          child: Stack(
+                            children: [
+                              // ── Konten header ───────────────────────────
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  20,
+                                  20,
+                                  20,
+                                  24,
                                 ),
-                                border: Border.all(
-                                  color: context.borderColor,
-                                  width: context.borderWidth,
-                                ),
-                              )
-                            : null,
-                        child: Stack(
-                          children: [
-                            // ── Konten header ───────────────────────────
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Image.asset(
-                                        'assets/images/SIGUMI-logo.png',
-                                        height: 36,
-                                        fit: BoxFit.contain,
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        AiService.getPersonalizedGreeting(
-                                          provider.currentUser,
-                                        ),
-                                        style: TextStyle(
-                                          color: context.textTertiary,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400,
-                                          letterSpacing: -0.2,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (provider.isOffline)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: context.warningColor.withValues(
-                                            alpha: 0.15,
-                                          ),
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(
-                                            color: context.warningColor
-                                                .withValues(alpha: 0.3),
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.cloud_off,
-                                              color: context.warningColor,
-                                              size: 14,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              context.tr('offline_active'),
-                                              style: TextStyle(
-                                                color: context.warningColor,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Image.asset(
+                                                'assets/images/SIGUMI-logo.png',
+                                                height: 36,
+                                                fit: BoxFit.contain,
                                               ),
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                AiService.getPersonalizedGreeting(
+                                                  provider.currentUser,
+                                                ),
+                                                style: TextStyle(
+                                                  color: context.textTertiary,
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400,
+                                                  letterSpacing: -0.2,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Row(
+                                          children: [
+                                            if (provider.isOffline)
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: context.warningColor
+                                                      .withValues(alpha: 0.15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                    color: context.warningColor
+                                                        .withValues(alpha: 0.3),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.cloud_off,
+                                                      color:
+                                                          context.warningColor,
+                                                      size: 14,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      context.tr(
+                                                        'offline_active',
+                                                      ),
+                                                      style: TextStyle(
+                                                        color:
+                                                            context
+                                                                .warningColor,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            const SizedBox(width: 8),
+                                            _buildRegionSelector(
+                                              context,
+                                              provider,
                                             ),
                                           ],
                                         ),
-                                      ),
-                                    const SizedBox(width: 8),
-                                    _buildRegionSelector(context, provider),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            // Status Card (Dynamic Hero Image)
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final cardWidth = constraints.maxWidth;
-                                String formattedName =
-                                    volcano.name
-                                        .toLowerCase()
-                                        .replaceAll('gunung ', '')
-                                        .trim();
-                                String imagePath =
-                                    'assets/images/$formattedName.jpg';
-
-                                return GestureDetector(
-                                  // onTap: () => Navigator.pushNamed(
-                                  //   context,
-                                  //   AppRoutes.visualMerapi,
-                                  //   arguments: volcano,
-                                  // ),
-                                  child: Container(
-                                    width: cardWidth,
-                                    // Tinggi dinamis: 42% lebar layar, min 180, max 240
-                                    height: (cardWidth * 0.42).clamp(
-                                      180.0,
-                                      240.0,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(
-                                            0xFF1B2E7B,
-                                          ).withAlpha(40),
-                                          blurRadius: 24,
-                                          offset: const Offset(0, 10),
-                                        ),
                                       ],
                                     ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(24),
-                                      child: Stack(
-                                        children: [
-                                          // Background Image
-                                          Positioned.fill(
-                                            child: Image.asset(
-                                              imagePath,
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, _) {
-                                                return Container(
-                                                  color: SigumiTheme.primaryBlue,
-                                                  child: const Center(
-                                                    child: Icon(
-                                                      Icons.broken_image,
-                                                      color: Colors.white54,
-                                                      size: 40,
+                                    const SizedBox(height: 20),
+                                    // Status Card (Dynamic Hero Image)
+                                    LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        final cardWidth = constraints.maxWidth;
+                                        String formattedName =
+                                            volcano.name
+                                                .toLowerCase()
+                                                .replaceAll('gunung ', '')
+                                                .trim();
+                                        String imagePath =
+                                            'assets/images/$formattedName.jpg';
+
+                                        return GestureDetector(
+                                          // onTap: () => Navigator.pushNamed(
+                                          //   context,
+                                          //   AppRoutes.visualMerapi,
+                                          //   arguments: volcano,
+                                          // ),
+                                          child: Container(
+                                            width: cardWidth,
+                                            // Tinggi dinamis: 42% lebar layar, min 180, max 240
+                                            height: (cardWidth * 0.42).clamp(
+                                              180.0,
+                                              240.0,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(
+                                                    0xFF1B2E7B,
+                                                  ).withAlpha(40),
+                                                  blurRadius: 24,
+                                                  offset: const Offset(0, 10),
+                                                ),
+                                              ],
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              child: Stack(
+                                                children: [
+                                                  // Background Image
+                                                  Positioned.fill(
+                                                    child: Image.asset(
+                                                      imagePath,
+                                                      fit: BoxFit.cover,
+                                                      errorBuilder: (
+                                                        context,
+                                                        error,
+                                                        _,
+                                                      ) {
+                                                        return Container(
+                                                          color:
+                                                              SigumiTheme
+                                                                  .primaryBlue,
+                                                          child: const Center(
+                                                            child: Icon(
+                                                              Icons
+                                                                  .broken_image,
+                                                              color:
+                                                                  Colors
+                                                                      .white54,
+                                                              size: 40,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      },
                                                     ),
                                                   ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                          // Gradient overlay
-                                          Positioned.fill(
-                                            child: Container(
-                                              decoration: BoxDecoration(
-                                                gradient:
-                                                    isHighContrast
-                                                        ? null
-                                                        : LinearGradient(
-                                                          begin:
-                                                              Alignment.topCenter,
-                                                          end:
-                                                              Alignment
-                                                                  .bottomCenter,
-                                                          colors: [
-                                                            Colors.black
-                                                                .withAlpha(15),
-                                                            Colors.black
-                                                                .withAlpha(210),
-                                                          ],
-                                                          stops: const [
-                                                            0.25,
-                                                            1.0,
-                                                          ],
-                                                        ),
-                                                color:
-                                                    isHighContrast
-                                                        ? context.overlayDark(0.7)
-                                                        : null,
-                                              ),
-                                            ),
-                                          ),
-                                          // Content
-                                          Positioned.fill(
-                                            child: Padding(
-                                              padding: const EdgeInsets.all(16),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  // ── Baris 1: Nama gunung (lebar penuh, tanpa gangguan) ──
-                                                  Row(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment.center,
-                                                    children: [
-                                                      const Icon(
-                                                        Icons.landscape_rounded,
-                                                        color: Colors.white,
-                                                        size: 20,
+                                                  // Gradient overlay
+                                                  Positioned.fill(
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        gradient:
+                                                            isHighContrast
+                                                                ? null
+                                                                : LinearGradient(
+                                                                  begin:
+                                                                      Alignment
+                                                                          .topCenter,
+                                                                  end:
+                                                                      Alignment
+                                                                          .bottomCenter,
+                                                                  colors: [
+                                                                    Colors.black
+                                                                        .withAlpha(
+                                                                          15,
+                                                                        ),
+                                                                    Colors.black
+                                                                        .withAlpha(
+                                                                          210,
+                                                                        ),
+                                                                  ],
+                                                                  stops: const [
+                                                                    0.25,
+                                                                    1.0,
+                                                                  ],
+                                                                ),
+                                                        color:
+                                                            isHighContrast
+                                                                ? context
+                                                                    .overlayDark(
+                                                                      0.7,
+                                                                    )
+                                                                : null,
                                                       ),
-                                                      const SizedBox(width: 8),
-                                                      Expanded(
-                                                        child: Text(
-                                                          volcano.name,
-                                                          style: const TextStyle(
-                                                            fontFamily:
-                                                                'Plus Jakarta Sans',
-                                                            fontSize: 22,
-                                                            fontWeight:
-                                                                FontWeight.w700,
-                                                            color: Colors.white,
-                                                            letterSpacing: -0.5,
-                                                            height: 1.25,
-                                                          ),
-                                                          maxLines: 1,
-                                                          overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
-                                                        ),
-                                                      ),
-                                                    ],
+                                                    ),
                                                   ),
-
-                                                  const SizedBox(height: 5),
-
-                                                  // ── Baris 2: Elevasi · Status MAGMA (info sekunder) ──
-                                                  // FittedBox agar bisa menyusut jika layar terlalu sempit
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          left: 28,
-                                                        ),
-                                                    child: FittedBox(
-                                                      fit: BoxFit.scaleDown,
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      child: Row(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
+                                                  // Content
+                                                  Positioned.fill(
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            16,
+                                                          ),
+                                                      child: Column(
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
-                                                                .center,
+                                                                .start,
                                                         children: [
-                                                          // Elevasi
-                                                          Text(
-                                                            '${volcano.elevation.toInt()} mdpl',
-                                                            style: TextStyle(
-                                                              fontFamily:
-                                                                  'Plus Jakarta Sans',
-                                                              fontSize: 12,
-                                                              fontWeight:
-                                                                  FontWeight.w700,
-                                                              color: Colors.white
-                                                                  .withAlpha(170),
-                                                            ),
+                                                          // ── Baris 1: Nama gunung (lebar penuh, tanpa gangguan) ──
+                                                          Row(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              const Icon(
+                                                                Icons
+                                                                    .landscape_rounded,
+                                                                color:
+                                                                    Colors
+                                                                        .white,
+                                                                size: 20,
+                                                              ),
+                                                              const SizedBox(
+                                                                width: 8,
+                                                              ),
+                                                              Expanded(
+                                                                child: Text(
+                                                                  volcano.name,
+                                                                  style: const TextStyle(
+                                                                    fontFamily:
+                                                                        'Plus Jakarta Sans',
+                                                                    fontSize:
+                                                                        22,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w700,
+                                                                    color:
+                                                                        Colors
+                                                                            .white,
+                                                                    letterSpacing:
+                                                                        -0.5,
+                                                                    height:
+                                                                        1.25,
+                                                                  ),
+                                                                  maxLines: 1,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                ),
+                                                              ),
+                                                            ],
                                                           ),
 
-                                                          // Pemisah
+                                                          const SizedBox(
+                                                            height: 5,
+                                                          ),
+
+                                                          // ── Baris 2: Elevasi · Status MAGMA (info sekunder) ──
+                                                          // FittedBox agar bisa menyusut jika layar terlalu sempit
                                                           Padding(
                                                             padding:
-                                                                const EdgeInsets.symmetric(
-                                                                  horizontal: 8,
+                                                                const EdgeInsets.only(
+                                                                  left: 28,
                                                                 ),
-                                                            child: Text(
-                                                              '·',
-                                                              style: TextStyle(
-                                                                fontSize: 14,
-                                                                color: Colors
-                                                                    .white
-                                                                    .withAlpha(
-                                                                      110,
-                                                                    ),
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w300,
-                                                              ),
-                                                            ),
-                                                          ),
-
-                                                          // Badge Status MAGMA
-                                                          if (provider
-                                                              .isLoadingVolcanoes)
-                                                            Shimmer.fromColors(
-                                                              baseColor:
-                                                                  Colors.white24,
-                                                              highlightColor:
-                                                                  Colors.white38,
-                                                              child: Container(
-                                                                width: 64,
-                                                                height: 18,
-                                                                decoration: BoxDecoration(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withAlpha(
-                                                                        40,
-                                                                      ),
-                                                                  borderRadius:
-                                                                      BorderRadius.circular(
-                                                                        12,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            )
-                                                          else
-                                                            Container(
-                                                              padding:
-                                                                  const EdgeInsets.symmetric(
-                                                                    horizontal: 8,
-                                                                    vertical: 3,
-                                                                  ),
-                                                              decoration: BoxDecoration(
-                                                                color: statusColor
-                                                                    .withAlpha(
-                                                                      40,
-                                                                    ),
-                                                                border: Border.all(
-                                                                  color: statusColor
-                                                                      .withAlpha(
-                                                                        100,
-                                                                      ),
-                                                                  width: 1,
-                                                                ),
-                                                                borderRadius:
-                                                                    BorderRadius.circular(
-                                                                      12,
-                                                                    ),
-                                                              ),
+                                                            child: FittedBox(
+                                                              fit:
+                                                                  BoxFit
+                                                                      .scaleDown,
+                                                              alignment:
+                                                                  Alignment
+                                                                      .centerLeft,
                                                               child: Row(
                                                                 mainAxisSize:
                                                                     MainAxisSize
@@ -502,417 +467,521 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     CrossAxisAlignment
                                                                         .center,
                                                                 children: [
-                                                                  // Dot
-                                                                  Container(
-                                                                    width: 7,
-                                                                    height: 7,
-                                                                    decoration: BoxDecoration(
-                                                                      color:
-                                                                          statusColor,
-                                                                      shape:
-                                                                          BoxShape
-                                                                              .circle,
-                                                                      boxShadow: [
-                                                                        BoxShadow(
-                                                                          color: statusColor
-                                                                              .withAlpha(
-                                                                                200,
-                                                                              ),
-                                                                          blurRadius:
-                                                                              4,
-                                                                          spreadRadius:
-                                                                              0,
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                  ),
-                                                                  const SizedBox(
-                                                                    width: 5,
-                                                                  ),
-                                                                  // Label
+                                                                  // Elevasi
                                                                   Text(
-                                                                    volcano
-                                                                        .statusLabel,
-                                                                    style: const TextStyle(
+                                                                    '${volcano.elevation.toInt()} mdpl',
+                                                                    style: TextStyle(
                                                                       fontFamily:
                                                                           'Plus Jakarta Sans',
                                                                       fontSize:
                                                                           12,
                                                                       fontWeight:
                                                                           FontWeight
-                                                                              .w600,
-                                                                      color:
-                                                                          Colors
-                                                                              .white,
+                                                                              .w700,
+                                                                      color: Colors
+                                                                          .white
+                                                                          .withAlpha(
+                                                                            170,
+                                                                          ),
                                                                     ),
-                                                                    maxLines: 1,
                                                                   ),
+
+                                                                  // Pemisah
+                                                                  Padding(
+                                                                    padding:
+                                                                        const EdgeInsets.symmetric(
+                                                                          horizontal:
+                                                                              8,
+                                                                        ),
+                                                                    child: Text(
+                                                                      '·',
+                                                                      style: TextStyle(
+                                                                        fontSize:
+                                                                            14,
+                                                                        color: Colors
+                                                                            .white
+                                                                            .withAlpha(
+                                                                              110,
+                                                                            ),
+                                                                        fontWeight:
+                                                                            FontWeight.w300,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+
+                                                                  // Badge Status MAGMA
+                                                                  if (provider
+                                                                      .isLoadingVolcanoes)
+                                                                    Shimmer.fromColors(
+                                                                      baseColor:
+                                                                          Colors
+                                                                              .white24,
+                                                                      highlightColor:
+                                                                          Colors
+                                                                              .white38,
+                                                                      child: Container(
+                                                                        width:
+                                                                            64,
+                                                                        height:
+                                                                            18,
+                                                                        decoration: BoxDecoration(
+                                                                          color: Colors
+                                                                              .white
+                                                                              .withAlpha(
+                                                                                40,
+                                                                              ),
+                                                                          borderRadius: BorderRadius.circular(
+                                                                            12,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    )
+                                                                  else
+                                                                    Container(
+                                                                      padding: const EdgeInsets.symmetric(
+                                                                        horizontal:
+                                                                            8,
+                                                                        vertical:
+                                                                            3,
+                                                                      ),
+                                                                      decoration: BoxDecoration(
+                                                                        color: statusColor
+                                                                            .withAlpha(
+                                                                              40,
+                                                                            ),
+                                                                        border: Border.all(
+                                                                          color: statusColor.withAlpha(
+                                                                            100,
+                                                                          ),
+                                                                          width:
+                                                                              1,
+                                                                        ),
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(
+                                                                              12,
+                                                                            ),
+                                                                      ),
+                                                                      child: Row(
+                                                                        mainAxisSize:
+                                                                            MainAxisSize.min,
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.center,
+                                                                        children: [
+                                                                          // Dot
+                                                                          Container(
+                                                                            width:
+                                                                                7,
+                                                                            height:
+                                                                                7,
+                                                                            decoration: BoxDecoration(
+                                                                              color:
+                                                                                  statusColor,
+                                                                              shape:
+                                                                                  BoxShape.circle,
+                                                                              boxShadow: [
+                                                                                BoxShadow(
+                                                                                  color: statusColor.withAlpha(
+                                                                                    200,
+                                                                                  ),
+                                                                                  blurRadius:
+                                                                                      4,
+                                                                                  spreadRadius:
+                                                                                      0,
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                          const SizedBox(
+                                                                            width:
+                                                                                5,
+                                                                          ),
+                                                                          // Label
+                                                                          Text(
+                                                                            volcano.statusLabel,
+                                                                            style: const TextStyle(
+                                                                              fontFamily:
+                                                                                  'Plus Jakarta Sans',
+                                                                              fontSize:
+                                                                                  12,
+                                                                              fontWeight:
+                                                                                  FontWeight.w600,
+                                                                              color:
+                                                                                  Colors.white,
+                                                                            ),
+                                                                            maxLines:
+                                                                                1,
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+
+                                                                  const SizedBox(
+                                                                    width: 8,
+                                                                  ),
+
+                                                                  // Waktu Pembaruan
+                                                                  if (!provider
+                                                                      .isLoadingVolcanoes)
+                                                                    Row(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      crossAxisAlignment:
+                                                                          CrossAxisAlignment
+                                                                              .center,
+                                                                      children: [
+                                                                        Icon(
+                                                                          Icons
+                                                                              .update_rounded,
+                                                                          size:
+                                                                              11,
+                                                                          color: Colors.white.withAlpha(
+                                                                            160,
+                                                                          ),
+                                                                        ),
+                                                                        const SizedBox(
+                                                                          width:
+                                                                              3,
+                                                                        ),
+                                                                        Text(
+                                                                          DateFormat(
+                                                                            'd MMM, HH:mm',
+                                                                          ).format(
+                                                                            volcano.lastUpdate.toLocal(),
+                                                                          ),
+
+                                                                          style: TextStyle(
+                                                                            fontFamily:
+                                                                                'Plus Jakarta Sans',
+                                                                            fontSize:
+                                                                                12,
+                                                                            fontWeight:
+                                                                                FontWeight.w400,
+                                                                            color: Colors.white.withAlpha(
+                                                                              160,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
                                                                 ],
                                                               ),
                                                             ),
-
-                                                          const SizedBox(
-                                                            width: 8,
                                                           ),
 
-                                                          // Waktu Pembaruan
-                                                          if (!provider
-                                                              .isLoadingVolcanoes)
-                                                            Row(
-                                                              mainAxisSize:
-                                                                  MainAxisSize
-                                                                      .min,
-                                                              crossAxisAlignment:
-                                                                  CrossAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                Icon(
-                                                                  Icons
-                                                                      .update_rounded,
-                                                                  size: 11,
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withAlpha(
-                                                                        160,
-                                                                      ),
-                                                                ),
-                                                                const SizedBox(
-                                                                  width: 3,
-                                                                ),
-                                                                Text(
-                                                                  DateFormat(
-                                                                    'd MMM, HH:mm',
-                                                                  ).format(
-                                                                    volcano
-                                                                        .lastUpdate
-                                                                        .toLocal(),
-                                                                  ),
+                                                          const Spacer(),
 
-                                                                  style: TextStyle(
-                                                                    fontFamily:
-                                                                        'Plus Jakarta Sans',
-                                                                    fontSize: 12,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w400,
-                                                                    color: Colors
-                                                                        .white
-                                                                        .withAlpha(
-                                                                          160,
-                                                                        ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
+                                                          // ── Baris Bawah: Zone Indicator ──
+                                                          _buildZoneIndicatorCard(
+                                                            context,
+                                                            provider,
+                                                          ),
                                                         ],
                                                       ),
                                                     ),
-                                                  ),
-
-                                                  const Spacer(),
-
-                                                  // ── Baris Bawah: Zone Indicator ──
-                                                  _buildZoneIndicatorCard(
-                                                    context,
-                                                    provider,
                                                   ),
                                                 ],
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
+                                      },
                                     ),
-                                  ),
-                                ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0);
-                              },
-                            ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
 
-                      // Guest Login Prompt Banner
-                      if (provider.isGuest)
+                        // Guest Login Prompt Banner
+                        if (provider.isGuest)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                            child: _GuestLoginBanner(),
+                          ),
+
+                        // ── Fitur Pariwisata Section ──
+                        _HomeSectionHeader(
+                          title: context.tr('tourism_section'),
+                          actionText: context.tr('see_all'),
+                          onActionTap:
+                              () => Navigator.pushNamed(
+                                context,
+                                AppRoutes.tourism,
+                              ),
+                        ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                          child: _GuestLoginBanner(),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _TourismBannerCard(
+                            region: provider.selectedRegion,
+                          ),
                         ),
 
-                      // ── Fitur Pariwisata Section ──
-                      _HomeSectionHeader(
-                        title: context.tr('tourism_section'),
-                        actionText: context.tr('see_all'),
-                        onActionTap:
-                            () => Navigator.pushNamed(context, AppRoutes.tourism),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _TourismBannerCard(
-                          region: provider.selectedRegion,
-                        ),
-                      ),
-
-                      // ── Fitur Tracking Pendakian Section ──
-                      _HomeSectionHeader(
-                        title: context.tr('hiking_tracking_section'),
-                        actionText: context.tr('open_map'),
-                        onActionTap:
-                            () => Navigator.pushNamed(
-                              context,
-                              AppRoutes.hikingTracking,
-                            ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _HikingSpotlightCard(
-                          onTap:
+                        // ── Fitur Tracking Pendakian Section ──
+                        _HomeSectionHeader(
+                          title: context.tr('hiking_tracking_section'),
+                          actionText: context.tr('open_map'),
+                          onActionTap:
                               () => Navigator.pushNamed(
                                 context,
                                 AppRoutes.hikingTracking,
                               ),
                         ),
-                      ),
-
-                      // ── Fitur Menu Utama Section ──
-                      _HomeSectionHeader(
-                        title: context.tr('main_menu'),
-                      ),
-                      // Row 1: 2 featured cards
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: _FeaturedMenuCard(
-                                  icon: Icons.alt_route_rounded,
-                                  label: context.tr('evacuation_point'),
-                                  color: Colors.green,
-                                  onTap:
-                                      () => Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.evacuation,
-                                      ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _HikingSpotlightCard(
+                            onTap:
+                                () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.hikingTracking,
                                 ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _FeaturedMenuCard(
-                                  icon: Icons.videocam_rounded,
-                                  label: context.tr('cctv_monitoring'),
-                                  color: Colors.teal,
-                                  onTap:
-                                      () => Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.visualMerapi,
-                                        arguments: volcano,
-                                      ),
-                                ),
-                              ),
-                            ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Row 2: four compact cards keep the original size.
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(
-                                child: _ShadMenuCard(
-                                  icon: Icons.school_rounded,
-                                  label: context.tr('education'),
-                                  color: Colors.orange,
-                                  onTap:
-                                      () => Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.education,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _ShadMenuCard(
-                                  icon: Icons.local_hospital_rounded,
-                                  label: context.tr('posko_faskes'),
-                                  color: Colors.indigo,
-                                  onTap:
-                                      () => Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.postDisaster,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _ShadMenuCard(
-                                  icon: Icons.chat_rounded,
-                                  label: context.tr('ask_sigumi'),
-                                  color: Colors.purple,
-                                  onTap:
-                                      () => Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.chatbot,
-                                      ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _ShadMenuCard(
-                                  icon: Icons.phone_in_talk_rounded,
-                                  label: context.tr('emergency_number'),
-                                  color: Colors.red,
-                                  onTap:
-                                      () => Navigator.pushNamed(
-                                        context,
-                                        AppRoutes.emergency,
-                                      ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Row 3: Full-width accessibility card
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: _FullWidthMenuCard(
-                          icon: Icons.accessibility_new_rounded,
-                          label: context.tr('accessibility'),
-                          color: Colors.brown,
-                          onTap:
-                              () => Navigator.pushNamed(
-                                context,
-                                AppRoutes.accessibility,
-                              ),
-                        ),
-                      ),
 
-                      // ── Fitur Berita Terkini Section ──
-                      Consumer<NewsProvider>(
-                        builder: (context, newsProvider, _) {
-                          return _HomeSectionHeader(
-                            title: context.tr('latest_news'),
-                            trailing:
-                                newsProvider.isLoading
-                                    ? const SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(
-                                          SigumiTheme.textSecondary,
+                        // ── Fitur Menu Utama Section ──
+                        _HomeSectionHeader(title: context.tr('main_menu')),
+                        // Row 1: 2 featured cards
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: _FeaturedMenuCard(
+                                    icon: Icons.alt_route_rounded,
+                                    label: context.tr('evacuation_point'),
+                                    color: context.adaptUiColor(Colors.green),
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.evacuation,
                                         ),
-                                      ),
-                                    )
-                                    : (newsProvider.newsList.isEmpty
-                                        ? null
-                                        : Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 9,
-                                            vertical: 3,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                isHighContrast
-                                                    ? context.bgSurface
-                                                    : context.textTertiary
-                                                        .withValues(alpha: 0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            border:
-                                                isHighContrast
-                                                    ? Border.all(
-                                                      color: context.borderColor,
-                                                    )
-                                                    : null,
-                                          ),
-                                          child: Text(
-                                            '${newsProvider.newsList.length}',
-                                            style: AppFonts.plusJakartaSans(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color:
-                                                  isHighContrast
-                                                      ? context.textPrimary
-                                                      : context.textSecondary,
-                                            ),
-                                          ),
-                                        )),
-                          );
-                        },
-                      ),
-
-                      // News Carousel Slider
-                      Consumer<NewsProvider>(
-                        builder: (context, newsProvider, _) {
-                          // Convert NewsModel to NewsItem
-                          final newsItems =
-                              newsProvider.newsList.map((news) {
-                                return NewsItem(
-                                  id: news.id,
-                                  title: news.title,
-                                  summary: news.title,
-                                  content: news.content ?? '',
-                                  source: 'Sigumi',
-                                  publishedAt: news.createdAt ?? DateTime.now(),
-                                  category: NewsCategory.info,
-                                  imageUrl: news.imageUrl,
-                                );
-                              }).toList();
-
-                          if (newsProvider.isLoading) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 40),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const CircularProgressIndicator(),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      context.tr('loading_news'),
-                                      style: AppFonts.plusJakartaSans(
-                                        color: SigumiTheme.textSecondary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }
-
-                          if (newsItems.isEmpty) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 40),
-                                child: Text(
-                                  context.tr('no_news'),
-                                  style: AppFonts.plusJakartaSans(
-                                    color: SigumiTheme.textSecondary,
                                   ),
                                 ),
-                              ),
-                            );
-                          }
-
-                          return NewsCarousel(newsItems: newsItems);
-                        },
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _FeaturedMenuCard(
+                                    icon: Icons.videocam_rounded,
+                                    label: context.tr('cctv_monitoring'),
+                                    color: Colors.teal,
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.visualMerapi,
+                                          arguments: volcano,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Row 2: four compact cards keep the original size.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Expanded(
+                                  child: _ShadMenuCard(
+                                    icon: Icons.school_rounded,
+                                    label: context.tr('education'),
+                                    color: Colors.orange,
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.education,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _ShadMenuCard(
+                                    icon: Icons.local_hospital_rounded,
+                                    label: context.tr('posko_faskes'),
+                                    color: Colors.indigo,
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.postDisaster,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _ShadMenuCard(
+                                    icon: Icons.chat_rounded,
+                                    label: context.tr('ask_sigumi'),
+                                    color: Colors.purple,
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.chatbot,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _ShadMenuCard(
+                                    icon: Icons.phone_in_talk_rounded,
+                                    label: context.tr('emergency_number'),
+                                    color: Colors.red,
+                                    onTap:
+                                        () => Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.emergency,
+                                        ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Row 3: Full-width accessibility card
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: _FullWidthMenuCard(
+                            icon: Icons.accessibility_new_rounded,
+                            label: context.tr('accessibility'),
+                            color: Colors.brown,
+                            onTap:
+                                () => Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.accessibility,
+                                ),
+                          ),
+                        ),
 
-                      const SizedBox(height: 100),
-                    ],
+                        // ── Fitur Berita Terkini Section ──
+                        Consumer<NewsProvider>(
+                          builder: (context, newsProvider, _) {
+                            return _HomeSectionHeader(
+                              title: context.tr('latest_news'),
+                              trailing:
+                                  newsProvider.isLoading
+                                      ? const SizedBox(
+                                        width: 14,
+                                        height: 14,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation(
+                                            SigumiTheme.textSecondary,
+                                          ),
+                                        ),
+                                      )
+                                      : (newsProvider.newsList.isEmpty
+                                          ? null
+                                          : Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 9,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  isHighContrast
+                                                      ? context.bgSurface
+                                                      : context.textTertiary
+                                                          .withValues(
+                                                            alpha: 0.1,
+                                                          ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border:
+                                                  isHighContrast
+                                                      ? Border.all(
+                                                        color:
+                                                            context.borderColor,
+                                                      )
+                                                      : null,
+                                            ),
+                                            child: Text(
+                                              '${newsProvider.newsList.length}',
+                                              style: AppFonts.plusJakartaSans(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700,
+                                                color:
+                                                    isHighContrast
+                                                        ? context.textPrimary
+                                                        : context.textSecondary,
+                                              ),
+                                            ),
+                                          )),
+                            );
+                          },
+                        ),
+
+                        // News Carousel Slider
+                        Consumer<NewsProvider>(
+                          builder: (context, newsProvider, _) {
+                            // Convert NewsModel to NewsItem
+                            final newsItems =
+                                newsProvider.newsList.map((news) {
+                                  return NewsItem(
+                                    id: news.id,
+                                    title: news.title,
+                                    summary: news.title,
+                                    content: news.content ?? '',
+                                    source: 'Sigumi',
+                                    publishedAt:
+                                        news.createdAt ?? DateTime.now(),
+                                    category: NewsCategory.info,
+                                    imageUrl: news.imageUrl,
+                                  );
+                                }).toList();
+
+                            if (newsProvider.isLoading) {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 40,
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const CircularProgressIndicator(),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        context.tr('loading_news'),
+                                        style: AppFonts.plusJakartaSans(
+                                          color: SigumiTheme.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+
+                            if (newsItems.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 40,
+                                  ),
+                                  child: Text(
+                                    context.tr('no_news'),
+                                    style: AppFonts.plusJakartaSans(
+                                      color: SigumiTheme.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return NewsCarousel(newsItems: newsItems);
+                          },
+                        ),
+
+                        const SizedBox(height: 100),
+                      ],
+                    ),
                   ),
                 ),
-              ),
               ),
             ],
           ),
@@ -940,6 +1009,9 @@ class _HomeScreenState extends State<HomeScreen> {
       highContrast: isHC,
       colorBlindMode: cbMode,
     );
+    final zoneBadgeColor =
+        isHC && cbMode != 'deuteranopia' ? SigumiTheme.hcSecondary : zoneColor;
+    final zoneBadgeForeground = isHC ? SigumiTheme.hcBackground : Colors.white;
     final isHighAlert = volcanoLevel >= 3;
 
     final zoneIcon =
@@ -995,17 +1067,22 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: zoneColor,
+                color: zoneBadgeColor,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: Colors.white.withAlpha(isHighAlert ? 140 : 70),
-                  width: isHighAlert ? 1.5 : 1.0,
+                  color:
+                      isHC
+                          ? SigumiTheme.hcBorder
+                          : Colors.white.withAlpha(isHighAlert ? 140 : 70),
+                  width: isHC ? 2.0 : (isHighAlert ? 1.5 : 1.0),
                 ),
                 boxShadow:
-                    isHighAlert
+                    isHC
+                        ? const []
+                        : isHighAlert
                         ? [
                           BoxShadow(
-                            color: zoneColor.withAlpha(180),
+                            color: zoneBadgeColor.withAlpha(180),
                             blurRadius: 10,
                             spreadRadius: 0,
                           ),
@@ -1022,15 +1099,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Icon(zoneIcon, size: 12, color: Colors.white),
+                  Icon(zoneIcon, size: 12, color: zoneBadgeForeground),
                   const SizedBox(width: 5),
                   Text(
                     provider.zoneLabel,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Plus Jakarta Sans',
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: zoneBadgeForeground,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -1050,66 +1127,93 @@ class _HomeScreenState extends State<HomeScreen> {
     final isAutoDetected =
         provider.isRegionAutoDetected &&
         provider.detectedRegion == provider.selectedRegion;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isCompact = screenWidth < 380;
+    final selectorMaxWidth =
+        (screenWidth * 0.46).clamp(132.0, 210.0).toDouble();
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _showRegionPicker(context, provider),
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: context.accentPrimary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: context.borderColor,
-              width: context.borderWidth,
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: selectorMaxWidth),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showRegionPicker(context, provider),
+          borderRadius: BorderRadius.circular(16),
+          child: Ink(
+            padding: EdgeInsets.symmetric(
+              horizontal: isCompact ? 8 : 10,
+              vertical: 7,
             ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                isAutoDetected
-                    ? Icons.gps_fixed_rounded
-                    : Icons.location_on_rounded,
-                color:
-                    isAutoDetected
-                        ? context.successColor
-                        : context.accentPrimary,
-                size: 16,
+            decoration: BoxDecoration(
+              color: context.accentPrimary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: context.borderColor,
+                width: context.borderWidth,
               ),
-              const SizedBox(width: 4),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (isAutoDetected)
-                    Text(
-                      context.tr('your_location'),
-                      style: TextStyle(
-                        color: context.successColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  Text(
-                    provider.selectedRegion,
-                    style: TextStyle(
-                      color: context.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: (isAutoDetected
+                            ? context.successColor
+                            : context.accentPrimary)
+                        .withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(11),
                   ),
-                ],
-              ),
-              const SizedBox(width: 2),
-              Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: context.textPrimary,
-                size: 16,
-              ),
-            ],
+                  child: Icon(
+                    Icons.landscape_rounded,
+                    color:
+                        isAutoDetected
+                            ? context.successColor
+                            : context.accentPrimary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isAutoDetected && !isCompact)
+                        Text(
+                          context.tr('your_location').toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: context.successColor,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      Text(
+                        provider.selectedRegion,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: context.textPrimary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: context.textTertiary,
+                  size: 19,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1149,14 +1253,14 @@ class _HomeScreenState extends State<HomeScreen> {
         'name': 'Bali',
         'volcano': 'Gunung Agung',
         'elevation': '3.031 mdpl',
-        'icon': Icons.terrain_rounded,
+        'icon': Icons.landscape_rounded,
         'color': const Color(0xFFC62828),
       },
       {
         'name': 'Lombok',
         'volcano': 'Gunung Rinjani',
         'elevation': '3.726 mdpl',
-        'icon': Icons.filter_hdr_rounded,
+        'icon': Icons.landscape_rounded,
         'color': const Color(0xFF1565C0),
       },
     ];
@@ -1166,226 +1270,292 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: Colors.transparent,
       isDismissible: isDismissible,
       enableDrag: isDismissible,
+      isScrollControlled: true,
       builder: (ctx) {
         return PopScope(
           canPop: isDismissible,
-          child: Container(
-            decoration: BoxDecoration(
-              color: ctx.bgPrimary,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
+          child: SafeArea(
+            top: false,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(ctx).height * 0.82,
               ),
-              border: Border.all(
-                color: ctx.borderColor,
-                width: ctx.borderWidth,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle bar
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
+              child: SingleChildScrollView(
+                child: Container(
+                  width: double.infinity,
                   decoration: BoxDecoration(
-                    color: SigumiTheme.divider,
-                    borderRadius: BorderRadius.circular(2),
+                    color: ctx.bgPrimary,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(24),
+                      topRight: Radius.circular(24),
+                    ),
+                    border: Border.all(
+                      color: ctx.borderColor,
+                      width: ctx.borderWidth,
+                    ),
                   ),
-                ),
-
-                // Title
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-                  child: Row(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Handle bar
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        margin: const EdgeInsets.only(top: 12),
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: SigumiTheme.primaryBlue.withAlpha(15),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.location_on_rounded,
-                          color: SigumiTheme.primaryBlue,
-                          size: 20,
+                          color: SigumiTheme.divider,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+
+                      // Title
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                        child: Row(
                           children: [
-                            Text(
-                              title ?? ctx.tr('select_region'),
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                color: SigumiTheme.textPrimary,
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: ctx.accentPrimary.withValues(
+                                  alpha: 0.12,
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.landscape_rounded,
+                                color: ctx.accentPrimary,
+                                size: 22,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              subtitle ?? ctx.tr('monitor_volcano'),
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                                color: SigumiTheme.textSecondary,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title ?? ctx.tr('select_region'),
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: ctx.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    subtitle ?? ctx.tr('monitor_volcano'),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w400,
+                                      color: ctx.textSecondary,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
 
-                const Divider(height: 24),
+                      const Divider(height: 24),
 
-                // Region options
-                ...regionData.map((region) {
-                  final regionName = region['name'] as String;
-                  final isSelected = provider.selectedRegion == regionName;
-                  final isDetected = detectedRegion == regionName;
-                  final color = region['color'] as Color;
+                      // Region options
+                      ...regionData.map((region) {
+                        final regionName = region['name'] as String;
+                        final isSelected =
+                            provider.selectedRegion == regionName;
+                        final isDetected = detectedRegion == regionName;
+                        final color = ctx.adaptUiColor(
+                          region['color'] as Color,
+                        );
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 4,
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          provider.setRegion(regionName);
-                          Navigator.pop(ctx);
-                        },
-                        borderRadius: BorderRadius.circular(16),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
-                                    ? color.withAlpha(12)
-                                    : Colors.transparent,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color:
-                                  isSelected
-                                      ? color.withAlpha(60)
-                                      : SigumiTheme.divider.withAlpha(80),
-                            ),
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 4,
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () {
+                                provider.setRegion(regionName);
+                                Navigator.pop(ctx);
+                              },
+                              borderRadius: BorderRadius.circular(16),
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 12,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: color.withAlpha(20),
-                                  borderRadius: BorderRadius.circular(14),
+                                  color:
+                                      isSelected
+                                          ? (ctx.isHighContrast
+                                              ? ctx.bgSurface
+                                              : color.withAlpha(12))
+                                          : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color:
+                                        isSelected
+                                            ? (ctx.isHighContrast
+                                                ? ctx.borderColor
+                                                : color.withAlpha(90))
+                                            : ctx.borderColor.withValues(
+                                              alpha: 0.6,
+                                            ),
+                                    width: isSelected ? ctx.borderWidth : 1,
+                                  ),
                                 ),
-                                child: Icon(
-                                  region['icon'] as IconData,
-                                  color: color,
-                                  size: 26,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                child: Row(
                                   children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          regionName,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                isSelected
-                                                    ? color
-                                                    : SigumiTheme.textPrimary,
-                                          ),
-                                        ),
-                                        if (isDetected) ...[
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.green.shade50,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              border: Border.all(
-                                                color: Colors.green.shade200,
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(
-                                                  Icons.gps_fixed_rounded,
-                                                  size: 10,
-                                                  color: Colors.green.shade700,
-                                                ),
-                                                const SizedBox(width: 3),
-                                                Text(
-                                                  ctx.tr('your_location'),
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w500,
+                                    Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: (ctx.isHighContrast
+                                                ? ctx.accentPrimary
+                                                : color)
+                                            .withValues(alpha: 0.14),
+                                        borderRadius: BorderRadius.circular(13),
+                                      ),
+                                      child: Icon(
+                                        region['icon'] as IconData,
+                                        color:
+                                            ctx.isHighContrast
+                                                ? ctx.accentPrimary
+                                                : color,
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  regionName,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: AppFonts.plusJakartaSans(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
                                                     color:
-                                                        Colors.green.shade700,
+                                                        isSelected &&
+                                                                !ctx.isHighContrast
+                                                            ? color
+                                                            : ctx.textPrimary,
+                                                  ),
+                                                ),
+                                              ),
+                                              if (isDetected) ...[
+                                                const SizedBox(width: 6),
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 7,
+                                                        vertical: 3,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color:
+                                                        ctx.isHighContrast
+                                                            ? ctx.bgPrimary
+                                                            : context
+                                                                .adaptUiColor(
+                                                                  Colors
+                                                                      .green
+                                                                      .shade50,
+                                                                ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          7,
+                                                        ),
+                                                    border: Border.all(
+                                                      color:
+                                                          ctx.isHighContrast
+                                                              ? ctx.borderColor
+                                                              : context
+                                                                  .adaptUiColor(
+                                                                    Colors
+                                                                        .green
+                                                                        .shade200,
+                                                                  ),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    'GPS',
+                                                    style: AppFonts.plusJakartaSans(
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color:
+                                                          ctx.isHighContrast
+                                                              ? ctx.textPrimary
+                                                              : context
+                                                                  .adaptUiColor(
+                                                                    Colors
+                                                                        .green
+                                                                        .shade700,
+                                                                  ),
+                                                    ),
                                                   ),
                                                 ),
                                               ],
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${region['volcano']} \u2022 ${region['elevation']} \u2022 ${provider.getDistanceShortForRegion(regionName)}',
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: AppFonts.plusJakartaSans(
+                                              fontSize: 11,
+                                              color: ctx.textSecondary,
                                             ),
                                           ),
                                         ],
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${region['volcano']} \u2022 ${region['elevation']} \u2022 ${provider.getDistanceShortForRegion(regionName)}',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: SigumiTheme.textSecondary,
                                       ),
                                     ),
+                                    if (isSelected)
+                                      Container(
+                                        width: 26,
+                                        height: 26,
+                                        decoration: BoxDecoration(
+                                          color:
+                                              ctx.isHighContrast
+                                                  ? ctx.accentPrimary
+                                                  : color,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.check_rounded,
+                                          color:
+                                              ctx.isHighContrast
+                                                  ? ctx.bgPrimary
+                                                  : Colors.white,
+                                          size: 17,
+                                        ),
+                                      ),
                                   ],
                                 ),
                               ),
-                              if (isSelected)
-                                Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: BoxDecoration(
-                                    color: color,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.check_rounded,
-                                    color: Colors.white,
-                                    size: 18,
-                                  ),
-                                ),
-                            ],
+                            ),
                           ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+                        );
+                      }),
 
-                const SizedBox(height: 20),
-              ],
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         );
@@ -1678,41 +1848,44 @@ class _HikingSpotlightCard extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             color: isHighContrast ? context.bgSurface : null,
-            gradient: isHighContrast
-                ? null
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: isActive
-                        ? const [
-                            Color(0xFF26120C),
-                            Color(0xFF381A12),
-                          ]
-                        : const [
-                            Color(0xFF0B2117),
-                            Color(0xFF133827),
-                          ],
-                  ),
+            gradient:
+                isHighContrast
+                    ? null
+                    : LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors:
+                          isActive
+                              ? const [Color(0xFF26120C), Color(0xFF381A12)]
+                              : [
+                                Color(0xFF0B2117),
+                                context.adaptUiColor(const Color(0xFF133827)),
+                              ],
+                    ),
             border: Border.all(
-              color: isHighContrast
-                  ? context.borderColor
-                  : (isActive
-                      ? Colors.orange.withAlpha(120)
-                      : const Color(0xFF00E676).withAlpha(70)),
+              color:
+                  isHighContrast
+                      ? context.borderColor
+                      : (isActive
+                          ? Colors.orange.withAlpha(120)
+                          : context
+                              .adaptUiColor(const Color(0xFF00E676))
+                              .withAlpha(70)),
               width: isHighContrast ? context.borderWidth : 1.2,
             ),
-            boxShadow: isHighContrast
-                ? []
-                : [
-                    BoxShadow(
-                      color: (isActive
-                              ? Colors.orangeAccent
-                              : const Color(0xFF00E676))
-                          .withAlpha(25),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
+            boxShadow:
+                isHighContrast
+                    ? []
+                    : [
+                      BoxShadow(
+                        color: (isActive
+                                ? Colors.orangeAccent
+                                : context.adaptUiColor(const Color(0xFF00E676)))
+                            .withAlpha(25),
+                        blurRadius: 14,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
           ),
           child: Stack(
             children: [
@@ -1734,18 +1907,24 @@ class _HikingSpotlightCard extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: isHighContrast
-                          ? Colors.white.withAlpha(25)
-                          : (isActive
-                              ? Colors.red.withAlpha(40)
-                              : const Color(0xFF00E676).withAlpha(35)),
+                      color:
+                          isHighContrast
+                              ? Colors.white.withAlpha(25)
+                              : (isActive
+                                  ? Colors.red.withAlpha(40)
+                                  : context
+                                      .adaptUiColor(const Color(0xFF00E676))
+                                      .withAlpha(35)),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: isHighContrast
-                            ? context.borderColor
-                            : (isActive
-                                ? Colors.red.withAlpha(80)
-                                : const Color(0xFF00E676).withAlpha(80)),
+                        color:
+                            isHighContrast
+                                ? context.borderColor
+                                : (isActive
+                                    ? Colors.red.withAlpha(80)
+                                    : context
+                                        .adaptUiColor(const Color(0xFF00E676))
+                                        .withAlpha(80)),
                         width: 1,
                       ),
                     ),
@@ -1753,11 +1932,14 @@ class _HikingSpotlightCard extends StatelessWidget {
                       isActive
                           ? Icons.navigation_rounded
                           : Icons.hiking_rounded,
-                      color: isHighContrast
-                          ? context.textPrimary
-                          : (isActive
-                              ? const Color(0xFFFF8A80)
-                              : const Color(0xFF00E676)),
+                      color:
+                          isHighContrast
+                              ? context.textPrimary
+                              : (isActive
+                                  ? const Color(0xFFFF8A80)
+                                  : context.adaptUiColor(
+                                    const Color(0xFF00E676),
+                                  )),
                       size: 26,
                     ),
                   ),
@@ -1778,9 +1960,10 @@ class _HikingSpotlightCard extends StatelessWidget {
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
-                                  color: isHighContrast
-                                      ? context.textPrimary
-                                      : Colors.white,
+                                  color:
+                                      isHighContrast
+                                          ? context.textPrimary
+                                          : Colors.white,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -1794,18 +1977,20 @@ class _HikingSpotlightCard extends StatelessWidget {
                                   vertical: 2.5,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: isHighContrast
-                                      ? Colors.white.withAlpha(20)
-                                      : Colors.red.withAlpha(50),
+                                  color:
+                                      isHighContrast
+                                          ? Colors.white.withAlpha(20)
+                                          : Colors.red.withAlpha(50),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     _PulseDot(
-                                      color: isHighContrast
-                                          ? context.textPrimary
-                                          : const Color(0xFFFF5252),
+                                      color:
+                                          isHighContrast
+                                              ? context.textPrimary
+                                              : const Color(0xFFFF5252),
                                     ),
                                     const SizedBox(width: 5),
                                     Text(
@@ -1815,9 +2000,10 @@ class _HikingSpotlightCard extends StatelessWidget {
                                       style: AppFonts.plusJakartaSans(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: isHighContrast
-                                            ? context.textPrimary
-                                            : const Color(0xFFFF8A80),
+                                        color:
+                                            isHighContrast
+                                                ? context.textPrimary
+                                                : const Color(0xFFFF8A80),
                                       ),
                                     ),
                                   ],
@@ -1837,9 +2023,10 @@ class _HikingSpotlightCard extends StatelessWidget {
                             fontSize: 13,
                             fontWeight: FontWeight.w400,
                             height: 1.3,
-                            color: isHighContrast
-                                ? context.textSecondary
-                                : Colors.white.withAlpha(190),
+                            color:
+                                isHighContrast
+                                    ? context.textSecondary
+                                    : Colors.white.withAlpha(190),
                           ),
                         ),
                       ],
@@ -1853,17 +2040,17 @@ class _HikingSpotlightCard extends StatelessWidget {
                     width: 34,
                     height: 34,
                     decoration: BoxDecoration(
-                      color: isHighContrast
-                          ? Colors.white.withAlpha(20)
-                          : Colors.white.withAlpha(25),
+                      color:
+                          isHighContrast
+                              ? Colors.white.withAlpha(20)
+                              : Colors.white.withAlpha(25),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.arrow_forward_rounded,
                       size: 16,
-                      color: isHighContrast
-                          ? context.textPrimary
-                          : Colors.white,
+                      color:
+                          isHighContrast ? context.textPrimary : Colors.white,
                     ),
                   ),
                 ],
@@ -1899,9 +2086,10 @@ class _PulseDotState extends State<_PulseDot>
       vsync: this,
       duration: const Duration(milliseconds: 1200),
     )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 0.35, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.35,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -1923,9 +2111,7 @@ class _PulseDotState extends State<_PulseDot>
             color: widget.color,
             boxShadow: [
               BoxShadow(
-                color: widget.color.withAlpha(
-                  (170 * _animation.value).toInt(),
-                ),
+                color: widget.color.withAlpha((170 * _animation.value).toInt()),
                 blurRadius: 6 * _animation.value,
                 spreadRadius: 2 * _animation.value,
               ),
@@ -2029,7 +2215,9 @@ class _FullWidthMenuCard extends StatelessWidget {
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color:
-                              isHighContrast ? context.textPrimary : Colors.white,
+                              isHighContrast
+                                  ? context.textPrimary
+                                  : Colors.white,
                           height: 1.2,
                           letterSpacing: -0.2,
                         ),
@@ -2184,7 +2372,9 @@ class _GuestLoginBannerState extends State<_GuestLoginBanner> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          context.trText('Akses laporan, AI, dan fitur lengkap'),
+                          context.trText(
+                            'Akses laporan, AI, dan fitur lengkap',
+                          ),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -2273,9 +2463,8 @@ class _TourismBannerCard extends StatelessWidget {
     const actionBackground = Colors.transparent;
     final actionForeground =
         isHighContrast ? context.accentPrimary : Colors.white;
-    final actionBorder = isHighContrast
-        ? context.accentPrimary
-        : Colors.white.withAlpha(170);
+    final actionBorder =
+        isHighContrast ? context.accentPrimary : Colors.white.withAlpha(170);
     // Default fallback to signature image if region not strictly matched
     final imageUrl =
         _regionImages[region] ??
@@ -2346,9 +2535,10 @@ class _TourismBannerCard extends StatelessWidget {
                 Text(
                   context.tr('find_destination'),
                   style: AppFonts.plusJakartaSans(
-                    color: isHighContrast
-                        ? context.textPrimary
-                        : Colors.white.withAlpha(220),
+                    color:
+                        isHighContrast
+                            ? context.textPrimary
+                            : Colors.white.withAlpha(220),
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
                     letterSpacing: -0.1,
@@ -2430,7 +2620,11 @@ class _HomeSectionHeader extends StatelessWidget {
               style: AppFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: context.textPrimary,
+                // Abu gelap pada mode standar, tetap putih pada kontras tinggi.
+                color:
+                    isHighContrast
+                        ? context.textPrimary
+                        : context.textSecondary,
                 letterSpacing: -0.2,
               ),
               maxLines: 1,
@@ -2461,18 +2655,14 @@ class _HomeSectionHeader extends StatelessWidget {
                         style: AppFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isHighContrast
-                              ? context.textPrimary
-                              : accent,
+                          color: isHighContrast ? context.textPrimary : accent,
                         ),
                       ),
                       const SizedBox(width: 2),
                       Icon(
                         Icons.chevron_right_rounded,
                         size: 18,
-                        color: isHighContrast
-                            ? context.textPrimary
-                            : accent,
+                        color: isHighContrast ? context.textPrimary : accent,
                       ),
                     ],
                   ),

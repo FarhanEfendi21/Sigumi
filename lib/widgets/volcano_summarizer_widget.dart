@@ -100,7 +100,7 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
   @override
   Widget build(BuildContext context) {
     final summary = widget.summary;
-    final statusColor = _getStatusColor(summary.levelCode);
+    final statusColor = context.adaptUiColor(_getStatusColor(summary.levelCode));
 
     // Kumpulkan metrik observasi yang tersedia
     final metrics = <_ObservationMetric>[];
@@ -144,7 +144,7 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
       metrics.add(
         _ObservationMetric(
           icon: CupertinoIcons.drop_fill,
-          iconColor: const Color(0xFF34C759),
+          iconColor: context.adaptUiColor(const Color(0xFF34C759)),
           label: 'Kelembaban',
           value: summary.humidityRange!,
         ),

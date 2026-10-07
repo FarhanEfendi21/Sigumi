@@ -210,217 +210,190 @@ class _ResetOtpScreenState extends State<ResetOtpScreen> {
 
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-
-                      // Ikon
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF10B981), Color(0xFF059669)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF10B981).withAlpha(80),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                  padding: EdgeInsets.fromLTRB(
+                    MediaQuery.sizeOf(context).width < 360 ? 20 : 24,
+                    12,
+                    MediaQuery.sizeOf(context).width < 360 ? 20 : 24,
+                    32,
+                  ),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          Text(
+                            'PEMULIHAN AKUN',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                              color: SigumiTheme.primaryBlue,
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.mark_email_read_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ).animate().fadeIn(duration: 500.ms).scale(
-                            begin: const Offset(0.7, 0.7),
-                            end: const Offset(1, 1),
-                            curve: Curves.elasticOut,
-                          ),
-
-                      const SizedBox(height: 24),
-
-                      Text(
-                        'Cek Email Anda',
-                        style: AppFonts.plusJakartaSans(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                          color: SigumiTheme.textPrimary,
-                        ),
-                      ).animate().fadeIn(delay: 100.ms),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        'Jika akun Anda memiliki email pemulihan terverifikasi, '
-                        'kode 6 digit telah dikirimkan.\n\n'
-                        'Periksa folder Inbox dan Spam.',
-                        style: AppFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: SigumiTheme.textSecondary,
-                          height: 1.6,
-                        ),
-                      ).animate().fadeIn(delay: 150.ms),
-
-                      const SizedBox(height: 32),
-
-                      // OTP input
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: SigumiTheme.primaryBlue.withAlpha(18),
-                              blurRadius: 32,
-                              offset: const Offset(0, 12),
+                          ).animate().fadeIn(duration: 350.ms),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Cek Email Anda',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: (MediaQuery.sizeOf(context).width * 0.083)
+                                  .clamp(27.0, 30.0)
+                                  .toDouble(),
+                              height: 1.15,
+                              fontWeight: FontWeight.w700,
+                              color: SigumiTheme.textPrimary,
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              'Kode Verifikasi',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: SigumiTheme.textPrimary,
+                          ).animate().fadeIn(delay: 60.ms, duration: 350.ms),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Kode 6 digit dikirim ke email pemulihan jika tersedia. Periksa juga folder spam.',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: SigumiTheme.textSecondary,
+                              height: 1.6,
+                            ),
+                          ).animate().fadeIn(delay: 100.ms, duration: 350.ms),
+                          const SizedBox(height: 28),
+                          Container(
+                            padding: EdgeInsets.all(
+                              MediaQuery.sizeOf(context).width < 360 ? 16 : 22,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: SigumiTheme.primaryBlue.withAlpha(18),
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: SigumiTheme.primaryBlue.withAlpha(14),
+                                  blurRadius: 28,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 20),
-
-                            // 6 kotak OTP
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: List.generate(
-                                6,
-                                (i) => _buildOtpBox(i),
-                              ),
-                            ),
-
-                            if (_errorMessage != null) ...[
-                              const SizedBox(height: 16),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade50,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.red.shade200,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Kode Verifikasi',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.2,
+                                    color: SigumiTheme.textPrimary,
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.error_outline,
-                                      size: 16,
-                                      color: Colors.red.shade600,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: Text(
-                                        _errorMessage!,
-                                        style: AppFonts.plusJakartaSans(
-                                          fontSize: 13,
-                                          color: Colors.red.shade700,
+                                const SizedBox(height: 16),
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final boxWidth = ((constraints.maxWidth - 40) / 6)
+                                        .clamp(28.0, 44.0)
+                                        .toDouble();
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: List.generate(
+                                        6,
+                                        (index) => _buildOtpBox(
+                                          index,
+                                          width: boxWidth,
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    );
+                                  },
                                 ),
-                              ).animate().fadeIn(duration: 200.ms).shake(
-                                    duration: 400.ms,
-                                    hz: 4,
-                                    offset: const Offset(4, 0),
-                                  ),
-                            ],
-
-                            const SizedBox(height: 24),
-
-                            // Tombol verifikasi
-                            SizedBox(
-                              width: double.infinity,
-                              height: 52,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      SigumiTheme.primaryBlue,
-                                      Color(0xFF2A3E9A),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          SigumiTheme.primaryBlue.withAlpha(80),
-                                      blurRadius: 16,
-                                      offset: const Offset(0, 6),
+                                if (_errorMessage != null) ...[
+                                  const SizedBox(height: 14),
+                                  Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.shade50,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.red.shade200,
+                                      ),
                                     ),
-                                  ],
-                                ),
-                                child: ElevatedButton(
-                                  onPressed: _isVerifying ? null : _verify,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    disabledBackgroundColor: Colors.transparent,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: AppFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        color: Colors.red.shade700,
+                                      ),
                                     ),
-                                  ),
-                                  child: _isVerifying
-                                      ? const SizedBox(
-                                          width: 22,
-                                          height: 22,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.5,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Text(
+                                  ).animate().fadeIn(duration: 200.ms).shake(
+                                        duration: 400.ms,
+                                        hz: 4,
+                                        offset: const Offset(4, 0),
+                                      ),
+                                ],
+                                const SizedBox(height: 20),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 52,
+                                  child: DecoratedBox(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          SigumiTheme.primaryBlue,
+                                          Color(0xFF2A3E9A),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(15),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: SigumiTheme.primaryBlue.withAlpha(60),
+                                          blurRadius: 14,
+                                          offset: const Offset(0, 5),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ElevatedButton(
+                                      onPressed:
+                                          _isVerifying ? null : _verify,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        foregroundColor: Colors.white,
+                                        disabledBackgroundColor:
+                                            Colors.transparent,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(15),
+                                        ),
+                                      ),
+                                      child: _isVerifying
+                                          ? const SizedBox(
+                                              width: 22,
+                                              height: 22,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : Text(
                                               'Verifikasi Kode',
-                                              style: AppFonts.plusJakartaSans(
+                                              style:
+                                                  AppFonts.plusJakartaSans(
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            const Icon(
-                                              Icons.check_circle_outline,
-                                              size: 18,
-                                            ),
-                                          ],
-                                        ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                      )
-                          .animate()
-                          .fadeIn(delay: 250.ms, duration: 500.ms)
-                          .slideY(begin: 0.12, end: 0, duration: 500.ms),
-
-                      const SizedBox(height: 24),
-
-                      // Kirim ulang
-                      _buildResendSection(),
-                    ],
+                          ).animate().fadeIn(
+                            delay: 150.ms,
+                            duration: 400.ms,
+                          ).slideY(begin: 0.05, end: 0),
+                          const SizedBox(height: 20),
+                          _buildResendSection(),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -431,9 +404,9 @@ class _ResetOtpScreenState extends State<ResetOtpScreen> {
     );
   }
 
-  Widget _buildOtpBox(int index) {
+  Widget _buildOtpBox(int index, {required double width}) {
     return SizedBox(
-      width: 44,
+      width: width,
       height: 52,
       child: TextField(
         controller: _controllers[index],
@@ -443,7 +416,7 @@ class _ResetOtpScreenState extends State<ResetOtpScreen> {
         maxLength: 6, // Allow paste
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         style: AppFonts.plusJakartaSans(
-          fontSize: 20,
+          fontSize: width < 34 ? 17 : 20,
           fontWeight: FontWeight.w700,
           color: SigumiTheme.textPrimary,
         ),
@@ -523,7 +496,7 @@ class _ResetOtpScreenState extends State<ResetOtpScreen> {
             ),
           const SizedBox(height: 16),
           Text(
-            'Kode berlaku selama 10 menit.',
+          'Kode berlaku 10 menit.',
             style: AppFonts.plusJakartaSans(
               fontSize: 11,
               color: SigumiTheme.textSecondary,

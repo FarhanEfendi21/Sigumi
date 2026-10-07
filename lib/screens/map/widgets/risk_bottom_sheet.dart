@@ -35,6 +35,7 @@ class RiskBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = context.adaptUiColor(_statusColor);
     return DraggableScrollableSheet(
       initialChildSize: 0.18, // Hanya menampilkan summary radius progress
       minChildSize: 0.18,
@@ -89,7 +90,7 @@ class RiskBottomSheet extends StatelessWidget {
                         style: AppFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: _statusColor,
+                        color: statusColor,
                         ),
                       ),
                     ],
@@ -111,11 +112,11 @@ class RiskBottomSheet extends StatelessWidget {
                         child: Container(
                           height: 12,
                           decoration: BoxDecoration(
-                            color: _statusColor,
+                            color: statusColor,
                             borderRadius: BorderRadius.circular(6),
                             boxShadow: [
                               BoxShadow(
-                                color: _statusColor.withAlpha(80),
+                                color: statusColor.withAlpha(80),
                                 blurRadius: 6,
                               )
                             ],

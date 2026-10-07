@@ -54,6 +54,7 @@ class SigumiTheme {
   // ── Buta Warna: Deuteranopia-safe (merah-hijau) ──
   // Gunakan biru & oranye alih-alih hijau & merah
   static const Color cbdNormal  = Color(0xFF0077BB); // Biru solid — aman bagi semua tipe
+  static const Color cbdHighContrastNormal = Color(0xFF66CCFF); // Cyan terang di atas hitam
   static const Color cbdWaspada = Color(0xFFFFCC00); // Kuning emas
   static const Color cbdSiaga  = Color(0xFFEE7700);  // Oranye tua
   static const Color cbdAwas   = Color(0xFFCC3311);  // Coklat-merah aman
@@ -236,7 +237,10 @@ class SigumiTheme {
         onInverseSurface: hcBackground,
       ),
       scaffoldBackgroundColor: hcBackground,
-      textTheme: const TextTheme().copyWith(
+      // Jadikan Theme normal sebagai baseline agar struktur seluruh TextStyle
+      // (termasuk style yang tidak dioverride di bawah) tetap sama saat Flutter
+      // menginterpolasi ThemeData pada perpindahan mode kontras.
+      textTheme: lightTheme.textTheme.copyWith(
         headlineLarge: AppFonts.plusJakartaSans(
           fontSize: 28,
           fontWeight: FontWeight.w700,
@@ -521,11 +525,17 @@ class SigumiTheme {
   }) {
     if (highContrast) {
       switch (level) {
-        case 1: return hcStatusNormal;
+        case 1:
+          return colorBlindMode == 'deuteranopia'
+              ? cbdHighContrastNormal
+              : hcStatusNormal;
         case 2: return hcStatusWaspada;
         case 3: return hcStatusSiaga;
         case 4: return hcStatusAwas;
-        default: return hcStatusNormal;
+        default:
+          return colorBlindMode == 'deuteranopia'
+              ? cbdHighContrastNormal
+              : hcStatusNormal;
       }
     }
 

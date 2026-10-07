@@ -114,7 +114,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     _ListRow(
                       icon: CupertinoIcons.globe,
-                      iconBg: const Color(0xFF34C759),
+                      iconBg: context.adaptUiColor(const Color(0xFF34C759)),
                       title: context.tr('language'),
                       subtitle: _getLanguageName(context, provider.language),
                       onTap:
@@ -153,8 +153,9 @@ class SettingsScreen extends StatelessWidget {
                   children: [_LogoutRow(onTap: () => _confirmLogout(context))],
                 ),
 
-                // Spacer untuk bottom nav
-                const SizedBox(height: 96),
+                // Ruang gulir melewati navbar (tinggi 72 + padding 16) dengan
+                // jarak ekstra 24 px, sekaligus mengikuti inset bawah perangkat.
+                SizedBox(height: 112 + MediaQuery.paddingOf(context).bottom),
               ],
             ).animate().fadeIn(duration: 300.ms, curve: Curves.easeOut),
           ),

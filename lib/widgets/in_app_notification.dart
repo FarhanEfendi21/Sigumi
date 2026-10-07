@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../config/globals.dart';
 import '../services/localization_service.dart';
+import '../config/theme_extensions.dart';
 
 /// Overlay banner notifikasi in-app dengan hierarki tipografi clean & minimalis.
 class InAppNotification {
@@ -160,7 +161,14 @@ class _InAppNotificationBannerState extends State<_InAppNotificationBanner>
 
   @override
   Widget build(BuildContext context) {
-    final tokens = _getLevelTokens(widget.level);
+    final baseTokens = _getLevelTokens(widget.level);
+    final tokens = (
+      accent: context.adaptUiColor(baseTokens.accent),
+      bgBadge: context.adaptUiColor(baseTokens.bgBadge),
+      textBadge: context.adaptUiColor(baseTokens.textBadge),
+      roman: baseTokens.roman,
+      label: baseTokens.label,
+    );
 
     return SafeArea(
       child: Align(

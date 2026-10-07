@@ -47,12 +47,38 @@ extension ThemeContextExtension on BuildContext {
   /// Mode aktif: 'normal' | 'deuteranopia' | 'protanopia' | 'tritanopia'
   String get colorBlindMode => watch<VolcanoProvider>().colorBlindMode;
 
+  /// Ganti warna hijau pada elemen UI dengan biru yang lebih mudah dibedakan
+  /// pada Deuteranopia. Pemanggil memilih elemen UI secara eksplisit agar
+  /// foto, ilustrasi, dan media tidak ikut berubah.
+  Color adaptUiColor(Color color) {
+    // Baca tanpa listen: perubahan preferensi sudah membangun ulang app lewat
+    // Consumer provider di SigumiApp. Ini menghindari dependensi Provider
+    // tambahan pada setiap widget kecil yang hanya perlu memetakan satu warna.
+    final provider = Provider.of<VolcanoProvider>(this, listen: false);
+    if (provider.colorBlindMode != 'deuteranopia') return color;
+
+    final hsl = HSLColor.fromColor(color);
+    if (hsl.hue < 70 || hsl.hue > 165 || hsl.saturation < 0.12) return color;
+
+    if (provider.highContrast) {
+      return SigumiTheme.cbdHighContrastNormal.withValues(alpha: color.a);
+    }
+
+    final saturation = hsl.saturation < 0.45 ? 0.45 : hsl.saturation;
+    return HSLColor.fromAHSL(
+      color.a,
+      210,
+      saturation,
+      hsl.lightness,
+    ).toColor();
+  }
+
   /// Warna status MAGMA — mempertimbangkan highContrast DAN colorBlindMode.
-  Color statusColor(int level) => SigumiTheme.getStatusColor(
+  Color statusColor(int level) => adaptUiColor(SigumiTheme.getStatusColor(
         level,
         highContrast: isHighContrast,
         colorBlindMode: colorBlindMode,
-      );
+      ));
 
   /// Ikon bentuk status — non-warna, untuk tunanetra buta warna.
   /// Selalu gunakan bersama statusColor() sebagai akses ganda.
@@ -60,7 +86,7 @@ extension ThemeContextExtension on BuildContext {
 
   // Semantic colors
   Color get successColor =>
-      isHighContrast ? SigumiTheme.hcStatusNormal : Colors.green.shade600;
+      adaptUiColor(isHighContrast ? SigumiTheme.hcStatusNormal : Colors.green.shade600);
   Color get warningColor =>
       isHighContrast ? SigumiTheme.hcStatusWaspada : Colors.orange.shade600;
   Color get errorColor =>

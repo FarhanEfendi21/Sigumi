@@ -164,7 +164,7 @@ class _MainNavigationState extends State<MainNavigation> {
                       String tooltip;
                       switch (assistant.state) {
                         case AssistantState.idle:
-                          dotColor = Colors.green;
+                          dotColor = context.adaptUiColor(Colors.green);
                           tooltip = 'Voice Assistant aktif — ucapkan "Halo Sigumi"';
                           break;
                         case AssistantState.listeningCommand:

@@ -242,7 +242,9 @@ class _EducationItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = _fallbackColors[index % _fallbackColors.length];
+    final accentColor = context.adaptUiColor(
+      _fallbackColors[index % _fallbackColors.length],
+    );
     final hasImage = item.imageUrl != null && item.imageUrl!.isNotEmpty;
 
     return Card(

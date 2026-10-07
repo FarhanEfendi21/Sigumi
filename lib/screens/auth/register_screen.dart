@@ -4,6 +4,7 @@ import 'package:sigumi/config/fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../config/routes.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/sigumi_dialog.dart';
@@ -478,22 +479,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                               vertical: 2,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: const Color(0xFF10B981)
+                                              color: context.adaptUiColor(const Color(0xFF10B981))
                                                   .withAlpha(20),
                                               borderRadius:
                                                   BorderRadius.circular(6),
                                               border: Border.all(
-                                                color: const Color(0xFF10B981)
+                                                color: context.adaptUiColor(const Color(0xFF10B981))
                                                     .withAlpha(60),
                                               ),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(
+                                                Icon(
                                                   Icons.verified_rounded,
                                                   size: 11,
-                                                  color: Color(0xFF10B981),
+                                                  color: context.adaptUiColor(const Color(0xFF10B981)),
                                                 ),
                                                 const SizedBox(width: 4),
                                                 Text(
@@ -503,7 +504,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                                     fontSize: 10,
                                                     fontWeight: FontWeight.w600,
                                                     color:
-                                                        const Color(0xFF10B981),
+                                                        context.adaptUiColor(const Color(0xFF10B981)),
                                                   ),
                                                 ),
                                               ],
@@ -667,14 +668,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: _isEmailVerified
-                ? const Color(0xFF10B981).withAlpha(10)
+                ? context.adaptUiColor(const Color(0xFF10B981)).withAlpha(10)
                 : hasError
                     ? Colors.red.shade50
                     : SigumiTheme.background,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: _isEmailVerified
-                  ? const Color(0xFF10B981).withAlpha(80)
+                  ? context.adaptUiColor(const Color(0xFF10B981)).withAlpha(80)
                   : hasError
                       ? Colors.red.shade400
                       : SigumiTheme.divider,
@@ -713,7 +714,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     prefixIcon: Icon(
                       Icons.email_outlined,
                       color: _isEmailVerified
-                          ? const Color(0xFF10B981)
+                          ? context.adaptUiColor(const Color(0xFF10B981))
                           : hasError
                               ? Colors.red.shade400
                               : SigumiTheme.primaryBlue.withAlpha(150),
@@ -753,7 +754,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           minimumSize: Size.zero,
                           backgroundColor: _isEmailVerified
-                              ? const Color(0xFF10B981).withAlpha(20)
+                              ? context.adaptUiColor(const Color(0xFF10B981)).withAlpha(20)
                               : SigumiTheme.primaryBlue.withAlpha(15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
@@ -765,7 +766,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                             color: _isEmailVerified
-                                ? const Color(0xFF10B981)
+                                ? context.adaptUiColor(const Color(0xFF10B981))
                                 : SigumiTheme.primaryBlue,
                           ),
                         ),

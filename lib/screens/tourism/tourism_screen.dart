@@ -671,7 +671,7 @@ class _AgendaCard extends StatelessWidget {
                             color: context.isHighContrast
                                 ? context.bgPrimary
                                 : event.isRecurring
-                                    ? SigumiTheme.statusNormal.withAlpha(20)
+                                    ? context.adaptUiColor(SigumiTheme.statusNormal).withAlpha(20)
                                     : SigumiTheme.primaryBlue.withAlpha(15),
                             borderRadius: BorderRadius.circular(6),
                           ),
@@ -683,7 +683,7 @@ class _AgendaCard extends StatelessWidget {
                               color: context.isHighContrast
                                   ? context.accentSecondary
                                   : event.isRecurring
-                                      ? SigumiTheme.statusNormal
+                                      ? context.adaptUiColor(SigumiTheme.statusNormal)
                                       : SigumiTheme.primaryBlue,
                             ),
                           ),
@@ -828,7 +828,9 @@ class _DestinationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final catColor = context.isHighContrast
         ? context.bgSurface
-        : _categoryColors[destination.category] ?? SigumiTheme.primaryBlue;
+        : context.adaptUiColor(
+            _categoryColors[destination.category] ?? SigumiTheme.primaryBlue,
+          );
     final catIcon = _categoryIcons[destination.category] ?? Icons.place_rounded;
 
     return Material(

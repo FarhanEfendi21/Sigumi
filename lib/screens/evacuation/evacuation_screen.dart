@@ -392,15 +392,15 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                                   ),
                                 ],
                               ),
-                              child: const Padding(
-                                padding: EdgeInsets.all(10),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10),
                                 child: SizedBox(
                                   width: 18,
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.5,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color(0xFF16A34A),
+                                      context.adaptUiColor(const Color(0xFF16A34A)),
                                     ),
                                   ),
                                 ),
@@ -712,7 +712,9 @@ class _EvacuationScreenState extends State<EvacuationScreen>
 
   Widget _buildShelterMarker(ShelterModel shelter, {bool isNearest = false}) {
     final style = _ShelterStyle.of(shelter.type);
-    final markerColor = isNearest ? const Color(0xFF16A34A) : style.color;
+    final markerColor = context.adaptUiColor(
+      isNearest ? const Color(0xFF16A34A) : style.color,
+    );
     final markerSize = isNearest ? 22.0 : 18.0;
     final borderWidth = isNearest ? 2.5 : 2.0;
 
@@ -736,7 +738,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                       height: 46,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: const Color(0xFF16A34A).withAlpha(40),
+                        color: context.adaptUiColor(const Color(0xFF16A34A)).withAlpha(40),
                       ),
                     )
                         .animate(onPlay: (c) => c.repeat())
@@ -797,7 +799,9 @@ class _EvacuationScreenState extends State<EvacuationScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: isNearest ? const Color(0xFF16A34A) : Colors.white,
+              color: isNearest
+                  ? context.adaptUiColor(const Color(0xFF16A34A))
+                  : Colors.white,
               borderRadius: BorderRadius.circular(6),
               border: Border.all(
                 color: isNearest
@@ -985,13 +989,13 @@ class _EvacuationCard extends StatelessWidget {
                           children: [
                             _TypeBadge(
                               label: context.trText(shelter.typeLabel),
-                              color: style.color,
+                              color: context.adaptUiColor(style.color),
                             ),
                             if (shelter.is24h) ...[
                               const SizedBox(width: 6),
                               _TypeBadge(
                                 label: context.tr('open_24_hours'),
-                                color: Colors.green.shade600,
+                                color: context.adaptUiColor(Colors.green.shade600),
                                 icon: Icons.access_time_rounded,
                               ),
                             ],
@@ -1026,14 +1030,14 @@ class _EvacuationCard extends StatelessWidget {
                         Row(
                           children: [
                             Icon(Icons.near_me_outlined,
-                                size: 14, color: style.color),
+                                size: 14, color: context.adaptUiColor(style.color)),
                             const SizedBox(width: 4),
                             Text(
                               shelter.distanceLabel,
                               style: AppFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: style.color,
+                                color: context.adaptUiColor(style.color),
                               ),
                             ),
                             if (shelter.capacity != null) ...[
@@ -1268,17 +1272,17 @@ class _DetailSheet extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: style.color.withAlpha(20),
+                    color: context.adaptUiColor(style.color).withAlpha(20),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(style.icon, color: style.color, size: 24),
+                  child: Icon(style.icon, color: context.adaptUiColor(style.color), size: 24),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _TypeBadge(label: context.trText(shelter.typeLabel), color: style.color),
+                      _TypeBadge(label: context.trText(shelter.typeLabel), color: context.adaptUiColor(style.color)),
                       const SizedBox(height: 4),
                       Text(
                         shelter.name,
@@ -1309,14 +1313,14 @@ class _DetailSheet extends StatelessWidget {
                     icon: Icons.location_on_outlined,
                     label: context.trText('Alamat'),
                     value: shelter.address!,
-                    color: style.color,
+                    color: context.adaptUiColor(style.color),
                   ),
                 if (shelter.distanceFromUser != null)
                   _DetailRow(
                     icon: Icons.near_me_rounded,
                     label: context.tr('distance_from_you'),
                     value: shelter.distanceLabel,
-                    color: style.color,
+                    color: context.adaptUiColor(style.color),
                     highlighted: true,
                   ),
                 if (shelter.capacity != null)
@@ -1324,14 +1328,14 @@ class _DetailSheet extends StatelessWidget {
                     icon: Icons.people_rounded,
                     label: context.trText('Kapasitas'),
                     value: '${shelter.capacity} orang',
-                    color: style.color,
+                    color: context.adaptUiColor(style.color),
                   ),
                 if (shelter.notes != null)
                   _DetailRow(
                     icon: Icons.info_outline_rounded,
                     label: context.trText('Catatan'),
                     value: shelter.notes!,
-                    color: style.color,
+                    color: context.adaptUiColor(style.color),
                   ),
               ],
             ),
@@ -1383,7 +1387,7 @@ class _DetailSheet extends StatelessWidget {
                         _FacilityChip(
                           label: context.tr('open_24_hours'),
                           icon: Icons.access_time_rounded,
-                          color: Colors.green.shade600,
+                          color: context.adaptUiColor(Colors.green.shade600),
                         ),
                     ],
                   ),
@@ -1403,7 +1407,7 @@ class _DetailSheet extends StatelessWidget {
                     child: _ActionButton(
                       icon: Icons.call_rounded,
                       label: context.tr('call'),
-                      color: Colors.green.shade600,
+                      color: context.adaptUiColor(Colors.green.shade600),
                       onTap: () async {
                         final uri = Uri.parse('tel:${shelter.phone}');
                         if (await canLaunchUrl(uri)) await launchUrl(uri);
@@ -1851,7 +1855,7 @@ class _NearestShelterBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const green = Color(0xFF16A34A);
+    final green = context.adaptUiColor(const Color(0xFF16A34A));
 
     return GestureDetector(
       onTap: () {
@@ -1861,8 +1865,11 @@ class _NearestShelterBanner extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF166534), Color(0xFF15803D)],
+          gradient: LinearGradient(
+            colors: [
+              context.adaptUiColor(const Color(0xFF166534)),
+              context.adaptUiColor(const Color(0xFF15803D)),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),

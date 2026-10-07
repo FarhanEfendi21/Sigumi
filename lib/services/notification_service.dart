@@ -306,7 +306,9 @@ class NotificationService {
 
     // 2. Notifikasi sistem (Android Notification Drawer & Heads-up)
     try {
-      final statusColor = _getStatusColor(level);
+      final prefs = await SharedPreferences.getInstance();
+      final colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
+      final statusColor = _getStatusColor(level, colorBlindMode: colorBlindMode);
 
       final bigTextStyle = BigTextStyleInformation(
         body,
@@ -356,7 +358,9 @@ class NotificationService {
     String body = 'Sigumi sedang merekam jalur pendakian',
   }) async {
     try {
-      const AndroidNotificationDetails androidDetails =
+      final prefs = await SharedPreferences.getInstance();
+      final colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
+      final AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
         _hikingChannelId,
         _hikingChannelName,
@@ -366,14 +370,16 @@ class NotificationService {
         ongoing: true,
         autoCancel: false,
         icon: '@mipmap/launcher_icon',
-        color: Color(0xFF16A34A),
+        color: colorBlindMode == 'deuteranopia'
+            ? const Color(0xFF0077BB)
+            : const Color(0xFF16A34A),
         visibility: NotificationVisibility.public,
         showWhen: true,
         usesChronometer: true,
         chronometerCountDown: false,
       );
 
-      const NotificationDetails details = NotificationDetails(
+      final NotificationDetails details = NotificationDetails(
         android: androidDetails,
       );
 
@@ -401,7 +407,7 @@ class NotificationService {
     }
   }
 
-  Color _getStatusColor(int level) {
+  Color _getStatusColor(int level, {String colorBlindMode = 'normal'}) {
     switch (level) {
       case 4:
         return const Color(0xFFDC2626); // Awas
@@ -410,7 +416,9 @@ class NotificationService {
       case 2:
         return const Color(0xFFD97706); // Waspada
       default:
-        return const Color(0xFF059669); // Normal
+        return colorBlindMode == 'deuteranopia'
+            ? const Color(0xFF0077BB)
+            : const Color(0xFF059669); // Normal
     }
   }
 

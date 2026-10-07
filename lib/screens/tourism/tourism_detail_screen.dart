@@ -42,7 +42,8 @@ class TourismDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final heroColor = context.isHighContrast ? context.bgPrimary : _catColor;
+    final categoryColor = context.adaptUiColor(_catColor);
+    final heroColor = context.isHighContrast ? context.bgPrimary : categoryColor;
     final heroForeground =
         context.isHighContrast ? context.accentSecondary : Colors.white;
     return Scaffold(
@@ -81,7 +82,7 @@ class TourismDetailScreen extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: context.isHighContrast
                         ? [context.bgPrimary, context.bgPrimary]
-                        : [_catColor, _catColor.withAlpha(200)],
+                        : [categoryColor, categoryColor.withAlpha(200)],
                   ),
                 ),
                 child: Stack(
@@ -251,7 +252,7 @@ class TourismDetailScreen extends StatelessWidget {
                   // Tombol buka maps
                   _OpenMapsButton(
                     destination: destination,
-                    catColor: _catColor,
+                    catColor: categoryColor,
                     onTap: _openMaps,
                   ).animate().fadeIn(delay: 200.ms, duration: 400.ms).slideY(begin: 0.08, end: 0),
 

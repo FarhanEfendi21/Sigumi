@@ -78,12 +78,15 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     final isHC = provider.highContrast;
     final cbMode = provider.colorBlindMode;
     final zoneColor = SigumiTheme.getStatusColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
+    final zoneAccentColor = isHC ? SigumiTheme.hcSecondary : zoneColor;
     final volcano = provider.volcano;
     final volcanoLevel = volcano.statusLevel;
     final isHighAlert = volcanoLevel >= 3;
 
         // Warna dari JARAK user (zoneLevel), bukan status gunung
-        final headerColor = _getHeaderColor(zoneLevel, highContrast: isHC, colorBlindMode: cbMode);
+        final headerColor = isHC
+            ? SigumiTheme.hcBackground
+            : _getHeaderColor(zoneLevel, colorBlindMode: cbMode);
         final pageBg = isHC ? context.bgPrimary : _getPageBgColor(zoneLevel);
 
         final mq = MediaQuery.of(context);
@@ -100,7 +103,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
           backgroundColor: pageBg,
           appBar: AppBar(
             backgroundColor: headerColor,
-            foregroundColor: isHC ? context.bgPrimary : Colors.white,
+            foregroundColor: isHC ? SigumiTheme.hcPrimary : Colors.white,
             elevation: 0,
             title: Text(
               context.trText('Status Zona'),
@@ -141,15 +144,21 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                   width: double.infinity,
                   padding: EdgeInsets.fromLTRB(hPad, 20, hPad, 24),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [headerColor, headerColor.withAlpha(180)],
-                    ),
+                    color: isHC ? SigumiTheme.hcSurface : null,
+                    gradient: isHC
+                        ? null
+                        : LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [headerColor, headerColor.withAlpha(180)],
+                          ),
                     borderRadius: const BorderRadius.only(
                       bottomLeft: Radius.circular(28),
                       bottomRight: Radius.circular(28),
                     ),
+                    border: isHC
+                        ? Border.all(color: SigumiTheme.hcBorder, width: 2)
+                        : null,
                   ),
                   child: Column(
                     children: [
@@ -160,16 +169,26 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(30),
+                            color: isHC
+                                ? SigumiTheme.hcSecondary
+                                : Colors.white.withAlpha(30),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                                color: Colors.white.withAlpha(80)),
+                              color: isHC
+                                  ? SigumiTheme.hcBorder
+                                  : Colors.white.withAlpha(80),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.warning_amber_rounded,
-                                  color: Colors.white, size: 14),
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                color: isHC
+                                    ? SigumiTheme.hcBackground
+                                    : Colors.white,
+                                size: 14,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 volcanoLevel == 4
@@ -178,7 +197,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                                 style: AppFonts.plusJakartaSans(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w800,
-                                  color: Colors.white,
+                                  color: isHC
+                                      ? SigumiTheme.hcBackground
+                                      : Colors.white,
                                   letterSpacing: 0.5,
                                 ),
                               ),
@@ -224,7 +245,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                       _buildSectionCard(
                         context: context,
                         icon: Icons.my_location_rounded,
-                        iconColor: zoneColor,
+                        iconColor: zoneAccentColor,
                         title: context.tr('current_position'),
                         child: Column(
                           children: [
@@ -240,7 +261,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                               context.trText('Zona Saat Ini'),
                               context.trText(provider.zoneLabel),
                               Icons.shield_outlined,
-                              valueColor: zoneColor,
+                              valueColor: zoneAccentColor,
                             ),
                             const Divider(height: 20),
                             _buildInfoRow(
@@ -343,10 +364,11 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isHighAlert
+                        color: isHC
+                            ? SigumiTheme.hcSecondary
+                            : isHighAlert
                             ? SigumiTheme.getStatusColor(
                                 zoneLevel > 2 ? zoneLevel : 3,
-                                highContrast: isHC,
                                 colorBlindMode: cbMode,
                               )
                             : context.textPrimary,
@@ -449,14 +471,18 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
             margin: const EdgeInsets.only(bottom: 20),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.grey.withAlpha(12),
+              color: isHC ? SigumiTheme.hcSurface : Colors.grey.withAlpha(12),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.withAlpha(25)),
+              border: Border.all(
+                color: isHC ? SigumiTheme.hcBorder : Colors.grey.withAlpha(25),
+                width: isHC ? 1.5 : 1,
+              ),
             ),
             child: Row(
               children: [
                 Icon(Icons.info_outline_rounded,
-                    size: 14, color: context.textSecondary),
+                    size: 14,
+                    color: isHC ? SigumiTheme.hcSecondary : context.textSecondary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -486,7 +512,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
     bool isHC = false,
     String cbMode = 'normal',
   }) {
-    final color = SigumiTheme.getStatusColor(level, highContrast: isHC, colorBlindMode: cbMode);
+    final color = isHC
+        ? SigumiTheme.hcSecondary
+        : SigumiTheme.getStatusColor(level, colorBlindMode: cbMode);
     final shapeIcon = SigumiTheme.getStatusShape(level);
 
     // Saat gunung level tinggi, font judul zona lebih bold dan warna lebih intens
@@ -500,17 +528,19 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isActive
-            ? color.withAlpha(isHighAlert ? 15 : 10)
+            ? color.withAlpha(isHC ? 28 : (isHighAlert ? 15 : 10))
             : context.bgSurface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isActive
-              ? color.withAlpha(isHighAlert ? 100 : 70)
-              : const Color(0xFFE8E8ED),
-          width: isActive && isHighAlert ? 2 : (isActive ? 1.5 : 1),
+              ? color.withAlpha(isHC ? 255 : (isHighAlert ? 100 : 70))
+              : (isHC ? SigumiTheme.hcBorder : const Color(0xFFE8E8ED)),
+          width: isHC
+              ? (isActive ? 2.5 : 1.5)
+              : (isActive && isHighAlert ? 2 : (isActive ? 1.5 : 1)),
         ),
         // Glow subtle saat active + high alert
-        boxShadow: isActive && isHighAlert
+        boxShadow: !isHC && isActive && isHighAlert
             ? [
                 BoxShadow(
                   color: color.withAlpha(40),
@@ -528,7 +558,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withAlpha(isActive ? 30 : 18),
+              color: isHC
+                  ? SigumiTheme.hcSurface
+                  : color.withAlpha(isActive ? 30 : 18),
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
@@ -548,7 +580,7 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                           fontSize: 13,
                           fontWeight: titleFontWeight,
                           fontStyle: titleFontStyle,
-                          color: color,
+                    color: isHC && !isActive ? SigumiTheme.hcPrimary : color,
                         ),
                       ),
                     ),
@@ -560,10 +592,16 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withAlpha(20),
+                          color: isHC
+                              ? SigumiTheme.hcSecondary
+                              : color.withAlpha(20),
                           borderRadius: BorderRadius.circular(4),
-                          border: isHighAlert
-                              ? Border.all(color: color.withAlpha(60))
+                          border: isHC || isHighAlert
+                              ? Border.all(
+                                  color: isHC
+                                      ? SigumiTheme.hcBorder
+                                      : color.withAlpha(60),
+                                )
                               : null,
                         ),
                         child: Text(
@@ -571,7 +609,9 @@ class _ZoneDetailScreenState extends State<ZoneDetailScreen> {
                           style: AppFonts.plusJakartaSans(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
-                            color: color,
+                            color: isHC
+                                ? SigumiTheme.hcBackground
+                                : color,
                           ),
                         ),
                       ),

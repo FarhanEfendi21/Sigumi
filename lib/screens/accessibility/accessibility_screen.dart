@@ -2,9 +2,9 @@ import '../../services/localization_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sigumi/config/fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:shadcn_ui/shadcn_ui.dart';
 import '../../config/theme.dart';
 import '../../providers/volcano_provider.dart';
 
@@ -49,6 +49,330 @@ void _showAccessInfo(
         ),
       ],
     ),
+  );
+}
+
+Future<void> _confirmHighContrastChange({
+  required BuildContext context,
+  required VolcanoProvider provider,
+  required bool enable,
+  required bool isHighContrast,
+}) async {
+  if (enable == provider.highContrast) return;
+
+  final surfaceColor = isHighContrast ? SigumiTheme.hcSurface : Colors.white;
+  final primaryText =
+      isHighContrast ? SigumiTheme.hcPrimary : const Color(0xFF1E1E2C);
+  final secondaryText =
+      isHighContrast ? SigumiTheme.hcDivider : const Color(0xFF6B6B78);
+  final accentColor =
+      isHighContrast ? SigumiTheme.hcSecondary : SigumiTheme.primaryBlue;
+  final borderColor =
+      isHighContrast ? SigumiTheme.hcBorder : const Color(0xFFE5E7EB);
+
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      backgroundColor: surfaceColor,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: borderColor, width: isHighContrast ? 2 : 1),
+      ),
+      icon: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: accentColor.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Icon(Icons.contrast_rounded, color: accentColor, size: 24),
+      ),
+      title: Text(
+        enable ? 'Aktifkan kontras tinggi?' : 'Matikan kontras tinggi?',
+        textAlign: TextAlign.center,
+        style: AppFonts.plusJakartaSans(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          color: primaryText,
+        ),
+      ),
+      content: Text(
+        enable
+            ? 'Tampilan akan menggunakan latar gelap, teks terang, dan aksen yang lebih tegas agar lebih mudah dibaca.'
+            : 'Tampilan akan kembali ke skema warna standar SIGUMI.',
+        textAlign: TextAlign.center,
+        style: AppFonts.plusJakartaSans(
+          fontSize: 14,
+          height: 1.5,
+          color: secondaryText,
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: primaryText,
+            side: BorderSide(color: borderColor, width: isHighContrast ? 2 : 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          style: FilledButton.styleFrom(
+            backgroundColor: accentColor,
+            foregroundColor:
+                isHighContrast ? SigumiTheme.hcBackground : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(enable ? 'Aktifkan' : 'Matikan'),
+        ),
+      ],
+    ),
+  );
+
+  // Terapkan tema setelah route dialog selesai ditutup agar widget dialog
+  // tidak ikut dibangun ulang dengan ThemeData yang baru.
+  if (confirmed == true) {
+    HapticFeedback.mediumImpact();
+    provider.setHighContrast(enable);
+  }
+}
+
+void _showTextSizeDialog({
+  required BuildContext context,
+  required VolcanoProvider provider,
+  required double currentSize,
+  required bool isHighContrast,
+}) {
+  final surfaceColor = isHighContrast ? SigumiTheme.hcSurface : Colors.white;
+  final backgroundColor =
+      isHighContrast ? SigumiTheme.hcBackground : const Color(0xFFF5F7FA);
+  final primaryText =
+      isHighContrast ? SigumiTheme.hcPrimary : const Color(0xFF1E1E2C);
+  final secondaryText =
+      isHighContrast ? SigumiTheme.hcDivider : const Color(0xFF6B6B78);
+  final accentColor =
+      isHighContrast ? SigumiTheme.hcSecondary : SigumiTheme.primaryBlue;
+  final borderColor =
+      isHighContrast ? SigumiTheme.hcBorder : const Color(0xFFE5E7EB);
+
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      var draftSize = currentSize;
+
+      return StatefulBuilder(
+        builder: (context, setDialogState) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: borderColor,
+                  width: isHighContrast ? 2 : 1,
+                ),
+                boxShadow: isHighContrast
+                    ? const []
+                    : [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 28,
+                          offset: const Offset(0, 12),
+                        ),
+                      ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Sesuaikan ukuran teks',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: primaryText,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: context.tr('close'),
+                          onPressed: () => Navigator.pop(dialogContext),
+                          icon: Icon(Icons.close_rounded, color: secondaryText),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Atur ukuran, lihat pratinjau, lalu terapkan jika sudah nyaman.',
+                      style: AppFonts.plusJakartaSans(
+                        fontSize: 13,
+                        height: 1.45,
+                        color: secondaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Pratinjau',
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: secondaryText,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: accentColor.withValues(alpha: 0.14),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '${(draftSize * 100).round()}%',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 140),
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 15 * draftSize,
+                              height: 1.45,
+                              color: primaryText,
+                            ),
+                            child: Text(context.tr('dynamic_text_example')),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Text(
+                          'A',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 13,
+                            color: secondaryText,
+                          ),
+                        ),
+                        Expanded(
+                          child: SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              activeTrackColor: accentColor,
+                              thumbColor: accentColor,
+                              inactiveTrackColor: borderColor,
+                              overlayColor: accentColor.withValues(alpha: 0.12),
+                              valueIndicatorColor: accentColor,
+                            ),
+                            child: Slider(
+                              value: draftSize,
+                              min: 0.8,
+                              max: 1.5,
+                              divisions: 14,
+                              label: '${(draftSize * 100).round()}%',
+                              onChanged: (value) {
+                                setDialogState(() => draftSize = value);
+                              },
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'A',
+                          style: AppFonts.plusJakartaSans(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w700,
+                            color: primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: primaryText,
+                              side: BorderSide(color: borderColor),
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(context.tr('cancel')),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: FilledButton(
+                            onPressed: () {
+                              HapticFeedback.selectionClick();
+                              provider.setFontSize(draftSize);
+                              Navigator.pop(dialogContext);
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: accentColor,
+                              foregroundColor: isHighContrast
+                                  ? SigumiTheme.hcBackground
+                                  : Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 13),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(context.tr('save')),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
   );
 }
 
@@ -136,74 +460,99 @@ class AccessibilityScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            context.tr('text_size'),
-                            style: AppFonts.plusJakartaSans(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: primaryText,
-                            ),
-                          ),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 3,
-                            ),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: accentColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              '${(provider.fontSize * 100).toInt()}%',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: accentColor,
+                            child: Icon(
+                              Icons.format_size_rounded,
+                              color: accentColor,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  context.tr('text_size'),
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: primaryText,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  'Saat ini ${(provider.fontSize * 100).round()}%',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: tertiaryText,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            onPressed: () => _showTextSizeDialog(
+                              context: context,
+                              provider: provider,
+                              currentSize: provider.fontSize,
+                              isHighContrast: isHC,
+                            ),
+                            icon: const Icon(Icons.tune_rounded, size: 16),
+                            label: const Text('Ubah'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: accentColor,
+                              side: BorderSide(color: borderColor),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 18),
-                      Row(
-                        children: [
-                          Text(
-                            'A',
-                            style: AppFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w400,
-                              color: tertiaryText,
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isHC ? SigumiTheme.hcBackground : const Color(0xFFF5F7FA),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: borderColor),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PRATINJAU TEKS',
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.8,
+                                color: tertiaryText,
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: Slider(
-                              value: provider.fontSize,
-                              min: 0.8,
-                              max: 1.5,
-                              onChanged: (v) => provider.setFontSize(v),
+                            const SizedBox(height: 6),
+                            AnimatedDefaultTextStyle(
+                              duration: const Duration(milliseconds: 160),
+                              style: AppFonts.plusJakartaSans(
+                                fontSize: 14 * provider.fontSize,
+                                height: 1.4,
+                                color: secondaryText,
+                              ),
+                              child: Text(context.tr('dynamic_text_example')),
                             ),
-                          ),
-                          Text(
-                            'A',
-                            style: AppFonts.plusJakartaSans(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: primaryText,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 200),
-                          style: AppFonts.plusJakartaSans(
-                            fontSize: 14 * provider.fontSize,
-                            color: secondaryText,
-                          ),
-                          child: Text(context.tr('dynamic_text_example')),
+                          ],
                         ),
                       ),
                     ],
@@ -285,8 +634,12 @@ class AccessibilityScreen extends StatelessWidget {
                       Switch(
                         value: provider.highContrast,
                         onChanged: (v) {
-                          HapticFeedback.mediumImpact();
-                          provider.setHighContrast(v);
+                          _confirmHighContrastChange(
+                            context: context,
+                            provider: provider,
+                            enable: v,
+                            isHighContrast: isHC,
+                          );
                         },
                       ),
                     ],
@@ -337,6 +690,7 @@ class AccessibilityScreen extends StatelessWidget {
                           ),
                           const SizedBox(width: 14),
                           Expanded(
+                            flex: 1,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -361,53 +715,112 @@ class AccessibilityScreen extends StatelessWidget {
                               ],
                             ),
                           ),
-                          ShadSelect<String>(
-                            placeholder: Text(context.tr('select_mode')),
-                            initialValue: cbMode,
-                            onChanged: (v) {
-                              if (v != null) {
-                                HapticFeedback.selectionClick();
-                                provider.setColorBlindMode(v);
-                              }
-                            },
-                            selectedOptionBuilder: (context, value) {
-                              final opt = _colorBlindOptions.firstWhere(
-                                (o) => o.value == value,
-                                orElse: () => _colorBlindOptions.first,
-                              );
-                              return Text(
-                                opt.label,
-                                style: AppFonts.plusJakartaSans(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: surfaceColor,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isHC
+                                      ? SigumiTheme.hcBorder
+                                      : borderColor,
+                                  width: isHC ? 2 : 1,
                                 ),
-                              );
-                            },
-                            options: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(32, 6, 6, 6),
-                                child: Text(
-                                  context.tr('color_blind_mode'),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: cbMode,
+                                  isExpanded: true,
+                                  dropdownColor: surfaceColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                  menuWidth: (MediaQuery.sizeOf(context).width - 32)
+                                      .clamp(180.0, 240.0)
+                                      .toDouble(),
+                                  itemHeight: (MediaQuery.textScalerOf(context)
+                                              .scale(14) *
+                                          2.6 +
+                                      12)
+                                      .clamp(48.0, 120.0)
+                                      .toDouble(),
+                                  menuMaxHeight: 280,
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: primaryText,
+                                    size: 22,
+                                  ),
                                   style: AppFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF6B6B78),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: primaryText,
                                   ),
+                                  selectedItemBuilder: (context) {
+                                    return _colorBlindOptions.map((opt) {
+                                      return Align(
+                                        alignment:
+                                            AlignmentDirectional.centerStart,
+                                        child: Text(
+                                          context.trText(opt.label),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: AppFonts.plusJakartaSans(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: primaryText,
+                                          ),
+                                        ),
+                                      );
+                                    }).toList();
+                                  },
+                                  items: _colorBlindOptions.map((opt) {
+                                    final isSelected = opt.value == cbMode;
+                                    return DropdownMenuItem<String>(
+                                      value: opt.value,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            opt.icon,
+                                            size: 18,
+                                            color: accentColor,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                            child: Text(
+                                              context.trText(opt.label),
+                                              maxLines: 2,
+                                              softWrap: true,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: AppFonts.plusJakartaSans(
+                                                fontSize: 14,
+                                                color: primaryText,
+                                              ),
+                                            ),
+                                          ),
+                                          if (isSelected) ...[
+                                            const SizedBox(width: 8),
+                                            Icon(
+                                              Icons.check_rounded,
+                                              size: 18,
+                                              color: isHC
+                                                  ? SigumiTheme.hcSecondary
+                                                  : accentColor,
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    if (value != null) {
+                                      HapticFeedback.selectionClick();
+                                      provider.setColorBlindMode(value);
+                                    }
+                                  },
                                 ),
                               ),
-                              ..._colorBlindOptions.map(
-                                (opt) => ShadOption(
-                                  value: opt.value,
-                                  child: Row(
-                                    children: [
-                                      Icon(opt.icon, size: 16, color: accentColor),
-                                      const SizedBox(width: 8),
-                                  Text(context.trText(opt.label), style: AppFonts.plusJakartaSans()),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
                         ],
                       ),

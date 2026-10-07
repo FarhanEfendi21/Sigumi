@@ -594,7 +594,7 @@ class ShelterCard extends StatelessWidget {
                             const SizedBox(width: 6),
                             _Badge(
                               label: context.trText('24 Jam'),
-                              color: Colors.green.shade600,
+                              color: context.adaptUiColor(Colors.green.shade600),
                               icon: Icons.access_time_rounded,
                             ),
                           ],
@@ -729,17 +729,17 @@ class _DetailSheet extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: style.color.withValues(alpha: 0.10),
+                  color: context.adaptUiColor(style.color).withValues(alpha: 0.10),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(style.icon, color: style.color, size: 28),
+                child: Icon(style.icon, color: context.adaptUiColor(style.color), size: 28),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Badge(label: context.trText(shelter.typeLabel), color: style.color),
+                    _Badge(label: context.trText(shelter.typeLabel), color: context.adaptUiColor(style.color)),
                     const SizedBox(height: 4),
                     Text(
                       shelter.name,
@@ -769,26 +769,26 @@ class _DetailSheet extends StatelessWidget {
                     icon: Icons.location_on_outlined,
                     label: context.trText('Alamat'),
                     value: shelter.address!,
-                    color: style.color),
+                    color: context.adaptUiColor(style.color)),
               if (shelter.distanceFromUser != null)
                 _DetailRow(
                     icon: Icons.near_me_rounded,
                     label: context.tr('distance_from_you'),
                     value: shelter.distanceLabel,
-                    color: style.color,
+                    color: context.adaptUiColor(style.color),
                     highlighted: true),
               if (shelter.capacity != null)
                 _DetailRow(
                     icon: Icons.people_rounded,
                     label: context.trText('Kapasitas'),
                     value: '${shelter.capacity} ${context.tr('people')}',
-                    color: style.color),
+                    color: context.adaptUiColor(style.color)),
               if (shelter.notes != null)
                 _DetailRow(
                     icon: Icons.info_outline_rounded,
                     label: context.trText('Catatan'),
                     value: shelter.notes!,
-                    color: style.color),
+                    color: context.adaptUiColor(style.color)),
             ]),
           ),
 
@@ -829,7 +829,7 @@ class _DetailSheet extends StatelessWidget {
                       _FacilityChip(
                           label: context.tr('open_24_hours'),
                           icon: Icons.access_time_rounded,
-                          color: Colors.green.shade600),
+                          color: context.adaptUiColor(Colors.green.shade600)),
                   ]),
                 ],
               ),
@@ -846,7 +846,7 @@ class _DetailSheet extends StatelessWidget {
                   child: _ActionBtn(
                     icon: Icons.call_rounded,
                     label: context.trText('Hubungi'),
-                    color: Colors.green.shade600,
+                    color: context.adaptUiColor(Colors.green.shade600),
                     onTap: () async {
                       final uri = Uri.parse('tel:${shelter.phone}');
                       if (await canLaunchUrl(uri)) await launchUrl(uri);

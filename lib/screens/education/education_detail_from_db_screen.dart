@@ -32,7 +32,7 @@ class EducationDetailFromDbScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _accentColor;
+    final color = context.adaptUiColor(_accentColor);
 
     return Scaffold(
       backgroundColor: context.bgPrimary,

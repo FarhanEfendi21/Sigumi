@@ -43,6 +43,7 @@ class PrimaryInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final statusColor = context.adaptUiColor(_statusColor);
     return AnimatedContainer(
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutCubic,
@@ -69,12 +70,12 @@ class PrimaryInfoCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _statusColor.withAlpha(20),
+                  color: statusColor.withAlpha(20),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Icon(
                   distance <= 10.0 ? Icons.warning_amber_rounded : Icons.gpp_good_rounded,
-                  color: _statusColor,
+                  color: statusColor,
                   size: 28,
                 ),
               ),
@@ -90,7 +91,7 @@ class PrimaryInfoCard extends StatelessWidget {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
-                        color: _statusColor,
+                        color: statusColor,
                         letterSpacing: -0.5,
                       ),
                     ).animate().fade().slideX(begin: -0.05),

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../config/fonts.dart';
 import '../../config/theme.dart';
+import '../../config/theme_extensions.dart';
 import '../../services/password_reset_service.dart';
 
 /// Layar verifikasi OTP email pemulihan saat PENDAFTARAN.
@@ -244,15 +245,18 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF10B981), Color(0xFF059669)],
+                          gradient: LinearGradient(
+                            colors: [
+                              context.adaptUiColor(const Color(0xFF10B981)),
+                              context.adaptUiColor(const Color(0xFF059669)),
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF10B981).withAlpha(80),
+                              color: context.adaptUiColor(const Color(0xFF10B981)).withAlpha(80),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -389,16 +393,16 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
                               height: 52,
                               child: DecoratedBox(
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
+                                  gradient: LinearGradient(
                                     colors: [
-                                      Color(0xFF10B981),
-                                      Color(0xFF059669),
+                                      context.adaptUiColor(const Color(0xFF10B981)),
+                                      context.adaptUiColor(const Color(0xFF059669)),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF10B981)
+                                      color: context.adaptUiColor(const Color(0xFF10B981))
                                           .withAlpha(80),
                                       blurRadius: 16,
                                       offset: const Offset(0, 6),
@@ -542,7 +546,7 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide(
-              color: const Color(0xFF10B981),
+              color: context.adaptUiColor(const Color(0xFF10B981)),
               width: 2,
             ),
           ),

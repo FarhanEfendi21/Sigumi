@@ -100,113 +100,87 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-
-                      // Ikon
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              SigumiTheme.primaryBlue,
-                              Color(0xFF2A3E9A),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: SigumiTheme.primaryBlue.withAlpha(80),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 32),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 440),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          Text(
+                            'PEMULIHAN AKUN',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.5,
+                              color: SigumiTheme.primaryBlue,
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.lock_reset_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ).animate().fadeIn(duration: 500.ms).scale(
-                            begin: const Offset(0.7, 0.7),
-                            end: const Offset(1, 1),
-                            curve: Curves.elasticOut,
-                          ),
-
-                      const SizedBox(height: 24),
-
-                      // Judul
-                      Text(
-                        'Lupa Kata Sandi?',
-                        style: AppFonts.plusJakartaSans(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w700,
-                          color: SigumiTheme.textPrimary,
-                        ),
-                      ).animate().fadeIn(delay: 100.ms, duration: 400.ms),
-
-                      const SizedBox(height: 8),
-
-                      Text(
-                        'Masukkan nomor telepon yang terdaftar. '
-                        'Jika akun memiliki email pemulihan terverifikasi, '
-                        'instruksi akan dikirimkan.',
-                        style: AppFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: SigumiTheme.textSecondary,
-                          height: 1.6,
-                        ),
-                      ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
-
-                      const SizedBox(height: 32),
-
-                      // Form card
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(24),
-                          boxShadow: [
-                            BoxShadow(
-                              color: SigumiTheme.primaryBlue.withAlpha(18),
-                              blurRadius: 32,
-                              offset: const Offset(0, 12),
+                          ).animate().fadeIn(duration: 350.ms),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Lupa Kata Sandi?',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: (MediaQuery.sizeOf(context).width * 0.083)
+                                  .clamp(27.0, 30.0)
+                                  .toDouble(),
+                              height: 1.15,
+                              fontWeight: FontWeight.w700,
+                              color: SigumiTheme.textPrimary,
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Nomor Telepon',
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: SigumiTheme.textPrimary,
+                          ).animate().fadeIn(delay: 60.ms, duration: 350.ms),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Masukkan nomor telepon akun Anda. Kode verifikasi akan dikirim ke email pemulihan.',
+                            style: AppFonts.plusJakartaSans(
+                              fontSize: 14,
+                              color: SigumiTheme.textSecondary,
+                              height: 1.6,
+                            ),
+                          ).animate().fadeIn(delay: 100.ms, duration: 350.ms),
+                          const SizedBox(height: 28),
+                          Container(
+                            padding: const EdgeInsets.all(22),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: SigumiTheme.primaryBlue.withAlpha(18),
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: SigumiTheme.primaryBlue.withAlpha(14),
+                                  blurRadius: 28,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            _buildPhoneField(),
-                            const SizedBox(height: 24),
-                            _buildSubmitButton(),
-                          ],
-                        ),
-                      )
-                          .animate()
-                          .fadeIn(delay: 250.ms, duration: 500.ms)
-                          .slideY(begin: 0.12, end: 0, duration: 500.ms),
-
-                      const SizedBox(height: 24),
-
-                      // Info keamanan
-                      _buildSecurityNote(),
-                    ],
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Nomor Telepon',
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: SigumiTheme.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                _buildPhoneField(),
+                                const SizedBox(height: 20),
+                                _buildSubmitButton(),
+                              ],
+                            ),
+                          ).animate().fadeIn(
+                            delay: 160.ms,
+                            duration: 400.ms,
+                          ).slideY(begin: 0.05, end: 0),
+                          const SizedBox(height: 18),
+                          _buildSecurityNote(),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -249,13 +223,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 color: SigumiTheme.textSecondary,
                 fontSize: 13,
               ),
-              prefixIcon: Icon(
-                Icons.phone_outlined,
-                color: hasError
-                    ? Colors.red.shade400
-                    : SigumiTheme.primaryBlue.withAlpha(150),
-                size: 20,
-              ),
               filled: false,
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -270,19 +237,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         if (hasError)
           Padding(
             padding: const EdgeInsets.only(left: 12, top: 6),
-            child: Row(
-              children: [
-                Icon(Icons.error_outline, size: 14, color: Colors.red.shade600),
-                const SizedBox(width: 4),
-                Text(
-                  _phoneError!,
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: Colors.red.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+            child: Text(
+              _phoneError!,
+              style: AppFonts.plusJakartaSans(
+                fontSize: 12,
+                color: Colors.red.shade600,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ).animate().fadeIn(duration: 200.ms).slideY(begin: -0.3, end: 0),
       ],
@@ -327,19 +288,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     color: Colors.white,
                   ),
                 )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Kirim Kode Verifikasi',
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Icon(Icons.send_rounded, size: 18),
-                  ],
+              : Text(
+                  'Kirim Kode Verifikasi',
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
         ),
       ),
@@ -347,37 +301,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Widget _buildSecurityNote() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: SigumiTheme.primaryBlue.withAlpha(12),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: SigumiTheme.primaryBlue.withAlpha(30),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Text(
+        'Demi keamanan, kami tidak mengungkapkan apakah nomor terdaftar.',
+        textAlign: TextAlign.center,
+        style: AppFonts.plusJakartaSans(
+          fontSize: 12,
+          color: SigumiTheme.textSecondary,
+          height: 1.5,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.shield_outlined,
-            size: 18,
-            color: SigumiTheme.primaryBlue.withAlpha(180),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Email pemulihan digunakan hanya untuk verifikasi. '
-              'SIGUMI tidak pernah meminta kata sandi atau kode OTP melalui telepon.',
-              style: AppFonts.plusJakartaSans(
-                fontSize: 12,
-                color: SigumiTheme.textSecondary,
-                height: 1.55,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 400.ms, duration: 400.ms);
+    ).animate().fadeIn(delay: 250.ms, duration: 350.ms);
   }
 }
