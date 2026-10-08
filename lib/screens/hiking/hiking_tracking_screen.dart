@@ -255,8 +255,8 @@ class _HikingUnavailableView extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back_ios_new_rounded,
-                            color: textDark, size: 20),
+                        icon: Icon(Icons.arrow_back,
+                            color: textDark, size: 24),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -445,8 +445,8 @@ class _HikingLoginGate extends StatelessWidget {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back_ios_new_rounded,
-                            color: textDark, size: 20),
+                        icon: Icon(Icons.arrow_back,
+                            color: textDark, size: 24),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -645,8 +645,8 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                       child: Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.arrow_back_ios_new_rounded,
-                                color: _textDark, size: 20),
+                            icon: Icon(Icons.arrow_back,
+                                color: _textDark, size: 24),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                             Expanded(

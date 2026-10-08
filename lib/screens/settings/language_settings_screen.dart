@@ -23,9 +23,9 @@ class LanguageSettingsScreen extends StatelessWidget {
             centerTitle: true,
             leading: IconButton(
               icon: Icon(
-                Icons.arrow_back_ios_new_rounded,
+                Icons.arrow_back,
                 color: context.textPrimary,
-                size: 20,
+                size: 24,
               ),
               onPressed: () => Navigator.pop(context),
             ),

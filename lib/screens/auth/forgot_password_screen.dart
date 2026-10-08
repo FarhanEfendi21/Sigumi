@@ -88,8 +88,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   children: [
                     IconButton(
                       icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        size: 20,
+                        Icons.arrow_back,
+                        size: 24,
                       ),
                       color: SigumiTheme.textPrimary,
                       onPressed: () => Navigator.pop(context),
