@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/shelter_model.dart';
 
@@ -19,6 +21,27 @@ class ShelterRepository {
     String? type,
     int limit = 30,
   }) async {
+    // Titik evakuasi pada aplikasi berasal dari tabel `evakuasi`. Baca tabel
+    // ini langsung agar data yang sudah dimasukkan di back-office langsung
+    // tersedia tanpa perlu menyalinnya ke tabel shelters.
+    try {
+      final points = await _loadPointsFromTable(
+        'evakuasi', lat, lng, volcanoId, type, limit,
+      );
+      if (points.isNotEmpty) return points;
+    } catch (_) {
+      // Beberapa deployment menyimpan titiknya di tabel shelters.
+    }
+
+    try {
+      final points = await _loadPointsFromTable(
+        'shelters', lat, lng, volcanoId, type, limit,
+      );
+      if (points.isNotEmpty) return points;
+    } catch (_) {
+      // Lanjutkan ke RPC lama bila tabel langsung tidak tersedia.
+    }
+
     try {
       final result = await _client.rpc('get_nearby_shelters', params: {
         'p_lat': lat,
@@ -51,5 +74,42 @@ class ShelterRepository {
       lng: userLng,
       volcanoId: volcanoId,
     );
+  }
+
+  double _distanceKm(double lat1, double lng1, double lat2, double lng2) {
+    const earthRadiusKm = 6371.0;
+    final dLat = (lat2 - lat1) * 0.017453292519943295;
+    final dLng = (lng2 - lng1) * 0.017453292519943295;
+    final a = ((1 - _cos(dLat)) / 2 +
+        _cos(lat1 * 0.017453292519943295) *
+            _cos(lat2 * 0.017453292519943295) *
+            (1 - _cos(dLng)) / 2)
+        .clamp(0.0, 1.0);
+    return earthRadiusKm * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  }
+
+  double _cos(double value) => math.cos(value);
+
+  Future<List<ShelterModel>> _loadPointsFromTable(
+    String table,
+    double lat,
+    double lng,
+    String? volcanoId,
+    String? type,
+    int limit,
+  ) async {
+    final rows = await _client.from(table).select().limit(limit);
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(ShelterModel.fromEvakuasiRow)
+        .whereType<ShelterModel>()
+        .where((point) => point.isActive)
+        .where((point) => type == null || point.type == type)
+        .where((point) =>
+            volcanoId == null || point.volcanoId.isEmpty || point.volcanoId == volcanoId)
+        .map((point) => point.copyWith(
+              distanceFromUser: _distanceKm(lat, lng, point.latitude, point.longitude),
+            ))
+        .toList();
   }
 }

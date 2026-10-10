@@ -13,6 +13,7 @@ CREATE OR REPLACE FUNCTION get_nearby_shelters(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public, extensions, pg_temp
 AS $$
 DECLARE
   v_user_point GEOGRAPHY;

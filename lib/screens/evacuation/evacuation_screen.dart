@@ -44,7 +44,6 @@ class _EvacuationScreenState extends State<EvacuationScreen>
   bool _isRefreshing = false; // Refresh indikator nearest shelter
   String? _error;
   String _lastLoadedRegion = '';
-  LatLngBounds? _currentBounds;
 
   // Pagination untuk list view
   static const int _pageSize = 5;
@@ -74,7 +73,11 @@ class _EvacuationScreenState extends State<EvacuationScreen>
     final locationService = context.read<LocationService>();
     await locationService.refreshLocation();
     await _loadShelters();
-    _recenterMap();
+    if (_shelters.isEmpty) {
+      _recenterMap();
+    } else {
+      _fitSheltersOnMap();
+    }
   }
 
   @override
@@ -108,7 +111,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
         lat: loc.userLat,
         lng: loc.userLng,
         volcanoId: volcanoId,
-        limit: 200, // Load area yang lebih luas untuk di-filter secara real-time via map
+        limit: 200, // Muat titik untuk area gunung yang dipilih.
       );
 
       if (mounted) {
@@ -121,7 +124,7 @@ class _EvacuationScreenState extends State<EvacuationScreen>
 
         if (forceReload) {
            WidgetsBinding.instance.addPostFrameCallback((_) {
-               _recenterMap();
+               _fitSheltersOnMap();
            });
         }
       }
@@ -177,14 +180,6 @@ class _EvacuationScreenState extends State<EvacuationScreen>
       items = items.where((s) => s.isHealthFacility).toList();
     }
 
-    if (_currentBounds != null) {
-      // Hanya tampilkan yang masuk ke dalam area map (Real-time tracking)
-      final visible = items.where((s) => 
-         _currentBounds!.contains(LatLng(s.latitude, s.longitude))
-      ).toList();
-      return visible;
-    }
-
     return items;
   }
 
@@ -222,10 +217,32 @@ class _EvacuationScreenState extends State<EvacuationScreen>
     final loc = context.read<LocationService>();
     final pos = LatLng(loc.userLat, loc.userLng);
     _mapController.move(pos, 13.5);
-    setState(() {
-      _currentBounds = _mapController.camera.visibleBounds;
-      _currentPage = 0;
-    });
+    setState(() => _currentPage = 0);
+  }
+
+  void _fitSheltersOnMap() {
+    if (_shelters.isEmpty) {
+      _recenterMap();
+      return;
+    }
+
+    final points = _shelters
+        .map((shelter) => LatLng(shelter.latitude, shelter.longitude))
+        .toList();
+    if (points.length == 1 ||
+        (points.every((point) => point.latitude == points.first.latitude) &&
+            points.every((point) => point.longitude == points.first.longitude))) {
+      _mapController.move(points.first, 13.5);
+    } else {
+      _mapController.fitCamera(
+        CameraFit.bounds(
+          bounds: LatLngBounds.fromPoints(points),
+          padding: const EdgeInsets.fromLTRB(36, 140, 36, 340),
+          maxZoom: 14,
+        ),
+      );
+    }
+    setState(() => _currentPage = 0);
   }
 
 
@@ -255,16 +272,6 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                   initialZoom: 13.5,
                   minZoom: 8,
                   maxZoom: 18,
-                  onMapEvent: (event) {
-                    if (event is MapEventMoveEnd) {
-                      if (mounted) {
-                        setState(() {
-                          _currentBounds = _mapController.camera.visibleBounds;
-                          _currentPage = 0;
-                        });
-                      }
-                    }
-                  },
                 ),
                 children: [
                   TileLayer(
