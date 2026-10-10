@@ -336,18 +336,6 @@ class AiService {
     return 'Selamat datang, ${user.name}!';
   }
 
-  // ═══════════════════════════════════════════════════════════════
-  // AI-BASED REPORT RADIUS VALIDATION
-  // ═══════════════════════════════════════════════════════════════
-
-  static bool isWithinReportRadius(double userLat, double userLng, double maxRadiusKm) {
-    final distance = calculateDistance(
-      userLat, userLng,
-      -7.5407, 110.4457, // Koordinat Merapi
-    );
-    return distance <= maxRadiusKm;
-  }
-
   /// Menghitung jarak antara dua koordinat menggunakan formula Haversine.
   static double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
     const double earthRadius = 6371; // km

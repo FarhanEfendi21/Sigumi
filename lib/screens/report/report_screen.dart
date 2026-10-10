@@ -9,7 +9,6 @@ import 'package:sigumi/config/fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../config/theme_extensions.dart';
 import '../../config/constants.dart';
-import '../../services/ai_service.dart';
 import '../../services/location_service.dart';
 import '../../models/report_model.dart';
 import '../../repositories/report_repository.dart';
@@ -116,11 +115,8 @@ class _ReportScreenState extends State<ReportScreen> {
     }
 
     final locationService = context.read<LocationService>();
-    final isWithinReqRadius = AiService.isWithinReportRadius(
-      locationService.userLat,
-      locationService.userLng,
-      AppConstants.reportMaxRadius,
-    );
+    final isWithinReqRadius =
+        locationService.distanceFromVolcano <= AppConstants.reportMaxRadius;
 
     if (!isWithinReqRadius) {
       if (!mounted) return;
@@ -376,11 +372,7 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget build(BuildContext context) {
     final loc = context.watch<LocationService>();
     final userDistance = loc.distanceFromVolcano;
-    final isWithinRadius = AiService.isWithinReportRadius(
-      loc.userLat,
-      loc.userLng,
-      AppConstants.reportMaxRadius,
-    );
+    final isWithinRadius = loc.distanceFromVolcano <= AppConstants.reportMaxRadius;
 
     return Scaffold(
       backgroundColor: context.bgSecondary,
