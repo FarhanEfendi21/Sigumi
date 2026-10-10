@@ -140,7 +140,7 @@ class _MainNavigationState extends State<MainNavigation> {
             }
           },
           child: Scaffold(
-            extendBody: true,
+            extendBody: false,
             body: Stack(
               children: [
                 // Main content
@@ -227,14 +227,10 @@ class _MainNavigationState extends State<MainNavigation> {
                 ),
               ],
             ),
-            bottomNavigationBar: SafeArea(
-              // Hindari tab aplikasi bertumpuk dengan tombol/gesture navigasi OS.
-              top: false,
-              child: _ModernBottomNav(
-                currentIndex: _currentIndex,
-                isGuest: isGuest,
-                onTap: _onTabTap,
-              ),
+            bottomNavigationBar: _ModernBottomNav(
+              currentIndex: _currentIndex,
+              isGuest: isGuest,
+              onTap: _onTabTap,
             ),
           ),
         );
@@ -525,21 +521,22 @@ class _ModernBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-      child: Container(
-        height: 72,
-        decoration: BoxDecoration(
-          color: context.bgSurface,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: context.cardShadow,
-          border: Border.all(
+      decoration: BoxDecoration(
+        color: context.bgSurface,
+        border: Border(
+          top: BorderSide(
             color: context.borderColor,
             width: context.borderWidth,
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(_items.length, (index) {
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 72,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(_items.length, (index) {
             final item = _items[index];
             final isSelected = currentIndex == index;
             final isLocked = isGuest && _authRequired.contains(index);
@@ -634,7 +631,8 @@ class _ModernBottomNav extends StatelessWidget {
                 ),
               ),
             );
-          }),
+            }),
+          ),
         ),
       ),
     );
