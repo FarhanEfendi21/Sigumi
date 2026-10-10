@@ -832,6 +832,8 @@ class _DestinationCard extends StatelessWidget {
             _categoryColors[destination.category] ?? SigumiTheme.primaryBlue,
           );
     final catIcon = _categoryIcons[destination.category] ?? Icons.place_rounded;
+    final photoUrl = destination.photoUrl?.trim() ?? '';
+    final hasPhoto = photoUrl.isNotEmpty;
 
     return Material(
       color: Colors.transparent,
@@ -876,11 +878,27 @@ class _DestinationCard extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                        Positioned(
-                          right: -10,
-                          bottom: -10,
-                          child: Icon(catIcon, size: 70, color: Colors.white.withAlpha(30)),
-                        ),
+                        if (hasPhoto)
+                          Positioned.fill(
+                            child: Image.network(
+                              photoUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Center(
+                                child: Icon(
+                                  catIcon,
+                                  size: 70,
+                                  color: Colors.white.withAlpha(30),
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          Positioned(
+                            right: -10,
+                            bottom: -10,
+                            child: Icon(catIcon, size: 70, color: Colors.white.withAlpha(30)),
+                          ),
                         // Rating Badge
                         Positioned(
                           top: 8,

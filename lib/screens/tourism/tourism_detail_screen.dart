@@ -46,6 +46,8 @@ class TourismDetailScreen extends StatelessWidget {
     final heroColor = context.isHighContrast ? context.bgPrimary : categoryColor;
     final heroForeground =
         context.isHighContrast ? context.accentSecondary : Colors.white;
+    final photoUrl = destination.photoUrl?.trim() ?? '';
+    final hasPhoto = photoUrl.isNotEmpty;
     return Scaffold(
       backgroundColor: context.bgPrimary,
       body: CustomScrollView(
@@ -87,16 +89,41 @@ class TourismDetailScreen extends StatelessWidget {
                 ),
                 child: Stack(
                   children: [
-                    // Icon dekoratif background
-                    Positioned(
-                      right: -30,
-                      top: -30,
-                      child: Icon(
-                        _catIcon,
-                        size: 220,
-                        color: Colors.white.withAlpha(15),
+                    if (hasPhoto)
+                      Positioned.fill(
+                        child: Image.network(
+                          photoUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const SizedBox.shrink(),
+                        ),
                       ),
-                    ),
+                    if (hasPhoto)
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.black.withAlpha(20),
+                                Colors.black.withAlpha(130),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      // Icon dekoratif background saat foto tidak tersedia
+                      Positioned(
+                        right: -30,
+                        top: -30,
+                        child: Icon(
+                          _catIcon,
+                          size: 220,
+                          color: Colors.white.withAlpha(15),
+                        ),
+                      ),
                     // Konten hero
                     SafeArea(
                       child: Padding(
