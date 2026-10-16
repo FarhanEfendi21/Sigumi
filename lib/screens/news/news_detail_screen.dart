@@ -6,6 +6,7 @@ import '../../config/fonts.dart';
 import '../../config/theme_extensions.dart';
 import '../../models/news_item.dart';
 import '../../services/localization_service.dart';
+import '../../widgets/html_content_widget.dart';
 
 class NewsDetailScreen extends StatelessWidget {
   const NewsDetailScreen({super.key});
@@ -231,16 +232,11 @@ class NewsDetailScreen extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // Content
-                  Text(
-                        newsItem.content,
-                        style: AppFonts.plusJakartaSans(
-                          color: context.textPrimary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w400,
-                          height: 1.7,
-                        ),
-                      )
+                  // Content (HTML Renderer)
+                  HtmlContentWidget(
+                    htmlContent: newsItem.content,
+                    textColor: context.textPrimary,
+                  )
                       .animate()
                       .fadeIn(duration: 400.ms, delay: 300.ms)
                       .slideY(begin: 0.1, end: 0),
@@ -324,3 +320,4 @@ class NewsDetailScreen extends StatelessWidget {
     return '$day $month $year · $hour:$minute';
   }
 }
+

@@ -12,6 +12,13 @@
 .swiftpm/
 migrate_working_dir/
 
+# Android signing - JANGAN di-commit!
+android/key.properties
+android/app/upload-keystore.jks
+*.jks
+*.keystore
+
+
 # IntelliJ related
 *.iml
 *.ipr

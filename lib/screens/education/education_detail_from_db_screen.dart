@@ -4,17 +4,17 @@ import 'package:sigumi/config/fonts.dart';
 import '../../config/theme.dart';
 import '../../config/theme_extensions.dart';
 import '../../models/education_model.dart';
+import '../../widgets/html_content_widget.dart';
 
 /// Halaman detail untuk konten edukasi yang berasal dari tabel `public.educations`.
 ///
 /// Berbeda dari [EducationDetailScreen] (mock), screen ini menampilkan
-/// [EducationItem.content] sebagai teks panjang scrollable.
+/// [EducationItem.content] sebagai teks panjang scrollable dengan dukungan HTML.
 class EducationDetailFromDbScreen extends StatelessWidget {
   final EducationItem item;
 
   const EducationDetailFromDbScreen({super.key, required this.item});
 
-  // Warna aksen default berdasarkan kategori
   Color get _accentColor {
     switch (item.category?.toLowerCase()) {
       case 'mitigasi':
@@ -38,7 +38,6 @@ class EducationDetailFromDbScreen extends StatelessWidget {
       backgroundColor: context.bgPrimary,
       body: CustomScrollView(
         slivers: [
-          // ── Hero Header ───────────────────────────────────────────────
           SliverAppBar(
             expandedHeight: item.imageUrl != null ? 260 : 180,
             pinned: true,
@@ -68,7 +67,6 @@ class EducationDetailFromDbScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Gambar dari URL atau fallback gradient
                   if (item.imageUrl != null)
                     Image.network(
                       item.imageUrl!,
@@ -77,8 +75,6 @@ class EducationDetailFromDbScreen extends StatelessWidget {
                     )
                   else
                     _buildFallbackHeader(color),
-
-                  // Gradient overlay bawah ke putih
                   Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -97,15 +93,12 @@ class EducationDetailFromDbScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // ── Judul & Meta Info ──────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Chip kategori & lokasi
                   Wrap(
                     spacing: 8,
                     runSpacing: 6,
@@ -134,7 +127,6 @@ class EducationDetailFromDbScreen extends StatelessWidget {
                       color: context.textPrimary,
                     ),
                   ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.08, end: 0),
-
                   if (item.createdAt != null) ...[
                     const SizedBox(height: 10),
                     Row(
@@ -151,7 +143,6 @@ class EducationDetailFromDbScreen extends StatelessWidget {
                       ],
                     ),
                   ],
-
                   const SizedBox(height: 20),
                   Divider(color: Colors.grey.shade200, height: 1),
                   const SizedBox(height: 20),
@@ -159,18 +150,12 @@ class EducationDetailFromDbScreen extends StatelessWidget {
               ),
             ),
           ),
-
-          // ── Konten Artikel ─────────────────────────────────────────────
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 80),
             sliver: SliverToBoxAdapter(
-              child: Text(
-                item.content,
-                style: AppFonts.plusJakartaSans(
-                  fontSize: 15.5,
-                  height: 1.75,
-                  color: context.textPrimary,
-                ),
+              child: HtmlContentWidget(
+                htmlContent: item.content,
+                textColor: context.textPrimary,
               ).animate().fadeIn(delay: 150.ms, duration: 500.ms),
             ),
           ),
