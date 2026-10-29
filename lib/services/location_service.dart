@@ -33,6 +33,8 @@ class LocationService extends ChangeNotifier {
 
   // ── Definisi daerah cakupan ──
   static const double _detectionRadiusKm = 40.0;
+  static const double hikingTrackingRadiusKm = 15.0;
+  static const Duration _maxPositionAgeForHiking = Duration(minutes: 2);
   static const Map<String, Map<String, double>> regionCenters = {
     'Yogyakarta': {'lat': -7.5407, 'lng': 110.4457}, // Merapi
     'Bali': {'lat': -8.3433, 'lng': 115.5071}, // Agung
@@ -51,6 +53,7 @@ class LocationService extends ChangeNotifier {
   bool _isTracking = false;
   String? _locationError;
   DateTime? _lastUpdated;
+  double? _accuracyMeters;
   GpsStatus _gpsStatus = GpsStatus.unknown;
 
   // ── Error tracking ──
@@ -78,6 +81,7 @@ class LocationService extends ChangeNotifier {
 
   // ── Stream subscription ──
   StreamSubscription<Position>? _positionStream;
+  bool _hikingTracking = false;
 
   // ── Getters ──
   double get userLat => _userLat;
@@ -86,6 +90,14 @@ class LocationService extends ChangeNotifier {
   bool get isTracking => _isTracking;
   String? get locationError => _locationError;
   DateTime? get lastUpdated => _lastUpdated;
+  double? get accuracyMeters => _accuracyMeters;
+  bool get hasFreshRealPosition {
+    final updatedAt = _lastUpdated;
+    if (!_isUsingRealGps || updatedAt == null) return false;
+    final age = DateTime.now().difference(updatedAt);
+    return !age.isNegative && age <= _maxPositionAgeForHiking;
+  }
+
   GpsStatus get gpsStatus => _gpsStatus;
   bool get isRetrying => _isRetrying;
 
@@ -107,7 +119,14 @@ class LocationService extends ChangeNotifier {
 
   /// Jarak realtime user ke gunung tertentu berdasarkan nama daerah ('Yogyakarta', 'Bali', 'Lombok')
   double getDistanceToRegion(String region) {
-    final target = regionCenters[region];
+    final normalizedRegion = region.trim().toLowerCase();
+    Map<String, double>? target;
+    for (final entry in regionCenters.entries) {
+      if (entry.key.toLowerCase() == normalizedRegion) {
+        target = entry.value;
+        break;
+      }
+    }
     if (target == null) return _distanceFromVolcano;
     return _haversineDistance(
       _userLat,
@@ -115,6 +134,36 @@ class LocationService extends ChangeNotifier {
       target['lat']!,
       target['lng']!,
     );
+  }
+
+  bool isWithinHikingRegion(String region) {
+    final normalizedRegion = region.trim().toLowerCase();
+    return hasFreshRealPosition &&
+        isCoordinateWithinHikingRegion(normalizedRegion, _userLat, _userLng);
+  }
+
+  bool isCoordinateWithinHikingRegion(
+    String region,
+    double latitude,
+    double longitude,
+  ) {
+    final normalizedRegion = region.trim().toLowerCase();
+    if (!const {'bali', 'lombok'}.contains(normalizedRegion)) return false;
+    Map<String, double>? target;
+    for (final entry in regionCenters.entries) {
+      if (entry.key.toLowerCase() == normalizedRegion) {
+        target = entry.value;
+        break;
+      }
+    }
+    if (target == null) return false;
+    return _haversineDistance(
+          latitude,
+          longitude,
+          target['lat']!,
+          target['lng']!,
+        ) <=
+        hikingTrackingRadiusKm;
   }
 
   /// Map jarak realtime ke ketiga gunung
@@ -241,7 +290,8 @@ class LocationService extends ChangeNotifier {
         _userLat = position.latitude;
         _userLng = position.longitude;
         _isUsingRealGps = true;
-        _lastUpdated = DateTime.now();
+        _lastUpdated = position.timestamp.toLocal();
+        _accuracyMeters = _validAccuracy(position.accuracy);
         _gpsStatus = GpsStatus.active;
         _consecutiveErrors = 0;
       }
@@ -262,10 +312,18 @@ class LocationService extends ChangeNotifier {
   /// ──────────────────────────────────────────────
   /// START TRACKING — Real-time GPS updates dengan auto-retry
   /// ──────────────────────────────────────────────
-  void startTracking({int distanceFilterMeters = 50}) {
-    if (_isTracking) return;
+  void startTracking({
+    int distanceFilterMeters = 50,
+    bool hikingTracking = false,
+  }) {
+    if (_isTracking) {
+      _hikingTracking = _hikingTracking || hikingTracking;
+      if (hikingTracking) _startPositionStream(distanceFilterMeters);
+      return;
+    }
 
     _isTracking = true;
+    _hikingTracking = hikingTracking;
     _consecutiveErrors = 0;
     _startPositionStream(distanceFilterMeters);
     notifyListeners();
@@ -275,16 +333,20 @@ class LocationService extends ChangeNotifier {
   void _startPositionStream(int distanceFilterMeters) {
     _positionStream?.cancel();
     _positionStream = Geolocator.getPositionStream(
-      locationSettings: LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: distanceFilterMeters,
-      ),
+      locationSettings:
+          _hikingTracking
+              ? _hikingLocationSettings(distanceFilterMeters)
+              : LocationSettings(
+                accuracy: LocationAccuracy.high,
+                distanceFilter: distanceFilterMeters,
+              ),
     ).listen(
       (Position position) async {
         _userLat = position.latitude;
         _userLng = position.longitude;
         _isUsingRealGps = true;
-        _lastUpdated = DateTime.now();
+        _lastUpdated = position.timestamp.toLocal();
+        _accuracyMeters = _validAccuracy(position.accuracy);
 
         // Reset error state saat berhasil dapat posisi baru
         _locationError = null;
@@ -292,15 +354,56 @@ class LocationService extends ChangeNotifier {
         _isRetrying = false;
         _gpsStatus = GpsStatus.active;
 
-        // Update lokasi ke Supabase (akan menghitung zona risiko juga)
-        await _updateLocationToSupabase();
-
+        // Notify GPS listeners immediately so hiking geofence checks do not
+        // wait for the network round-trip to Supabase.
         notifyListeners();
+        unawaited(_updateLocationToSupabase());
       },
       onError: (error) {
         debugPrint('[LocationService] Stream error: $error');
         _handleTrackingError(distanceFilterMeters);
       },
+    );
+  }
+
+  LocationSettings _hikingLocationSettings(int distanceFilterMeters) {
+    if (kIsWeb) {
+      return LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilterMeters,
+      );
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilterMeters,
+        intervalDuration: const Duration(seconds: 5),
+        foregroundNotificationConfig: const ForegroundNotificationConfig(
+          notificationTitle: 'Tracking Pendakian Aktif',
+          notificationText: 'SIGUMI sedang merekam jalur pendakian',
+          notificationChannelName: 'Tracking Pendakian',
+          enableWakeLock: true,
+          setOngoing: true,
+        ),
+      );
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: distanceFilterMeters,
+        activityType: ActivityType.fitness,
+        pauseLocationUpdatesAutomatically: false,
+        allowBackgroundLocationUpdates: true,
+        showBackgroundLocationIndicator: true,
+      );
+    }
+
+    return LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: distanceFilterMeters,
     );
   }
 
@@ -386,6 +489,7 @@ class LocationService extends ChangeNotifier {
     _retryTimer?.cancel();
     _retryTimer = null;
     _isTracking = false;
+    _hikingTracking = false;
     _isRetrying = false;
     notifyListeners();
   }
@@ -424,6 +528,7 @@ class LocationService extends ChangeNotifier {
     _userLng = lng;
     _isUsingRealGps = false;
     _lastUpdated = DateTime.now();
+    _accuracyMeters = null;
 
     await _updateLocationToSupabase();
     notifyListeners();
@@ -570,7 +675,8 @@ class LocationService extends ChangeNotifier {
         _userLat = position.latitude;
         _userLng = position.longitude;
         _isUsingRealGps = true;
-        _lastUpdated = DateTime.now();
+        _lastUpdated = position.timestamp.toLocal();
+        _accuracyMeters = _validAccuracy(position.accuracy);
         _locationError = null;
         _gpsStatus = GpsStatus.active;
         _consecutiveErrors = 0;
@@ -590,6 +696,9 @@ class LocationService extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  double? _validAccuracy(double accuracy) =>
+      accuracy.isFinite && accuracy > 0 ? accuracy : null;
 
   /// Singleton tidak memanggil super.dispose() karena akan membuat
   /// ChangeNotifier tidak bisa dipakai lagi setelah logout/re-init.

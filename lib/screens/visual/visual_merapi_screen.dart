@@ -11,6 +11,7 @@ import 'package:latlong2/latlong.dart' hide Path;
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
 import '../../widgets/volcano_summarizer_widget.dart';
+import '../../widgets/hiking_weather_card.dart';
 
 /// Data kamera CCTV Merapi
 class _CctvCamera {
@@ -200,151 +201,146 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
       } else {
         volcano = provider.volcano;
       }
-        }
+    }
 
-        final hasCctv =
-            volcano.id == 'merapi_001' ||
-            volcano.id == VolcanoModel.kMerapiUuid ||
-            volcano.name.toLowerCase().contains('merapi');
-        final volcanoKey = switch (volcano.name.toLowerCase()) {
-          final name when name.contains('merapi') => 'merapi',
-          final name when name.contains('agung') => 'agung',
-          final name when name.contains('rinjani') => 'rinjani',
-          _ => null,
-        };
+    final hasCctv =
+        volcano.id == 'merapi_001' ||
+        volcano.id == VolcanoModel.kMerapiUuid ||
+        volcano.name.toLowerCase().contains('merapi');
+    final volcanoKey = switch (volcano.name.toLowerCase()) {
+      final name when name.contains('merapi') => 'merapi',
+      final name when name.contains('agung') => 'agung',
+      final name when name.contains('rinjani') => 'rinjani',
+      _ => null,
+    };
 
     return Scaffold(
-          backgroundColor: provider.highContrast
+      backgroundColor:
+          provider.highContrast
               ? context.bgPrimary
               : hasCctv
-                  ? const Color(0xFF080B10)
-                  : Colors.white,
-          appBar: AppBar(
-            title: Text(
-              hasCctv ? 'Pantauan Gunung' : 'Detail ${volcano.name}',
-              style: AppFonts.plusJakartaSans(
-                fontWeight: FontWeight.w700,
-                fontSize: 18,
-                color: provider.highContrast || hasCctv
+              ? const Color(0xFF080B10)
+              : Colors.white,
+      appBar: AppBar(
+        title: Text(
+          hasCctv ? 'Pantauan Gunung' : 'Detail ${volcano.name}',
+          style: AppFonts.plusJakartaSans(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color:
+                provider.highContrast || hasCctv
                     ? Colors.white
                     : const Color(0xFF1E1E2C),
-              ),
-            ),
-            backgroundColor: provider.highContrast
+          ),
+        ),
+        backgroundColor:
+            provider.highContrast
                 ? context.bgPrimary
                 : hasCctv
-                    ? const Color(0xFF080B10)
-                    : Colors.white,
-            elevation: 0,
-            iconTheme: IconThemeData(
-              color: provider.highContrast || hasCctv
+                ? const Color(0xFF080B10)
+                : Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(
+          color:
+              provider.highContrast || hasCctv
                   ? Colors.white
                   : const Color(0xFF1E1E2C),
-            ),
-            centerTitle: true,
-            actions:
-                hasCctv
-                    ? [
-                      IconButton(
-                        onPressed: _reloadCamera,
-                        tooltip: context.tr('try_again'),
-                        icon: const Icon(Icons.refresh_rounded),
-                      ),
-                      const SizedBox(width: 4),
-                    ]
-                    : null,
-          ),
-          body:
-              hasCctv
-                  ? _buildCctvPage(provider, volcano, volcanoKey)
-                  : SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!hasCctv) ...[
-                                // ── Info Gunung (untuk yang tidak ada CCTV) ──
-                                Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue.shade50,
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: Colors.blue.shade200,
-                                          width: 1,
+        ),
+        centerTitle: true,
+        actions:
+            hasCctv
+                ? [
+                  IconButton(
+                    onPressed: _reloadCamera,
+                    tooltip: context.tr('try_again'),
+                    icon: const Icon(Icons.refresh_rounded),
+                  ),
+                  const SizedBox(width: 4),
+                ]
+                : null,
+      ),
+      body:
+          hasCctv
+              ? _buildCctvPage(provider, volcano, volcanoKey)
+              : SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (!hasCctv) ...[
+                            // ── Info Gunung (untuk yang tidak ada CCTV) ──
+                            Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade50,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: Colors.blue.shade200,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.shade100,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.info_rounded,
+                                          color: Colors.blue.shade700,
+                                          size: 20,
                                         ),
                                       ),
-                                      child: Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.shade100,
-                                              shape: BoxShape.circle,
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              volcano.name,
+                                              style: AppFonts.plusJakartaSans(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.blue.shade900,
+                                              ),
                                             ),
-                                            child: Icon(
-                                              Icons.info_rounded,
-                                              color: Colors.blue.shade700,
-                                              size: 20,
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              context.trText(
+                                                'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
+                                              ),
+                                              style: AppFonts.plusJakartaSans(
+                                                fontSize: 12,
+                                                color: Colors.blue.shade700,
+                                                height: 1.4,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  volcano.name,
-                                                  style:
-                                                      AppFonts.plusJakartaSans(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color:
-                                                            Colors
-                                                                .blue
-                                                                .shade900,
-                                                      ),
-                                                ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  context.trText(
-                                                    'Belum memiliki sistem CCTV. Silakan lihat informasi detail di bawah.',
-                                                  ),
-                                                  style:
-                                                      AppFonts.plusJakartaSans(
-                                                        fontSize: 12,
-                                                        color:
-                                                            Colors
-                                                                .blue
-                                                                .shade700,
-                                                        height: 1.4,
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
-                                    )
-                                    .animate()
-                                    .fadeIn(duration: 500.ms)
-                                    .slideY(begin: 0.05, end: 0),
-                                const SizedBox(height: 28),
-                              ],
+                                    ],
+                                  ),
+                                )
+                                .animate()
+                                .fadeIn(duration: 500.ms)
+                                .slideY(begin: 0.05, end: 0),
+                            const SizedBox(height: 28),
+                          ],
 
-                              _buildVolcanoInfoSection(volcano, volcanoKey),
-                            ],
-                          ),
-                        ),
-                      ],
+                          _buildVolcanoInfoSection(volcano, volcanoKey),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
+                ),
+              ),
     );
   }
 
@@ -478,8 +474,8 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                               selected
                                   ? selectionAccent
                                   : isHC
-                                      ? context.bgPrimary
-                                      : const Color(0xFF1B212B),
+                                  ? context.bgPrimary
+                                  : const Color(0xFF1B212B),
                           borderRadius: BorderRadius.circular(12),
                           child: InkWell(
                             onTap: () => _switchCamera(index),
@@ -497,18 +493,19 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
                                         selected && isHC
                                             ? context.bgPrimary
                                             : selected || isHC
-                                                ? Colors.white
-                                                : const Color(0xFFADB5C0),
+                                            ? Colors.white
+                                            : const Color(0xFFADB5C0),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
                                     option.label,
                                     style: AppFonts.plusJakartaSans(
-                                          color: selected && isHC
+                                      color:
+                                          selected && isHC
                                               ? context.bgPrimary
                                               : selected || isHC
-                                                  ? Colors.white
-                                                  : const Color(0xFFADB5C0),
+                                              ? Colors.white
+                                              : const Color(0xFFADB5C0),
                                       fontSize: 12,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -537,56 +534,19 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
   }
 
   Widget _buildVolcanoInfoSection(VolcanoModel volcano, String? volcanoKey) {
-    final isHC = context.isHighContrast;
+    final weatherRegion = _weatherRegionForVolcano(volcano);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          context.trText('Informasi Terkini'),
-          style: AppFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: isHC ? context.textPrimary : const Color(0xFF1E1E2C),
-          ),
-        ),
-        const SizedBox(height: 14),
-        GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.7,
-              children: [
-                _buildInfoGridCard(
-                  icon: Icons.thermostat_rounded,
-                  title: context.tr('crater_temp'),
-                  value: '${volcano.temperature ?? '-'}°C',
-                  color: Colors.orange,
-                ),
-                _buildInfoGridCard(
-                  icon: Icons.air_rounded,
-                  title: context.tr('wind_direction'),
-                  value: volcano.windDirection ?? '-',
-                  color: Colors.blue,
-                ),
-                _buildInfoGridCard(
-                  icon: Icons.speed_rounded,
-                  title: context.tr('wind_speed'),
-                  value: '${volcano.windSpeed ?? '-'} km/h',
-                  color: Colors.teal,
-                ),
-                _buildInfoGridCard(
-                  icon: Icons.height_rounded,
-                  title: context.tr('elevation'),
-                  value: '${volcano.elevation} mdpl',
-                  color: Colors.indigo,
-                ),
-              ],
-            )
-            .animate()
-            .fadeIn(delay: 150.ms, duration: 400.ms)
-            .slideY(begin: 0.05, end: 0),
+        if (weatherRegion != null)
+          HikingWeatherCard(
+            latitude: volcano.latitude,
+            longitude: volcano.longitude,
+            cacheRegion: weatherRegion,
+            canFetch: true,
+          )
+        else
+          _buildWeatherUnavailableCard(),
         const SizedBox(height: 32),
         if (volcanoKey != null)
           VolcanoLatestSummaryWithHistoryButton(
@@ -596,6 +556,62 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
           ),
         if (volcanoKey != null) const SizedBox(height: 32),
       ],
+    );
+  }
+
+  String? _weatherRegionForVolcano(VolcanoModel volcano) {
+    final identity = '${volcano.name} ${volcano.id}'.toLowerCase();
+    if (identity.contains('merapi')) return 'merapi';
+    if (identity.contains('agung')) return 'bali';
+    if (identity.contains('rinjani')) return 'lombok';
+    return null;
+  }
+
+  Widget _buildWeatherUnavailableCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.bgSurface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: context.borderColor),
+        boxShadow: context.cardShadow,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.cloud_off_outlined,
+            color: context.textSecondary,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.trText('Prakiraan cuaca'),
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: context.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  context.trText(
+                    'Prakiraan BMKG belum tersedia untuk gunung ini.',
+                  ),
+                  style: AppFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: context.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -679,65 +695,6 @@ class _VisualMerapiScreenState extends State<VisualMerapiScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildInfoGridCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: context.bgSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: context.borderColor,
-          width: context.borderWidth,
-        ),
-        boxShadow: context.cardShadow,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 16),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: AppFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: context.textTertiary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: AppFonts.plusJakartaSans(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF1E1E2C),
-            ),
-          ),
-        ],
       ),
     );
   }

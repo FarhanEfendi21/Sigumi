@@ -58,7 +58,9 @@ class NotificationService {
         debugPrint('[NotificationService] Error cancelling notifications: $e');
       }
     }
-    debugPrint('[NotificationService] Notifikasi ${value ? "DIAKTIFKAN" : "DINONAKTIFKAN"} realtime.');
+    debugPrint(
+      '[NotificationService] Notifikasi ${value ? "DIAKTIFKAN" : "DINONAKTIFKAN"} realtime.',
+    );
   }
 
   FirebaseMessaging? _fcmInstance;
@@ -89,12 +91,13 @@ class NotificationService {
   /// ID tetap untuk notifikasi sticky tracking pendakian
   static const int _hikingNotificationId = 9001;
 
-
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
 
   /// Inisialisasi awal notifikasi
-  Future<void> initialize({Function(String? volcanoId)? onNotificationClick}) async {
+  Future<void> initialize({
+    Function(String? volcanoId)? onNotificationClick,
+  }) async {
     _onNotificationClick = onNotificationClick;
     if (_isInitialized) return;
 
@@ -112,18 +115,20 @@ class NotificationService {
       // Channel khusus hiking tracking — silent, ongoing
       const AndroidNotificationChannel hikingChannel =
           AndroidNotificationChannel(
-        _hikingChannelId,
-        _hikingChannelName,
-        description: _hikingChannelDescription,
-        importance: Importance.low,
-        playSound: false,
-        enableVibration: false,
-        showBadge: false,
-      );
+            _hikingChannelId,
+            _hikingChannelName,
+            description: _hikingChannelDescription,
+            importance: Importance.low,
+            playSound: false,
+            enableVibration: false,
+            showBadge: false,
+          );
 
-      final androidPlugin = _localNotifications
-          .resolvePlatformSpecificImplementation<
-              AndroidFlutterLocalNotificationsPlugin>();
+      final androidPlugin =
+          _localNotifications
+              .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin
+              >();
 
       await androidPlugin?.createNotificationChannel(channel);
       await androidPlugin?.createNotificationChannel(hikingChannel);
@@ -133,10 +138,10 @@ class NotificationService {
           AndroidInitializationSettings('@mipmap/launcher_icon');
       const DarwinInitializationSettings iosSettings =
           DarwinInitializationSettings(
-        requestAlertPermission: false,
-        requestBadgePermission: false,
-        requestSoundPermission: false,
-      );
+            requestAlertPermission: false,
+            requestBadgePermission: false,
+            requestSoundPermission: false,
+          );
 
       const InitializationSettings initSettings = InitializationSettings(
         android: androidSettings,
@@ -156,15 +161,21 @@ class NotificationService {
       final messaging = _fcm;
       if (messaging != null) {
         // Registrasi background handler
-        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+        FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler,
+        );
 
         // Listener saat app sedang Foreground (sedang aktif digunakan)
         FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           if (!isEnabled) {
-            debugPrint('[FCM-FG] Notifikasi dilewati (user menonaktifkan notifikasi)');
+            debugPrint(
+              '[FCM-FG] Notifikasi dilewati (user menonaktifkan notifikasi)',
+            );
             return;
           }
-          debugPrint('[FCM-FG] Notifikasi masuk: ${message.notification?.title}');
+          debugPrint(
+            '[FCM-FG] Notifikasi masuk: ${message.notification?.title}',
+          );
           showLocalNotification(
             title: message.notification?.title ?? 'Peringatan Status Gunung',
             body: message.notification?.body ?? '',
@@ -212,9 +223,11 @@ class NotificationService {
 
       if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
         // Step 1: Minta izin POST_NOTIFICATIONS via flutter_local_notifications (Android 13+)
-        final androidPlugin = _localNotifications
-            .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin>();
+        final androidPlugin =
+            _localNotifications
+                .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin
+                >();
         if (androidPlugin != null) {
           final bool? localGranted =
               await androidPlugin.requestNotificationsPermission();
@@ -230,8 +243,8 @@ class NotificationService {
             badge: true,
             sound: true,
           );
-          final fcmGranted = settings.authorizationStatus ==
-                  AuthorizationStatus.authorized ||
+          final fcmGranted =
+              settings.authorizationStatus == AuthorizationStatus.authorized ||
               settings.authorizationStatus == AuthorizationStatus.provisional;
           // Gunakan hasil FCM jika local plugin gagal deteksi
           granted = granted || fcmGranted;
@@ -246,8 +259,8 @@ class NotificationService {
             sound: true,
             criticalAlert: true,
           );
-          granted = settings.authorizationStatus ==
-                  AuthorizationStatus.authorized ||
+          granted =
+              settings.authorizationStatus == AuthorizationStatus.authorized ||
               settings.authorizationStatus == AuthorizationStatus.provisional;
         }
       }
@@ -283,7 +296,9 @@ class NotificationService {
     String? volcanoName,
   }) async {
     if (!isEnabled) {
-      debugPrint('[NotificationService] Notifikasi dilewati (user menonaktifkan notifikasi)');
+      debugPrint(
+        '[NotificationService] Notifikasi dilewati (user menonaktifkan notifikasi)',
+      );
       return;
     }
 
@@ -308,7 +323,10 @@ class NotificationService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
-      final statusColor = _getStatusColor(level, colorBlindMode: colorBlindMode);
+      final statusColor = _getStatusColor(
+        level,
+        colorBlindMode: colorBlindMode,
+      );
 
       final bigTextStyle = BigTextStyleInformation(
         body,
@@ -318,26 +336,28 @@ class NotificationService {
         htmlFormatBigText: true,
       );
 
-      final AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-        channelId,
-        channelName,
-        channelDescription: channelDescription,
-        importance: Importance.max,
-        priority: Priority.high,
-        icon: '@mipmap/launcher_icon',
-        color: statusColor,
-        styleInformation: bigTextStyle,
-        playSound: true,
-        enableVibration: true,
-        ticker: title,
-      );
+      final AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+            channelId,
+            channelName,
+            channelDescription: channelDescription,
+            importance: Importance.max,
+            priority: Priority.high,
+            icon: '@mipmap/launcher_icon',
+            color: statusColor,
+            styleInformation: bigTextStyle,
+            playSound: true,
+            enableVibration: true,
+            ticker: title,
+          );
 
       final NotificationDetails notificationDetails = NotificationDetails(
         android: androidDetails,
       );
 
-      final notificationId =
-          DateTime.now().millisecondsSinceEpoch.remainder(100000);
+      final notificationId = DateTime.now().millisecondsSinceEpoch.remainder(
+        100000,
+      );
 
       await _localNotifications.show(
         id: notificationId,
@@ -347,7 +367,9 @@ class NotificationService {
         payload: payload,
       );
     } catch (e) {
-      debugPrint('[NotificationService] Gagal menampilkan notifikasi lokal: $e');
+      debugPrint(
+        '[NotificationService] Gagal menampilkan notifikasi lokal: $e',
+      );
     }
   }
 
@@ -362,22 +384,23 @@ class NotificationService {
       final colorBlindMode = prefs.getString('color_blind_mode') ?? 'normal';
       final AndroidNotificationDetails androidDetails =
           AndroidNotificationDetails(
-        _hikingChannelId,
-        _hikingChannelName,
-        channelDescription: _hikingChannelDescription,
-        importance: Importance.low,
-        priority: Priority.low,
-        ongoing: true,
-        autoCancel: false,
-        icon: '@mipmap/launcher_icon',
-        color: colorBlindMode == 'deuteranopia'
-            ? const Color(0xFF0077BB)
-            : const Color(0xFF16A34A),
-        visibility: NotificationVisibility.public,
-        showWhen: true,
-        usesChronometer: true,
-        chronometerCountDown: false,
-      );
+            _hikingChannelId,
+            _hikingChannelName,
+            channelDescription: _hikingChannelDescription,
+            importance: Importance.low,
+            priority: Priority.low,
+            ongoing: true,
+            autoCancel: false,
+            icon: '@mipmap/launcher_icon',
+            color:
+                colorBlindMode == 'deuteranopia'
+                    ? const Color(0xFF0077BB)
+                    : const Color(0xFF16A34A),
+            visibility: NotificationVisibility.public,
+            showWhen: true,
+            usesChronometer: true,
+            chronometerCountDown: false,
+          );
 
       final NotificationDetails details = NotificationDetails(
         android: androidDetails,
@@ -390,9 +413,13 @@ class NotificationService {
         body: body,
         notificationDetails: details,
       );
-      debugPrint('[NotificationService] ✅ Hiking foreground notification ditampilkan');
+      debugPrint(
+        '[NotificationService] ✅ Hiking foreground notification ditampilkan',
+      );
     } catch (e) {
-      debugPrint('[NotificationService] ⚠️ Gagal tampilkan hiking notification: $e');
+      debugPrint(
+        '[NotificationService] ⚠️ Gagal tampilkan hiking notification: $e',
+      );
     }
   }
 
@@ -401,9 +428,13 @@ class NotificationService {
     try {
       // flutter_local_notifications v22+ gunakan named parameters
       await _localNotifications.cancel(id: _hikingNotificationId);
-      debugPrint('[NotificationService] ✅ Hiking foreground notification dihapus');
+      debugPrint(
+        '[NotificationService] ✅ Hiking foreground notification dihapus',
+      );
     } catch (e) {
-      debugPrint('[NotificationService] ⚠️ Gagal hapus hiking notification: $e');
+      debugPrint(
+        '[NotificationService] ⚠️ Gagal hapus hiking notification: $e',
+      );
     }
   }
 
@@ -432,24 +463,21 @@ class NotificationService {
     }
   }
 
-  /// Simpan atau perbarui token ke tabel `user_notification_preferences` Supabase.
-  /// Jika user belum login, token disimpan tanpa user_id dan akan di-update
-  /// via [syncTokenAfterLogin] setelah user berhasil login.
+  /// Simpan atau perbarui token perangkat pengguna di Supabase.
   Future<void> saveTokenToSupabase(String token, {String? userId}) async {
     try {
       final client = Supabase.instance.client;
       final currentUserId = userId ?? client.auth.currentUser?.id;
+      if (currentUserId == null) return;
 
-      await client.from('user_notification_preferences').upsert(
-        {
-          'fcm_token': token,
-          if (currentUserId != null) 'user_id': currentUserId,
-          'updated_at': DateTime.now().toIso8601String(),
-        },
-        onConflict: 'fcm_token',
+      await client.from('user_notification_preferences').upsert({
+        'fcm_token': token,
+        'user_id': currentUserId,
+        'updated_at': DateTime.now().toIso8601String(),
+      }, onConflict: 'fcm_token');
+      debugPrint(
+        '[FCM] ✅ Token berhasil disinkronkan ke Supabase (user: $currentUserId)',
       );
-      debugPrint('[FCM] ✅ Token berhasil disinkronkan ke Supabase'
-          '${currentUserId != null ? " (user: $currentUserId)" : " (guest)"}');
     } catch (e) {
       debugPrint('[FCM] ⚠️ Gagal sinkronisasi token ke Supabase: $e');
     }

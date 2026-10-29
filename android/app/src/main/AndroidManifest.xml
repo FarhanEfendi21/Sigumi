@@ -19,6 +19,7 @@
     <!-- Foreground Service agar GPS tetap aktif saat layar HP mati saat tracking pendakian -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:label="Sigumi"

@@ -32,6 +32,12 @@
 	<string>SIGUMI membutuhkan akses lokasi untuk mendeteksi daerah Anda secara otomatis dan menghitung jarak ke gunung berapi terdekat guna memberikan informasi mitigasi yang relevan.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>SIGUMI membutuhkan akses lokasi untuk memantau jarak Anda dari gunung berapi secara real-time, bahkan saat aplikasi berjalan di latar belakang.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>SIGUMI membutuhkan akses lokasi sepanjang pendakian aktif agar jalur dan posisi terakhir Anda dapat dicatat.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>

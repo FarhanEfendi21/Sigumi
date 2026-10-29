@@ -55,8 +55,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
-      // 3. Aktifkan VibrationAlertService & pasang callback untuk show modal
-      VibrationAlertService().setEnabled(true);
+      // 3. Pasang callback modal tanpa mengubah preferensi getar pengguna.
       VibrationAlertService().onAlertTriggered = (volcanoName, distanceKm) {
         // Pastikan mounted dan tidak ada dialog aktif sebelum show modal
         if (!mounted) return;
@@ -1822,9 +1821,6 @@ class _HikingSpotlightCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHighContrast = context.isHighContrast;
-    final volcanoProvider = context.watch<VolcanoProvider>();
-    final isLombok = volcanoProvider.selectedRegion.toLowerCase() == 'lombok';
-
     // Watch service safely if registered in tree
     HikingTrackingService? tracking;
     try {
@@ -2016,9 +2012,7 @@ class _HikingSpotlightCard extends StatelessWidget {
                         Text(
                           isActive
                               ? 'Aktif merekam • ${(tracking?.distanceKm ?? 0).toStringAsFixed(2)} km terlewati'
-                              : (isLombok
-                                  ? 'Pantau rute & koordinat jalur secara realtime'
-                                  : 'Khusus wilayah Gunung Rinjani (Lombok)'),
+                              : context.tr('hiking_subtitle'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w400,

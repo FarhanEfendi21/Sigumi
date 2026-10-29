@@ -2,3 +2,6 @@ project_id = "rtwanteecrvydxyrgpii"
 
 [functions.sync-magma]
 verify_jwt = false
+
+[functions.hiking-weather]
+verify_jwt = false

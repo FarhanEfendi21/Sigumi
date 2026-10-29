@@ -117,6 +117,7 @@ class _SigumiAppState extends State<SigumiApp> with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.resumed) {
       debugPrint('[AppLifecycle] ▶️ App Resumed -> Resuming Voice Assistant (if enabled)');
       assistantProvider.resumeFromBackground();
+      VibrationAlertService().onAppResumed();
     }
   }
 
