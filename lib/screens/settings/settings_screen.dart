@@ -1080,13 +1080,12 @@ class _VibrationAlertRowState extends State<_VibrationAlertRow> {
             value: _isEnabled,
             activeTrackColor: const Color(0xFFFF3B30),
             onChanged: (val) async {
-              HapticFeedback.lightImpact();
-              await VibrationAlertService().setEnabled(val);
               setState(() => _isEnabled = val);
+              final vibrationService = VibrationAlertService();
+              await vibrationService.setEnabled(val);
+              if (!mounted || !val || !vibrationService.isEnabled) return;
               // Test getar singkat saat toggle ON
-              if (val) {
-                await VibrationAlertService().testVibration();
-              }
+              await vibrationService.testVibration();
             },
           ),
         ],

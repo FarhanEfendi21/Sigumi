@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../../services/localization_service.dart';
 import 'dart:ui' as ui;
 
@@ -12,6 +13,8 @@ import '../../config/theme_extensions.dart';
 import '../../providers/volcano_provider.dart';
 import '../../services/hiking_tracking_service.dart';
 import '../../services/location_service.dart';
+import '../../widgets/hiking_weather_card.dart';
+import '../../widgets/hiking_sos_panel.dart';
 
 /// Titik koordinat pos resmi jalur pendakian Gunung Rinjani (Jalur Sembalun).
 class _RinjaniWaypoint {
@@ -67,57 +70,84 @@ const List<_RinjaniWaypoint> _rinjaniWaypoints = [
   ),
 ];
 
+const List<_RinjaniWaypoint> _agungWaypoints = [
+  _RinjaniWaypoint(
+    name: 'Pura Pasar Agung',
+    altitude: '1.609 mdpl',
+    point: LatLng(-8.36866, 115.50317),
+    icon: Icons.meeting_room_rounded,
+  ),
+  _RinjaniWaypoint(
+    name: 'Puncak Gunung Agung',
+    altitude: '3.142 mdpl',
+    point: LatLng(-8.3415, 115.5033),
+    icon: Icons.terrain_rounded,
+  ),
+];
+
 class HikingTrackingScreen extends StatelessWidget {
   const HikingTrackingScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    try {
-      Provider.of<HikingTrackingService>(context, listen: false);
-      return const _HikingTrackingDispatcher();
-    } catch (_) {
-      return ChangeNotifierProvider(
-        create: (_) => HikingTrackingService(),
-        child: const _HikingTrackingDispatcher(),
-      );
-    }
+    return const _HikingTrackingDispatcher();
   }
 }
 
-/// Dispatcher: cek auth dulu, lalu dispatch ke tampilan yang tepat.
-/// - Belum login → gate login
-/// - GPS bukan Rinjani → info "di luar wilayah pendakian"
-/// - GPS di Rinjani → tampilan tracking aktif
+/// Dispatcher: cek auth dan apakah GPS berada di area pendakian yang didukung.
 class _HikingTrackingDispatcher extends StatelessWidget {
   const _HikingTrackingDispatcher();
-
-  /// Cek apakah koordinat GPS berada di area pendakian Gunung Rinjani.
-  /// Batas longgar: mencakup zona KRB Rinjani dan area sekitar jalur pendakian.
-  static bool _isInRinjaniArea(double lat, double lng) {
-    return lat <= -8.1 && lat >= -8.9 && lng >= 115.9 && lng <= 117.0;
-  }
 
   @override
   Widget build(BuildContext context) {
     final volcanoProvider = context.watch<VolcanoProvider>();
     final tracking = context.watch<HikingTrackingService>();
-    final location = tracking.locationService;
 
-    // ── Gate 1: Belum login ──
-    if (volcanoProvider.isGuest) {
-      return const _HikingLoginGate();
-    }
+    // Jangan ganti subtree halaman ketika sesi lama masih dipulihkan dari disk.
+    // Status sesi yang belum siap sebelumnya sempat menampilkan gate lokasi lalu
+    // menggantinya dengan peta di tengah animasi pembukaan route.
+    return FutureBuilder<void>(
+      future: tracking.ensureRestored(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return Scaffold(
+            backgroundColor: context.bgPrimary,
+            body: Center(
+              child: CircularProgressIndicator(color: context.successColor),
+            ),
+          );
+        }
 
-    // ── Gate 2: GPS tidak di area Rinjani (dan tidak sedang aktif tracking) ──
-    // Jika tracking sedang aktif, tetap tampilkan view penuh (jangan interrupt)
-    final inRinjani = _isInRinjaniArea(location.userLat, location.userLng);
-    if (!inRinjani && !tracking.isActive) {
-      return _HikingUnavailableView(
-        currentRegion: volcanoProvider.selectedRegion,
-      );
-    }
+        final location = tracking.locationService;
 
-    return const _HikingTrackingView();
+        // ── Gate 1: Belum login ──
+        if (volcanoProvider.isGuest) {
+          return const _HikingLoginGate();
+        }
+
+        // Sesi aktif/terjeda harus bisa dibuka kembali dari riwayat sesi
+        // tersimpan, walaupun GPS sedang belum mendapat fix baru.
+        final profileRegion =
+            volcanoProvider.selectedRegion.trim().toLowerCase();
+        final profileAllowsAgung =
+            profileRegion == 'bali' && location.isWithinHikingRegion('bali');
+        final profileAllowsRinjani =
+            profileRegion == 'lombok' &&
+            location.isWithinHikingRegion('lombok');
+        final activeSessionCanOpen =
+            tracking.isActive &&
+            const {'bali', 'lombok'}.contains(tracking.trackingRegion);
+        if (!profileAllowsAgung &&
+            !profileAllowsRinjani &&
+            !activeSessionCanOpen) {
+          return _HikingUnavailableView(
+            currentRegion: volcanoProvider.selectedRegion,
+          );
+        }
+
+        return const _HikingTrackingView();
+      },
+    );
   }
 }
 
@@ -137,54 +167,57 @@ class _MountainSilhouettePainter extends CustomPainter {
     final h = size.height;
 
     // Gunung belakang (lebih rendah, pudar)
-    final bgPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(w / 2, 0),
-        Offset(w / 2, h),
-        [peakColor.withAlpha(60), peakColor.withAlpha(30)],
-      );
+    final bgPaint =
+        Paint()
+          ..shader = ui.Gradient.linear(Offset(w / 2, 0), Offset(w / 2, h), [
+            peakColor.withAlpha(60),
+            peakColor.withAlpha(30),
+          ]);
 
-    final bgPath = ui.Path()
-      ..moveTo(0, h)
-      ..lineTo(w * 0.12, h * 0.55)
-      ..lineTo(w * 0.30, h * 0.72)
-      ..lineTo(w * 0.50, h * 0.28)
-      ..lineTo(w * 0.68, h * 0.60)
-      ..lineTo(w * 0.88, h * 0.42)
-      ..lineTo(w, h * 0.58)
-      ..lineTo(w, h)
-      ..close();
+    final bgPath =
+        ui.Path()
+          ..moveTo(0, h)
+          ..lineTo(w * 0.12, h * 0.55)
+          ..lineTo(w * 0.30, h * 0.72)
+          ..lineTo(w * 0.50, h * 0.28)
+          ..lineTo(w * 0.68, h * 0.60)
+          ..lineTo(w * 0.88, h * 0.42)
+          ..lineTo(w, h * 0.58)
+          ..lineTo(w, h)
+          ..close();
     canvas.drawPath(bgPath, bgPaint);
 
     // Gunung utama (depan, lebih gelap)
-    final fgPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(w / 2, 0),
-        Offset(w / 2, h),
-        [peakColor.withAlpha(160), peakColor.withAlpha(220)],
-      );
+    final fgPaint =
+        Paint()
+          ..shader = ui.Gradient.linear(Offset(w / 2, 0), Offset(w / 2, h), [
+            peakColor.withAlpha(160),
+            peakColor.withAlpha(220),
+          ]);
 
-    final fgPath = ui.Path()
-      ..moveTo(0, h)
-      ..lineTo(w * 0.05, h * 0.75)
-      ..lineTo(w * 0.22, h * 0.88)
-      ..lineTo(w * 0.40, h * 0.48)
-      ..lineTo(w * 0.52, h * 0.12) // puncak utama
-      ..lineTo(w * 0.64, h * 0.44)
-      ..lineTo(w * 0.78, h * 0.82)
-      ..lineTo(w * 0.92, h * 0.65)
-      ..lineTo(w, h * 0.78)
-      ..lineTo(w, h)
-      ..close();
+    final fgPath =
+        ui.Path()
+          ..moveTo(0, h)
+          ..lineTo(w * 0.05, h * 0.75)
+          ..lineTo(w * 0.22, h * 0.88)
+          ..lineTo(w * 0.40, h * 0.48)
+          ..lineTo(w * 0.52, h * 0.12) // puncak utama
+          ..lineTo(w * 0.64, h * 0.44)
+          ..lineTo(w * 0.78, h * 0.82)
+          ..lineTo(w * 0.92, h * 0.65)
+          ..lineTo(w, h * 0.78)
+          ..lineTo(w, h)
+          ..close();
     canvas.drawPath(fgPath, fgPaint);
 
     // Kabut bawah
-    final fogPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(w / 2, h * 0.6),
-        Offset(w / 2, h),
-        [fogColor.withAlpha(0), fogColor.withAlpha(200)],
-      );
+    final fogPaint =
+        Paint()
+          ..shader = ui.Gradient.linear(
+            Offset(w / 2, h * 0.6),
+            Offset(w / 2, h),
+            [fogColor.withAlpha(0), fogColor.withAlpha(200)],
+          );
 
     canvas.drawRect(Rect.fromLTWH(0, h * 0.6, w, h * 0.4), fogPaint);
   }
@@ -194,20 +227,21 @@ class _MountainSilhouettePainter extends CustomPainter {
       old.peakColor != peakColor || old.fogColor != fogColor;
 }
 
-/// Tampilan minimalis ketika GPS user tidak berada di area pendakian Rinjani.
+/// Tampilan saat wilayah profil dan posisi GPS belum cocok dengan jalur dukungan.
 /// Tidak ada tombol redirect wilayah — user cukup diberi informasi.
 class _HikingUnavailableView extends StatelessWidget {
   final String currentRegion;
 
-  const _HikingUnavailableView({
-    required this.currentRegion,
-  });
+  const _HikingUnavailableView({required this.currentRegion});
 
   @override
   Widget build(BuildContext context) {
     final bgTop = context.bgPrimary;
     final bgBottom = context.bgSecondary;
-    final peakColor = context.isHighContrast ? context.accentSecondary : const Color(0xFFE2E8F0);
+    final peakColor =
+        context.isHighContrast
+            ? context.accentSecondary
+            : const Color(0xFFE2E8F0);
     final accentColor = context.successColor;
     final textDark = context.textPrimary;
     final textMuted = context.textSecondary;
@@ -222,9 +256,10 @@ class _HikingUnavailableView extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: context.isHighContrast
-                    ? [bgTop, bgTop, bgBottom]
-                    : [bgTop, const Color(0xFFF8FAFC), bgBottom],
+                colors:
+                    context.isHighContrast
+                        ? [bgTop, bgTop, bgBottom]
+                        : [bgTop, const Color(0xFFF8FAFC), bgBottom],
                 stops: [0.0, 0.6, 1.0],
               ),
             ),
@@ -251,12 +286,14 @@ class _HikingUnavailableView extends StatelessWidget {
               children: [
                 // App bar minimal
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back,
-                            color: textDark, size: 24),
+                        icon: Icon(Icons.arrow_back, color: textDark, size: 24),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -279,9 +316,15 @@ class _HikingUnavailableView extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: context.isHighContrast ? context.bgSurface : const Color(0xFFDCFCE7),
+                      color:
+                          context.isHighContrast
+                              ? context.bgSurface
+                              : const Color(0xFFDCFCE7),
                       shape: BoxShape.circle,
-                      border: Border.all(color: context.borderColor, width: context.borderWidth),
+                      border: Border.all(
+                        color: context.borderColor,
+                        width: context.borderWidth,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: accentColor.withAlpha(25),
@@ -303,11 +346,17 @@ class _HikingUnavailableView extends StatelessWidget {
                 // Label wilayah saat ini
                 Center(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: bgTop,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: context.borderColor, width: context.borderWidth),
+                      border: Border.all(
+                        color: context.borderColor,
+                        width: context.borderWidth,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withAlpha(6),
@@ -351,7 +400,13 @@ class _HikingUnavailableView extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
-                    context.trText('Fitur tracking aktif saat GPS Anda\nterdeteksi di area Gunung Rinjani, Lombok.'),
+                    context.trText(
+                      currentRegion.trim().toLowerCase() == 'bali'
+                          ? 'Profil Bali hanya dapat tracking saat GPS terdeteksi di area pendakian Gunung Agung.'
+                          : currentRegion.trim().toLowerCase() == 'lombok'
+                          ? 'Profil Lombok hanya dapat tracking saat GPS terdeteksi di area pendakian Gunung Rinjani.'
+                          : 'Tracking tersedia jika wilayah profil Bali atau Lombok sesuai dengan lokasi GPS pendakian.',
+                    ),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 13.5,
@@ -371,7 +426,10 @@ class _HikingUnavailableView extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textDark,
                       minimumSize: const Size.fromHeight(50),
-                      side: BorderSide(color: context.borderColor, width: context.borderWidth),
+                      side: BorderSide(
+                        color: context.borderColor,
+                        width: context.borderWidth,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -403,7 +461,10 @@ class _HikingLoginGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final bgTop = context.bgPrimary;
     final bgBottom = context.bgSecondary;
-    final peakColor = context.isHighContrast ? context.accentSecondary : const Color(0xFFE2E8F0);
+    final peakColor =
+        context.isHighContrast
+            ? context.accentSecondary
+            : const Color(0xFFE2E8F0);
     final accentColor = context.accentPrimary;
     final textDark = context.textPrimary;
     final textMuted = context.textSecondary;
@@ -417,9 +478,10 @@ class _HikingLoginGate extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: context.isHighContrast
-                    ? [bgTop, bgTop, bgBottom]
-                    : [bgTop, const Color(0xFFF8FAFC), bgBottom],
+                colors:
+                    context.isHighContrast
+                        ? [bgTop, bgTop, bgBottom]
+                        : [bgTop, const Color(0xFFF8FAFC), bgBottom],
                 stops: [0.0, 0.6, 1.0],
               ),
             ),
@@ -441,12 +503,14 @@ class _HikingLoginGate extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back,
-                            color: textDark, size: 24),
+                        icon: Icon(Icons.arrow_back, color: textDark, size: 24),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       Text(
@@ -469,9 +533,15 @@ class _HikingLoginGate extends StatelessWidget {
                     width: 72,
                     height: 72,
                     decoration: BoxDecoration(
-                      color: context.isHighContrast ? context.bgSurface : const Color(0xFFF0FDF4),
+                      color:
+                          context.isHighContrast
+                              ? context.bgSurface
+                              : const Color(0xFFF0FDF4),
                       shape: BoxShape.circle,
-                      border: Border.all(color: context.borderColor, width: context.borderWidth),
+                      border: Border.all(
+                        color: context.borderColor,
+                        width: context.borderWidth,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: accentColor.withAlpha(20),
@@ -509,7 +579,9 @@ class _HikingLoginGate extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
-                    context.trText('Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.'),
+                    context.trText(
+                      'Fitur tracking pendakian memerlukan akun\nuntuk menyimpan dan memantau jalur Anda.',
+                    ),
                     textAlign: TextAlign.center,
                     style: AppFonts.plusJakartaSans(
                       fontSize: 13.5,
@@ -524,11 +596,14 @@ class _HikingLoginGate extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
                   child: FilledButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, AppRoutes.login),
+                    onPressed:
+                        () => Navigator.pushNamed(context, AppRoutes.login),
                     style: FilledButton.styleFrom(
                       backgroundColor: accentColor,
-                      foregroundColor: context.isHighContrast ? context.bgPrimary : Colors.white,
+                      foregroundColor:
+                          context.isHighContrast
+                              ? context.bgPrimary
+                              : Colors.white,
                       minimumSize: const Size.fromHeight(52),
                       elevation: 2,
                       shadowColor: accentColor.withAlpha(80),
@@ -541,7 +616,10 @@ class _HikingLoginGate extends StatelessWidget {
                       style: AppFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: context.isHighContrast ? context.bgPrimary : Colors.white,
+                        color:
+                            context.isHighContrast
+                                ? context.bgPrimary
+                                : Colors.white,
                       ),
                     ),
                   ),
@@ -554,7 +632,10 @@ class _HikingLoginGate extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: textDark,
                       minimumSize: const Size.fromHeight(48),
-                      side: BorderSide(color: context.borderColor, width: context.borderWidth),
+                      side: BorderSide(
+                        color: context.borderColor,
+                        width: context.borderWidth,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -578,7 +659,7 @@ class _HikingLoginGate extends StatelessWidget {
   }
 }
 
-/// Tampilan tracking aktif ketika user berada di wilayah Lombok (Gunung Rinjani).
+/// Tampilan tracking aktif untuk Gunung Rinjani dan Gunung Agung.
 class _HikingTrackingView extends StatefulWidget {
   const _HikingTrackingView();
 
@@ -589,8 +670,9 @@ class _HikingTrackingView extends StatefulWidget {
 class _HikingTrackingViewState extends State<_HikingTrackingView> {
   final MapController _mapController = MapController();
 
-  // Titik tengah default jalur pendakian Rinjani Sembalun
+  // Titik tengah jalur pendakian
   static const LatLng _rinjaniCenter = LatLng(-8.3900, 116.4950);
+  static const LatLng _agungCenter = LatLng(-8.36866, 115.50317);
 
   Color get _bg => context.bgPrimary;
   Color get _cardBg => context.bgSurface;
@@ -606,12 +688,36 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
         final location = tracking.locationService;
         final userPoint = LatLng(location.userLat, location.userLng);
 
-        final isUserInLombok = location.userLat <= -8.1 &&
+        final isUserInAgung =
+            location.userLat >= -8.55 &&
+            location.userLat <= -8.15 &&
+            location.userLng >= 115.30 &&
+            location.userLng <= 115.72;
+        final isUserInLombok =
+            location.userLat <= -8.1 &&
             location.userLat >= -8.9 &&
             location.userLng >= 115.9 &&
             location.userLng <= 116.9;
+        final weatherRegion =
+            tracking.trackingRegion ??
+            (location.isCoordinateWithinHikingRegion(
+                  'bali',
+                  location.userLat,
+                  location.userLng,
+                )
+                ? 'bali'
+                : location.isCoordinateWithinHikingRegion(
+                  'lombok',
+                  location.userLat,
+                  location.userLng,
+                )
+                ? 'lombok'
+                : null);
 
-        final defaultCenter = isUserInLombok ? userPoint : _rinjaniCenter;
+        final mountainCenter = isUserInAgung ? _agungCenter : _rinjaniCenter;
+        final waypoints = isUserInAgung ? _agungWaypoints : _rinjaniWaypoints;
+        final defaultCenter =
+            (isUserInAgung || isUserInLombok) ? userPoint : _rinjaniCenter;
 
         return Scaffold(
           backgroundColor: _bg,
@@ -625,9 +731,10 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                 height: 180,
                 child: CustomPaint(
                   painter: _MountainSilhouettePainter(
-                    peakColor: context.isHighContrast
-                        ? context.accentSecondary.withAlpha(80)
-                        : const Color(0xFFDCFCE7).withAlpha(140),
+                    peakColor:
+                        context.isHighContrast
+                            ? context.accentSecondary.withAlpha(80)
+                            : const Color(0xFFDCFCE7).withAlpha(140),
                     fogColor: _bg,
                   ),
                 ),
@@ -641,15 +748,20 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                     // App bar minimal
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       child: Row(
                         children: [
                           IconButton(
-                            icon: Icon(Icons.arrow_back,
-                                color: _textDark, size: 24),
+                            icon: Icon(
+                              Icons.arrow_back,
+                              color: _textDark,
+                              size: 24,
+                            ),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
-                            Expanded(
+                          Expanded(
                             child: Text(
                               context.trText('Tracking Pendakian'),
                               style: TextStyle(
@@ -662,25 +774,43 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                           if (tracking.hasHistory)
                             IconButton(
                               tooltip: context.trText('Reset Riwayat Tracking'),
-                              onPressed: tracking.isStarting || tracking.isStopping
-                                  ? null
-                                  : () => _confirmResetTracking(context, tracking),
-                            icon: Icon(Icons.restart_alt_rounded,
-                                  color: context.errorColor, size: 22),
+                              onPressed:
+                                  tracking.isStarting ||
+                                          tracking.isStopping ||
+                                          tracking.isPausing
+                                      ? null
+                                      : () => _confirmResetTracking(
+                                        context,
+                                        tracking,
+                                      ),
+                              icon: Icon(
+                                Icons.restart_alt_rounded,
+                                color: context.errorColor,
+                                size: 22,
+                              ),
                             ),
                           IconButton(
-                            tooltip: context.trText('Pusatkan ke Rinjani'),
-                            onPressed: () =>
-                                _mapController.move(_rinjaniCenter, 12.5),
-                            icon: Icon(Icons.terrain_rounded,
-                                color: _textDark, size: 20),
+                            tooltip: context.trText(
+                              isUserInAgung
+                                  ? 'Pusatkan ke Agung'
+                                  : 'Pusatkan ke Rinjani',
+                            ),
+                            onPressed:
+                                () => _mapController.move(mountainCenter, 12.5),
+                            icon: Icon(
+                              Icons.terrain_rounded,
+                              color: _textDark,
+                              size: 20,
+                            ),
                           ),
                           IconButton(
                             tooltip: context.trText('Lokasi saya'),
-                            onPressed: () =>
-                                _mapController.move(userPoint, 15),
-                            icon: Icon(Icons.my_location_rounded,
-                                color: _textDark, size: 20),
+                            onPressed: () => _mapController.move(userPoint, 15),
+                            icon: Icon(
+                              Icons.my_location_rounded,
+                              color: _textDark,
+                              size: 20,
+                            ),
                           ),
                         ],
                       ),
@@ -691,7 +821,9 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                     Center(
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 5),
+                          horizontal: 14,
+                          vertical: 5,
+                        ),
                         decoration: BoxDecoration(
                           color: _cardBg,
                           borderRadius: BorderRadius.circular(20),
@@ -705,7 +837,11 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                           ],
                         ),
                         child: Text(
-                          context.trText('GUNUNG RINJANI · 3.726 MDPL'),
+                          context.trText(
+                            isUserInAgung
+                                ? 'GUNUNG AGUNG · 3.142 MDPL'
+                                : 'GUNUNG RINJANI · 3.726 MDPL',
+                          ),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -721,10 +857,23 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                     // Konten scrollable
                     Expanded(
                       child: ListView(
-                        padding:
-                            const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        padding: EdgeInsets.fromLTRB(
+                          16,
+                          0,
+                          16,
+                          tracking.isActive ? 108 : 24,
+                        ),
                         children: [
                           _HikingStatusBanner(tracking: tracking),
+
+                          const SizedBox(height: 12),
+
+                          HikingWeatherCard(
+                            latitude: location.userLat,
+                            longitude: location.userLng,
+                            cacheRegion: weatherRegion,
+                            canFetch: location.hasFreshRealPosition,
+                          ),
 
                           const SizedBox(height: 12),
 
@@ -735,8 +884,9 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                               height: 260,
                               decoration: BoxDecoration(
                                 border: Border.all(
-                                    color: _cardBorder,
-                                    width: 1.2),
+                                  color: _cardBorder,
+                                  width: 1.2,
+                                ),
                                 borderRadius: BorderRadius.circular(18),
                                 boxShadow: [
                                   BoxShadow(
@@ -753,37 +903,41 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                     options: MapOptions(
                                       initialCenter: defaultCenter,
                                       initialZoom:
-                                          isUserInLombok ? 13.5 : 12.0,
+                                          (isUserInLombok || isUserInAgung)
+                                              ? 13.5
+                                              : 12.0,
                                     ),
                                     children: [
                                       TileLayer(
                                         urlTemplate:
                                             'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                                        userAgentPackageName:
-                                            'com.sigumi.app',
+                                        userAgentPackageName: 'com.sigumi.app',
                                       ),
                                       PolylineLayer(
                                         polylines: [
-                                          Polyline(
-                                            points: _rinjaniWaypoints
-                                                .map((w) => w.point)
-                                                .toList(),
-                                            strokeWidth: 4.0,
-                                            color: _accentColor,
-                                          ),
+                                          if (!isUserInAgung)
+                                            Polyline(
+                                              points:
+                                                  waypoints
+                                                      .map((w) => w.point)
+                                                      .toList(),
+                                              strokeWidth: 4.0,
+                                              color: _accentColor,
+                                            ),
                                           if (tracking.routePoints.length >= 2)
                                             Polyline(
                                               points: tracking.routePoints,
                                               strokeWidth: 4.5,
-                                              color: context.isHighContrast
-                                                  ? context.accentSecondary
-                                                  : const Color(0xFF2563EB),
+                                              color:
+                                                  context.isHighContrast
+                                                      ? context.accentSecondary
+                                                      : const Color(0xFF2563EB),
                                             ),
                                         ],
                                       ),
                                       MarkerLayer(
                                         markers: [
-                                          ..._rinjaniWaypoints.map((w) {
+                                          ...waypoints.map((w) {
                                             return Marker(
                                               point: w.point,
                                               width: 80,
@@ -791,15 +945,19 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                               child: GestureDetector(
                                                 onTap: () {
                                                   ScaffoldMessenger.of(
-                                                          context)
-                                                      .showSnackBar(SnackBar(
-                                                    content: Text(
-                                                        '${context.trText(w.name)} (${context.trText(w.altitude)})'),
-                                                    duration: const Duration(
-                                                        seconds: 2),
-                                                    backgroundColor:
-                                                        _textDark,
-                                                  ));
+                                                    context,
+                                                  ).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        '${context.trText(w.name)} (${context.trText(w.altitude)})',
+                                                      ),
+                                                      duration: const Duration(
+                                                        seconds: 2,
+                                                      ),
+                                                      backgroundColor:
+                                                          _textDark,
+                                                    ),
+                                                  );
                                                 },
                                                 child: Column(
                                                   mainAxisSize:
@@ -807,52 +965,58 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                                   children: [
                                                     Container(
                                                       padding:
-                                                          const EdgeInsets
-                                                              .all(4.5),
-                                                      decoration:
-                                                          BoxDecoration(
-                                                        color: context.bgSurface,
-                                                        shape:
-                                                            BoxShape.circle,
+                                                          const EdgeInsets.all(
+                                                            4.5,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            context.bgSurface,
+                                                        shape: BoxShape.circle,
                                                         border: Border.all(
-                                                          color:
-                                                              _accentColor,
+                                                          color: _accentColor,
                                                           width: 1.8,
                                                         ),
                                                         boxShadow: [
                                                           BoxShadow(
-                                                            color: Colors.black.withAlpha(25),
+                                                            color: Colors.black
+                                                                .withAlpha(25),
                                                             blurRadius: 4,
-                                                            offset: const Offset(0, 2),
+                                                            offset:
+                                                                const Offset(
+                                                                  0,
+                                                                  2,
+                                                                ),
                                                           ),
                                                         ],
                                                       ),
-                                                      child: Icon(w.icon,
-                                                          size: 13,
-                                                          color:
-                                                              _accentColor),
+                                                      child: Icon(
+                                                        w.icon,
+                                                        size: 13,
+                                                        color: _accentColor,
+                                                      ),
                                                     ),
-                                                    const SizedBox(
-                                                        height: 2),
+                                                    const SizedBox(height: 2),
                                                     Container(
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                          horizontal: 5,
-                                                          vertical: 1.5),
-                                                      decoration:
-                                                          BoxDecoration(
-                                                        color: context.bgSurface,
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 5,
+                                                            vertical: 1.5,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color:
+                                                            context.bgSurface,
                                                         borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                                    4),
+                                                            BorderRadius.circular(
+                                                              4,
+                                                            ),
                                                         border: Border.all(
                                                           color: _cardBorder,
                                                           width: 0.8,
                                                         ),
                                                         boxShadow: [
                                                           BoxShadow(
-                                                            color: Colors.black.withAlpha(15),
+                                                            color: Colors.black
+                                                                .withAlpha(15),
                                                             blurRadius: 3,
                                                           ),
                                                         ],
@@ -860,20 +1024,20 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                                       child: Text(
                                                         w.name
                                                             .replaceAll(
-                                                                'Sembalun',
-                                                                '')
+                                                              'Sembalun',
+                                                              '',
+                                                            )
                                                             .trim(),
-                                                        style:
-                                                            TextStyle(
+                                                        style: TextStyle(
                                                           fontSize: 8.5,
                                                           fontWeight:
-                                                              FontWeight
-                                                                  .w700,
+                                                              FontWeight.w700,
                                                           color: _textDark,
                                                         ),
                                                         maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
+                                                        overflow:
+                                                            TextOverflow
+                                                                .ellipsis,
                                                       ),
                                                     ),
                                                   ],
@@ -885,9 +1049,8 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                             point: userPoint,
                                             width: 48,
                                             height: 48,
-                                          child: Icon(
-                                              Icons
-                                                  .person_pin_circle_rounded,
+                                            child: Icon(
+                                              Icons.person_pin_circle_rounded,
                                               color: _accentColor,
                                               size: 40,
                                             ),
@@ -902,11 +1065,12 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                     left: 10,
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 10, vertical: 5),
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: context.bgSurface,
-                                        borderRadius:
-                                            BorderRadius.circular(20),
+                                        borderRadius: BorderRadius.circular(20),
                                         border: Border.all(color: _cardBorder),
                                         boxShadow: [
                                           BoxShadow(
@@ -919,9 +1083,11 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(Icons.route_rounded,
-                                              color: _accentColor,
-                                              size: 13),
+                                          Icon(
+                                            Icons.route_rounded,
+                                            color: _accentColor,
+                                            size: 13,
+                                          ),
                                           const SizedBox(width: 5),
                                           Text(
                                             context.trText('Jalur Sembalun'),
@@ -948,78 +1114,156 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                             const SizedBox(height: 10),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 8),
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
                                 color: context.bgSurface,
                                 borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                    color: context.borderColor),
+                                border: Border.all(color: context.borderColor),
                               ),
                               child: Text(
                                 tracking.error!,
                                 style: TextStyle(
-                                    color: context.errorColor,
-                                    fontSize: 12),
+                                  color: context.errorColor,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                           ],
 
                           const SizedBox(height: 20),
 
-                          FilledButton.icon(
-                            onPressed:
-                                tracking.isStarting || tracking.isStopping
-                                    ? null
-                                    : () => tracking.isActive
-                                        ? _finishTracking(
-                                            context, tracking)
-                                        : _startTracking(
-                                            context, tracking),
-                            icon: Icon(
-                              tracking.isActive
-                                  ? Icons.stop_circle_outlined
-                                  : Icons.play_arrow_rounded,
-                            ),
-                            label: Text(
-                              tracking.isStarting
-                                  ? context.trText('Menyiapkan GPS...')
-                                  : tracking.isStopping
-                                      ? context.trText('Menyelesaikan...')
-                                      : tracking.isActive
-                                          ? context.trText('Selesaikan Pendakian')
-                                          : context.trText('Mulai Tracking'),
-                              style: AppFonts.plusJakartaSans(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: context.isHighContrast ? context.bgPrimary : Colors.white,
+                          if (!tracking.isActive)
+                            FilledButton.icon(
+                              onPressed:
+                                  tracking.isStarting ||
+                                          tracking.isStopping ||
+                                          tracking.isPausing
+                                      ? null
+                                      : () => _startTracking(context, tracking),
+                              icon: const Icon(Icons.play_arrow_rounded),
+                              label: Text(
+                                tracking.isStarting
+                                    ? context.trText('Menyiapkan GPS...')
+                                    : context.trText('Mulai Tracking'),
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      context.isHighContrast
+                                          ? context.bgPrimary
+                                          : Colors.white,
+                                ),
+                              ),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: _accentColor,
+                                foregroundColor:
+                                    context.isHighContrast
+                                        ? context.bgPrimary
+                                        : Colors.white,
+                                minimumSize: const Size.fromHeight(52),
+                                elevation: 2,
+                                shadowColor: _accentColor.withAlpha(80),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            )
+                          else ...[
+                            FilledButton.icon(
+                              onPressed:
+                                  tracking.isStarting ||
+                                          tracking.isStopping ||
+                                          tracking.isPausing
+                                      ? null
+                                      : () async {
+                                        if (tracking.isPaused) {
+                                          await tracking.resume();
+                                        } else {
+                                          await tracking.pause();
+                                        }
+                                      },
+                              icon: Icon(
+                                tracking.isPaused
+                                    ? Icons.play_arrow_rounded
+                                    : Icons.pause_rounded,
+                              ),
+                              label: Text(
+                                tracking.isPausing
+                                    ? context.trText('Menjeda tracking...')
+                                    : tracking.isStarting
+                                    ? context.trText('Menyiapkan GPS...')
+                                    : tracking.isPaused
+                                    ? context.trText('Lanjutkan Tracking')
+                                    : context.trText('Jeda Tracking'),
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      context.isHighContrast
+                                          ? context.bgPrimary
+                                          : Colors.white,
+                                ),
+                              ),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: _accentColor,
+                                foregroundColor:
+                                    context.isHighContrast
+                                        ? context.bgPrimary
+                                        : Colors.white,
+                                minimumSize: const Size.fromHeight(52),
+                                elevation: 2,
+                                shadowColor: _accentColor.withAlpha(80),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
                               ),
                             ),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: tracking.isActive
-                                  ? context.errorColor
-                                  : _accentColor,
-                              foregroundColor: context.isHighContrast
-                                  ? context.bgPrimary
-                                  : Colors.white,
-                              minimumSize: const Size.fromHeight(52),
-                              elevation: 2,
-                              shadowColor: (tracking.isActive
-                                      ? context.errorColor
-                                      : _accentColor)
-                                  .withAlpha(80),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                            const SizedBox(height: 10),
+                            OutlinedButton.icon(
+                              onPressed:
+                                  tracking.isStarting ||
+                                          tracking.isStopping ||
+                                          tracking.isPausing
+                                      ? null
+                                      : () =>
+                                          _finishTracking(context, tracking),
+                              icon: const Icon(Icons.stop_circle_outlined),
+                              label: Text(
+                                tracking.isStopping
+                                    ? context.trText('Menyelesaikan...')
+                                    : context.trText('Selesaikan Pendakian'),
+                                style: AppFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.errorColor,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: context.errorColor,
+                                minimumSize: const Size.fromHeight(48),
+                                side: BorderSide(color: context.errorColor),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
                               ),
                             ),
-                          ),
+                          ],
 
                           // Tombol Reset Tracking jika terdapat riwayat tracking
                           if (tracking.hasHistory) ...[
                             const SizedBox(height: 10),
                             OutlinedButton.icon(
-                              onPressed: tracking.isStarting || tracking.isStopping
-                                  ? null
-                                  : () => _confirmResetTracking(context, tracking),
+                              onPressed:
+                                  tracking.isStarting ||
+                                          tracking.isStopping ||
+                                          tracking.isPausing
+                                      ? null
+                                      : () => _confirmResetTracking(
+                                        context,
+                                        tracking,
+                                      ),
                               icon: Icon(
                                 Icons.restart_alt_rounded,
                                 size: 18,
@@ -1037,8 +1281,9 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                 foregroundColor: context.errorColor,
                                 backgroundColor: context.bgSurface,
                                 side: BorderSide(
-                                    color: context.borderColor,
-                                    width: context.borderWidth),
+                                  color: context.borderColor,
+                                  width: context.borderWidth,
+                                ),
                                 minimumSize: const Size.fromHeight(48),
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
@@ -1051,7 +1296,9 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                           const SizedBox(height: 10),
 
                           Text(
-                            context.trText('Lokasi tersinkron ke Posko SAR selama tracking aktif.'),
+                            context.trText(
+                              'Lokasi pendakian direkam selama tracking aktif.',
+                            ),
                             textAlign: TextAlign.center,
                             style: AppFonts.plusJakartaSans(
                               fontSize: 12,
@@ -1064,10 +1311,89 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                   ],
                 ),
               ),
+              Positioned(
+                right: 16,
+                bottom: MediaQuery.viewPaddingOf(context).bottom + 16,
+                child: Builder(
+                  builder: (context) {
+                    final isVisible = tracking.isActive;
+                    final isCompact =
+                        MediaQuery.sizeOf(context).shortestSide < 360;
+                    final buttonSize = isCompact ? 60.0 : 68.0;
+                    return IgnorePointer(
+                      ignoring: !isVisible,
+                      child: ExcludeSemantics(
+                        excluding: !isVisible,
+                        child: AnimatedOpacity(
+                          opacity: isVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 220),
+                          curve: Curves.easeOut,
+                          child: AnimatedScale(
+                            scale: isVisible ? 1 : 0.72,
+                            duration: const Duration(milliseconds: 420),
+                            curve: Curves.easeOutBack,
+                            child: _buildFloatingSosButton(
+                              context,
+                              tracking,
+                              size: buttonSize,
+                              compact: isCompact,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildFloatingSosButton(
+    BuildContext context,
+    HikingTrackingService tracking, {
+    required double size,
+    required bool compact,
+  }) {
+    final sosColor = context.errorColor;
+    final label = context.trText('Buka panel SOS');
+    return Semantics(
+      button: true,
+      enabled: !tracking.isStopping,
+      label: label,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: sosColor,
+          elevation: 8,
+          shadowColor: sosColor.withAlpha(100),
+          shape: const CircleBorder(
+            side: BorderSide(color: Colors.white, width: 2),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap:
+                tracking.isStopping
+                    ? null
+                    : () => _confirmSendSos(context, tracking),
+            child: SizedBox(
+              width: size,
+              height: size,
+              child: Center(
+                child: Icon(
+                  Icons.sos_rounded,
+                  color: Colors.white,
+                  size: compact ? 28 : 32,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -1076,15 +1402,148 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
     HikingTrackingService tracking,
   ) async {
     final volcanoProvider = context.read<VolcanoProvider>();
-    final started =
-        await tracking.start(region: volcanoProvider.selectedRegion);
+    final started = await tracking.start(
+      region: volcanoProvider.selectedRegion,
+    );
     if (!context.mounted || started) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content:
-            Text(tracking.error ?? context.trTextSafe('Tracking belum dapat dimulai.')),
+        content: Text(
+          tracking.error ?? context.trTextSafe('Tracking belum dapat dimulai.'),
+        ),
         backgroundColor: Theme.of(context).colorScheme.surface,
       ),
+    );
+  }
+
+  Widget _buildTrackingConfirmDialog(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+    required String confirmLabel,
+    required VoidCallback onCancel,
+    required VoidCallback onConfirm,
+  }) {
+    final primaryText = context.textPrimary;
+    final secondaryText = context.textSecondary;
+    final actionForeground =
+        context.isHighContrast ? context.bgPrimary : Colors.white;
+
+    return AlertDialog(
+      backgroundColor: context.bgSurface,
+      surfaceTintColor: Colors.transparent,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      icon: Center(
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: context.bgSurface,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: context.errorColor, size: 28),
+        ),
+      ),
+      title: Text(
+        title,
+        textAlign: TextAlign.center,
+        style: AppFonts.plusJakartaSans(
+          color: primaryText,
+          fontWeight: FontWeight.w700,
+          fontSize: 17,
+        ),
+      ),
+      content: Text(
+        description,
+        textAlign: TextAlign.center,
+        style: AppFonts.plusJakartaSans(
+          color: secondaryText,
+          fontSize: 13.5,
+          height: 1.5,
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: onCancel,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: primaryText,
+                  side: BorderSide(
+                    color: context.borderColor,
+                    width: context.borderWidth,
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  context.tr('cancel'),
+                  style: AppFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: primaryText,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: FilledButton(
+                onPressed: onConfirm,
+                style: FilledButton.styleFrom(
+                  backgroundColor: context.errorColor,
+                  foregroundColor: actionForeground,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  confirmLabel,
+                  style: AppFonts.plusJakartaSans(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: actionForeground,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _confirmSendSos(
+    BuildContext context,
+    HikingTrackingService tracking,
+  ) async {
+    final send = await showDialog<bool>(
+      context: context,
+      builder:
+          (dialogContext) => _buildTrackingConfirmDialog(
+            dialogContext,
+            icon: Icons.sos_rounded,
+            title: dialogContext.trText('Kirim sinyal SOS?'),
+            description: dialogContext.trText(
+              'Kirim sinyal SOS beserta lokasi GPS terakhir yang tersedia?',
+            ),
+            confirmLabel: dialogContext.trText('Kirim SOS'),
+            onCancel: () => Navigator.pop(dialogContext, false),
+            onConfirm: () => Navigator.pop(dialogContext, true),
+          ),
+    );
+    if (send != true || !context.mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => HikingSosPanel(tracking: tracking),
     );
   }
 
@@ -1094,31 +1553,18 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.bgSurface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(context.tr('finish_tracking'),
-            style: TextStyle(color: _textDark, fontWeight: FontWeight.w700)),
-        content: Text(
-          context.trText('Posko SAR tidak akan menerima pembaruan koordinat setelah sesi diselesaikan.'),
-          style: TextStyle(color: _textMuted),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.tr('cancel'),
-                style: TextStyle(color: _textMuted)),
+      builder:
+          (dialogContext) => _buildTrackingConfirmDialog(
+            dialogContext,
+            icon: Icons.stop_circle_rounded,
+            title: dialogContext.tr('finish_tracking'),
+            description: dialogContext.trText(
+              'Sesi tracking akan dihentikan dan lokasi baru tidak lagi direkam setelah pendakian diselesaikan.',
+            ),
+            confirmLabel: dialogContext.trText('Selesaikan'),
+            onCancel: () => Navigator.pop(dialogContext, false),
+            onConfirm: () => Navigator.pop(dialogContext, true),
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(
-                backgroundColor: context.errorColor),
-            child: Text(context.trText('Selesaikan')),
-          ),
-        ],
-      ),
     );
     if (confirmed == true) await tracking.stop();
   }
@@ -1130,104 +1576,23 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: context.bgSurface,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        icon: Center(
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: context.bgSurface,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.restart_alt_rounded,
-              color: context.errorColor,
-              size: 28,
-            ),
+      builder:
+          (dialogContext) => _buildTrackingConfirmDialog(
+            dialogContext,
+            icon: Icons.restart_alt_rounded,
+            title: dialogContext.trText('Reset Riwayat Tracking?'),
+            description:
+                tracking.isActive
+                    ? dialogContext.trText(
+                      'Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.',
+                    )
+                    : dialogContext.trText(
+                      'Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.',
+                    ),
+            confirmLabel: dialogContext.trText('Ya, Reset'),
+            onCancel: () => Navigator.pop(dialogContext, false),
+            onConfirm: () => Navigator.pop(dialogContext, true),
           ),
-        ),
-        title: Text(
-          context.trText('Reset Riwayat Tracking?'),
-          textAlign: TextAlign.center,
-          style: AppFonts.plusJakartaSans(
-            color: _textDark,
-            fontWeight: FontWeight.w700,
-            fontSize: 17,
-          ),
-        ),
-        content: Text(
-          tracking.isActive
-              ? context.trText('Tracking saat ini sedang aktif. Mereset akan menghentikan sesi dan menghapus seluruh durasi, rute, serta jarak tempuh saat ini.')
-              : context.trText('Semua riwayat tracking lokal meliputi durasi, jarak tempuh, dan titik koordinat rute akan dihapus dan kembali ke nol.'),
-          textAlign: TextAlign.center,
-          style: AppFonts.plusJakartaSans(
-            color: _textMuted,
-            fontSize: 13.5,
-            height: 1.5,
-          ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-        actions: [
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: _textDark,
-                    side: BorderSide(
-                      color: context.borderColor,
-                      width: context.borderWidth,
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    context.tr('cancel'),
-                    style: AppFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                      color: _textDark,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: context.errorColor,
-                    foregroundColor: context.isHighContrast
-                        ? context.bgPrimary
-                        : Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    context.trText('Ya, Reset'),
-                    style: AppFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: context.isHighContrast
-                          ? context.bgPrimary
-                          : Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
 
     if (confirmed == true) {
@@ -1237,8 +1602,11 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded,
-                  color: Colors.white, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               Text(
                 context.trTextSafe('Riwayat tracking berhasil di-reset.'),
@@ -1269,22 +1637,31 @@ class _HikingStatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accentColor = context.successColor;
+    final accentColor =
+        tracking.isPaused ? context.textSecondary : context.successColor;
     final cardBg = context.bgSurface;
     final cardBorder = context.borderColor;
     final textDark = context.textPrimary;
     final textMuted = context.textSecondary;
     final location = tracking.locationService;
     final isActive = tracking.isActive;
+    final hasFreshGps = location.hasFreshRealPosition;
 
-    final statusText = isActive
-        ? context.trText('Tracking aktif')
-        : location.gpsStatus == GpsStatus.active
+    final statusText =
+        tracking.isPaused
+            ? context.trText('Tracking dijeda · riwayat tetap tersimpan')
+            : isActive && hasFreshGps
+            ? context.trText('Tracking aktif')
+            : isActive
+            ? context.trText('Menunggu sinyal GPS · posisi terakhir tersimpan')
+            : location.gpsStatus == GpsStatus.active
             ? context.trText('GPS siap · Rinjani')
             : context.trText('Menunggu GPS...');
 
+    final coordinatePrefix =
+        hasFreshGps ? '' : '${context.trText('Terakhir')}: ';
     final coordText =
-        '${location.userLat.toStringAsFixed(5)}, ${location.userLng.toStringAsFixed(5)}';
+        '$coordinatePrefix${location.userLat.toStringAsFixed(5)}, ${location.userLng.toStringAsFixed(5)}';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -1292,16 +1669,18 @@ class _HikingStatusBanner extends StatelessWidget {
         color: cardBg,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isActive && !context.isHighContrast
-              ? accentColor.withAlpha(120)
-              : cardBorder,
+          color:
+              isActive && !context.isHighContrast
+                  ? accentColor.withAlpha(120)
+                  : cardBorder,
           width: isActive ? 1.5 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isActive && !context.isHighContrast
-                ? accentColor.withAlpha(20)
-                : Colors.black.withAlpha(6),
+            color:
+                isActive && !context.isHighContrast
+                    ? accentColor.withAlpha(20)
+                    : Colors.black.withAlpha(6),
             blurRadius: 10,
             offset: const Offset(0, 3),
           ),
@@ -1313,13 +1692,18 @@ class _HikingStatusBanner extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: context.isHighContrast
-                  ? context.bgPrimary
-                  : (isActive ? accentColor : textMuted).withAlpha(20),
+              color:
+                  context.isHighContrast
+                      ? context.bgPrimary
+                      : (isActive ? accentColor : textMuted).withAlpha(20),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isActive ? Icons.gps_fixed : Icons.gps_not_fixed,
+              tracking.isPaused
+                  ? Icons.pause_circle_outline_rounded
+                  : isActive
+                  ? Icons.gps_fixed
+                  : Icons.gps_not_fixed,
               color: isActive ? accentColor : textMuted,
               size: 18,
             ),
@@ -1341,12 +1725,14 @@ class _HikingStatusBanner extends StatelessWidget {
                 Text(
                   coordText,
                   style: AppFonts.plusJakartaSans(
-                      fontSize: 11, color: textMuted),
+                    fontSize: 11,
+                    color: textMuted,
+                  ),
                 ),
               ],
             ),
           ),
-          if (isActive)
+          if (isActive && !tracking.isPaused)
             Container(
               width: 8,
               height: 8,
@@ -1368,7 +1754,6 @@ class _HikingStatusBanner extends StatelessWidget {
   }
 }
 
-/// Stats grid light clean theme
 class _HikingStatsGrid extends StatelessWidget {
   const _HikingStatsGrid({required this.tracking});
   final HikingTrackingService tracking;
@@ -1376,8 +1761,10 @@ class _HikingStatsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final elapsed = tracking.elapsed;
-    final duration =
-        '${elapsed.inHours.toString().padLeft(2, '0')}:${(elapsed.inMinutes % 60).toString().padLeft(2, '0')}';
+    final hours = elapsed.inHours.toString().padLeft(2, '0');
+    final minutes = (elapsed.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (elapsed.inSeconds % 60).toString().padLeft(2, '0');
+    final duration = '$hours:$minutes:$seconds';
 
     return Row(
       children: [
@@ -1445,19 +1832,26 @@ class _HikingStatTile extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: accentColor),
           const SizedBox(height: 6),
-          Text(
-            value,
-            style: AppFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: textDark,
+          SizedBox(
+            width: double.infinity,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                value,
+                maxLines: 1,
+                softWrap: false,
+                style: AppFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: textDark,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             label,
-            style:
-                AppFonts.plusJakartaSans(fontSize: 11, color: textMuted),
+            style: AppFonts.plusJakartaSans(fontSize: 11, color: textMuted),
           ),
         ],
       ),
