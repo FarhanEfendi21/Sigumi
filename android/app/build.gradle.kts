@@ -6,6 +6,17 @@ val keyProperties = Properties()
 if (keyPropertiesFile.exists()) {
     keyProperties.load(FileInputStream(keyPropertiesFile))
 }
+val releaseSigningPropertyNames = listOf(
+    "keyAlias",
+    "keyPassword",
+    "storeFile",
+    "storePassword",
+)
+val releaseStoreFilePath = keyProperties.getProperty("storeFile")?.takeIf { it.isNotBlank() }
+val releaseStoreFile = releaseStoreFilePath?.let { file(it) }
+val hasReleaseSigning =
+    releaseSigningPropertyNames.all { !keyProperties.getProperty(it).isNullOrBlank() } &&
+        releaseStoreFile?.isFile == true
 
 plugins {
     id("com.android.application")
@@ -44,17 +55,39 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            keyAlias = keyProperties["keyAlias"] as String
-            keyPassword = keyProperties["keyPassword"] as String
-            storeFile = file(keyProperties["storeFile"] as String)
-            storePassword = keyProperties["storePassword"] as String
+        if (hasReleaseSigning) {
+            create("release") {
+                keyAlias = keyProperties.getProperty("keyAlias")
+                keyPassword = keyProperties.getProperty("keyPassword")
+                storeFile = requireNotNull(releaseStoreFile)
+                storePassword = keyProperties.getProperty("storePassword")
+            }
         }
     }
 
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
+        getByName("release") {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+    }
+}
+
+tasks.configureEach {
+    if (
+        name == "assembleRelease" ||
+            name == "bundleRelease" ||
+            name.startsWith("packageRelease")
+    ) {
+        doFirst {
+            if (!hasReleaseSigning) {
+                throw GradleException(
+                    "Release signing is not configured. Create android/key.properties " +
+                        "with keyAlias, keyPassword, storeFile, and storePassword, " +
+                        "and make sure the keystore file exists.",
+                )
+            }
         }
     }
 }
