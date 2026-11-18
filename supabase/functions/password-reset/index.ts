@@ -857,7 +857,10 @@ async function sha256(input: string): Promise<string> {
 }
 
 function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  // Batasi panjang untuk mencegah ReDoS pada masukan yang sangat panjang,
+  // dan wajibkan TLD alfabet minimal 2 karakter.
+  if (email.length > 254) return false;
+  return /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(email);
 }
 
 function isValidPhone(phone: string): boolean {
@@ -870,15 +873,14 @@ function phoneToEmail(phone: string): string {
 }
 
 function normalizePhone(phone: string): string {
-  let cleaned = phone.replace(/[\s\-\(\)]/g, "");
-  if (cleaned.startsWith("0")) {
-    cleaned = "+62" + cleaned.substring(1);
-  } else if (cleaned.startsWith("62")) {
-    cleaned = "+" + cleaned;
-  } else if (!cleaned.startsWith("+")) {
-    cleaned = "+62" + cleaned;
-  }
-  return cleaned;
+  // Buang SEMUA karakter non-digit (spasi, tanda hubung, titik, kurung, huruf),
+  // lalu susun ke format E.164 Indonesia.
+  const hasPlus = phone.trim().startsWith("+");
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("0")) return "+62" + digits.substring(1);
+  if (digits.startsWith("62")) return "+" + digits;
+  if (hasPlus) return "+" + digits;
+  return "+62" + digits;
 }
 
 async function randomDelay(): Promise<void> {

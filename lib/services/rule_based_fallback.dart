@@ -22,16 +22,16 @@ class RuleBasedFallback {
       'selamat sore', 'selamat malam', 'assalamualaikum',
       'sugeng', 'om swastiastu', 'tabe',
     ],
+    'sop_evakuasi': [
+      'sop evakuasi', 'prosedur evakuasi', 'tata cara evakuasi',
+      'langkah evakuasi', 'cara evakuasi', 'evacuation procedure',
+      'urutan evakuasi',
+    ],
     'evakuasi': [
       'evakuasi', 'evacuation', 'titik kumpul', 'jalur evakuasi',
       'assembly point', 'rute evakuasi', 'mengungsi', 'pengungsian',
       'harus lari', 'kemana lari', 'tempat aman', 'safe point',
       'titik berkumpul', 'posko',
-    ],
-    'sop_evakuasi': [
-      'sop evakuasi', 'prosedur evakuasi', 'tata cara evakuasi',
-      'langkah evakuasi', 'cara evakuasi', 'evacuation procedure',
-      'urutan evakuasi',
     ],
     'zona_bahaya': [
       'zona bahaya', 'zona merah', 'zona kuning', 'zona hijau',
@@ -49,18 +49,18 @@ class RuleBasedFallback {
       'barang siaga', 'persiapan bencana', 'checklist siaga',
       'isi tas', 'tas darurat',
     ],
+    'p3k': [
+      'p3k', 'pertolongan pertama', 'first aid', 'luka bakar',
+      'obat', 'kotak p3k', 'bantuan medis',
+    ],
     'bantuan': [
-      'nomor darurat', 'emergency number', 'hubungi', 'telepon darurat',
+      'nomor darurat', 'emergency number', 'telephone', 'hubungi', 'telepon darurat',
       'kontak darurat', 'ambulans', 'sar', 'bnpb', 'bpbd',
       'minta bantuan', 'tolong', 'pertolongan',
     ],
     'mitigasi_abu': [
-      'hujan abu', 'abu vulkanik', 'volcanic ash', 'mitigasi abu',
-      'masker', 'cara menghadapi abu', 'tips abu',
-    ],
-    'p3k': [
-      'p3k', 'pertolongan pertama', 'first aid', 'luka bakar',
-      'obat', 'kotak p3k', 'bantuan medis',
+      'hujan abu', 'ujan abu', 'udan abu', 'abu vulkanik', 'volcanic ash',
+      'ash rain', 'mitigasi abu', 'masker', 'cara menghadapi abu', 'tips abu',
     ],
     'jadwal_pelatihan': [
       'jadwal pelatihan', 'jadwal simulasi', 'kapan latihan',
@@ -78,7 +78,7 @@ class RuleBasedFallback {
   // DETECT INTENT — Simple keyword matching
   // ═══════════════════════════════════════════════════════════════
 
-  /// Detect intent dari pesan user via keyword contains.
+  /// Detect intent dari pesan user via pencocokan kata utuh.
   /// Return intent string. Default = 'default'.
   static String detectIntent(String message) {
     final normalized = message.toLowerCase().trim();
@@ -86,12 +86,27 @@ class RuleBasedFallback {
 
     for (final entry in _intentKeywords.entries) {
       for (final keyword in entry.value) {
-        if (normalized.contains(keyword)) {
+        if (containsWholeWord(normalized, keyword)) {
           return entry.key;
         }
       }
     }
     return 'default';
+  }
+
+  /// Pencocokan kata utuh agar kata kunci pendek tidak keliru cocok dengan
+  /// potongan kata lain (mis. "hi" pada "menghindari", "sar" pada "pasar"),
+  /// namun tetap menerima akhiran bahasa Indonesia seperti -nya, -lah, -kah,
+  /// -pun, -ku, -mu. Teks diasumsikan sudah huruf kecil.
+  static bool containsWholeWord(String text, String keyword) {
+    // Akhiran yang diterima: Indonesia (-nya, -lah, -kah, -pun, -ku, -mu)
+    // dan akhiran definit Jawa/Bali/Sasak -ne (mis. "bahayane").
+    // Catatan: akhiran -e tunggal sengaja TIDAK dipakai karena berisiko
+    // cocok tak sengaja (mis. "sar"+"e" = "sare" = "tidur" dalam bahasa Jawa).
+    final pattern = RegExp(
+      '(^|[^a-z0-9])${RegExp.escape(keyword)}(nya|lah|kah|pun|ku|mu|ne)?(\$|[^a-z0-9])',
+    );
+    return pattern.hasMatch(text);
   }
 
   /// Check apakah user bertanya tentang evakuasi (untuk intercept assembly point).
@@ -131,15 +146,23 @@ class RuleBasedFallback {
 
   /// Get localized response string for intent.
   static String _getLocalizedResponse(String intent, String language) {
+    final lang = _normalizeLanguage(language);
     final intentResponses = _responses[intent];
     if (intentResponses != null) {
-      return intentResponses[language] ?? intentResponses['id'] ?? _defaultResponse(language);
+      return intentResponses[lang] ?? intentResponses['id'] ?? _defaultResponse(lang);
     }
-    return _defaultResponse(language);
+    return _defaultResponse(lang);
   }
 
+  /// Samakan kode bahasa aplikasi dengan kode internal chatbot.
+  /// Aplikasi menyimpan "sa" untuk Sasak, sedangkan respons & instruksi
+  /// LLM memakai "sas".
+  static String _normalizeLanguage(String language) =>
+      language == 'sa' ? 'sas' : language;
+
   static String _defaultResponse(String language) {
-    return _responses['default']?[language] ?? _responses['default']?['id'] ?? 'Maaf, saya kurang memahami pertanyaan Anda.';
+    final lang = _normalizeLanguage(language);
+    return _responses['default']?[lang] ?? _responses['default']?['id'] ?? 'Maaf, saya kurang memahami pertanyaan Anda.';
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -147,7 +170,8 @@ class RuleBasedFallback {
   // ═══════════════════════════════════════════════════════════════
 
   static String getWelcomeMessage(String language) {
-    return _responses['salam']?[language] ?? _responses['salam']?['id'] ?? 'Halo! Saya Si Gumi, siap membantu Anda.';
+    final lang = _normalizeLanguage(language);
+    return _responses['salam']?[lang] ?? _responses['salam']?['id'] ?? 'Halo! Saya Si Gumi, siap membantu Anda.';
   }
 
   // ═══════════════════════════════════════════════════════════════
@@ -183,7 +207,7 @@ class RuleBasedFallback {
       {'label': 'Tips Ujan Abu', 'message': 'tips dugas ujan abu'},
       {'label': 'Nomor Darurat', 'message': 'nomor telepon darurat'},
     ],
-    'sas': [
+    'sa': [
       {'label': 'Status Gunung', 'message': 'status gunung niki?'},
       {'label': 'Jalur Evakuasi', 'message': 'jalur evakuasi mbe?'},
       {'label': 'Zona Bahaya', 'message': 'berape zona bahayane?'},

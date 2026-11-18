@@ -62,7 +62,7 @@ class CloudLlmService {
       'en' => 'Respond in English.',
       'jv' => 'Respond in Javanese (Bahasa Jawa). Use polite krama or ngoko as appropriate.',
       'ba' => 'Respond in Balinese (Bahasa Bali). Use appropriate Balinese language levels (Alus, Madia, Kepara) matching the user\'s tone.',
-      'sas' => 'Respond in Sasak (Bahasa Sasak Lombok). Use appropriate Sasak dialect and language levels.',
+      'sas' || 'sa' => 'Respond in Sasak (Bahasa Sasak Lombok). Use appropriate Sasak dialect and language levels.',
       _ => 'Respond in Indonesian (Bahasa Indonesia).',
     };
 
@@ -258,6 +258,13 @@ $ageContext
       'content': _buildSystemPrompt(language, ageContext, locationContext),
     });
 
+    // Batas aman panjang teks per pesan agar payload tidak membengkak
+    // (mis. tempelan sangat panjang / penyalahgunaan). Pertanyaan normal
+    // chatbot jauh di bawah batas ini.
+    const maxMessageChars = 4000;
+    String cap(String s) =>
+        s.length > maxMessageChars ? s.substring(0, maxMessageChars) : s;
+
     // 2. Conversation history (maks 5 turn terakhir = 10 messages)
     if (conversationHistory != null && conversationHistory.isNotEmpty) {
       final recentHistory = conversationHistory.length > 10
@@ -270,7 +277,7 @@ $ageContext
 
         messages.add({
           'role': msg.isUser ? 'user' : 'assistant',
-          'content': msg.content,
+          'content': cap(msg.content),
         });
       }
     }
@@ -278,7 +285,7 @@ $ageContext
     // 3. Pesan user saat ini
     messages.add({
       'role': 'user',
-      'content': userMessage,
+      'content': cap(userMessage),
     });
 
     return messages;

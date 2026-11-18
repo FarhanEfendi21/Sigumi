@@ -59,17 +59,10 @@ class ChatbotEngine {
           );
         }
       } catch (e) {
-        debugPrint('[ChatbotEngine] ❌ Cloud LLM error: $e, returning friendly error message');
-        return ChatMessage(
-          content: 'Maaf, terjadi gangguan koneksi ke server. Coba lagi.',
-          isUser: false,
-          timestamp: DateTime.now(),
-          language: appLanguage,
-          messageType: MessageType.text,
-          intentId: 'error_connection',
-          isVoice: false,
-          responseSource: ResponseSource.cloud,
-        );
+        // Server terjangkau tetapi permintaan gagal (timeout / 5xx):
+        // tetap beri jawaban edukasi dari mesin rule-based, bukan pesan galat.
+        debugPrint('[ChatbotEngine] ❌ Cloud LLM error: $e, fallback ke rule-based');
+        return _buildFallbackResponse(text, appLanguage, ResponseSource.localFallback);
       }
 
       // Cloud return null (belum lempar exception, ex: not initialized) — fallback
