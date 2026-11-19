@@ -334,7 +334,7 @@ class _EducationItemCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     // Ringkasan konten
                     Text(
-                      item.content,
+                      item.contentPreview,
                       style: AppFonts.plusJakartaSans(
                         fontSize: 11,
                         color: context.textSecondary,

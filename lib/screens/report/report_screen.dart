@@ -33,6 +33,8 @@ class _ReportScreenState extends State<ReportScreen> {
 
   // Image handling
   XFile? _selectedImage;
+  String? _uploadedImagePath;
+  String? _uploadedImageUrl;
   final ImagePicker _picker = ImagePicker();
 
   // Mapping nama gunung ke lokasi
@@ -63,6 +65,8 @@ class _ReportScreenState extends State<ReportScreen> {
       if (image != null) {
         setState(() {
           _selectedImage = image;
+          _uploadedImagePath = null;
+          _uploadedImageUrl = null;
         });
       }
     } catch (e) {
@@ -91,6 +95,8 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 
   Future<void> _submitReport() async {
+    if (_isSubmitting) return;
+
     // Validasi awal
     if (_selectedCategories.isEmpty || _descController.text.isEmpty) {
       if (!mounted) return;
@@ -148,18 +154,25 @@ class _ReportScreenState extends State<ReportScreen> {
       // Upload gambar ke Supabase jika ada (optional, continue jika gagal)
       String? imageUrl;
       if (_selectedImage != null) {
-        Logger.info('Image selected: ${_selectedImage!.name}', tag: 'ReportScreen');
-        // Generate temporary report ID untuk folder
-        final tempReportId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
-        try {
-          imageUrl = await reportRepository.uploadReportImage(
-            _selectedImage!,
-            tempReportId,
-          );
-          Logger.info('Image URL after upload: $imageUrl', tag: 'ReportScreen');
-        } catch (e) {
-          Logger.log('Skipping image upload: $e', tag: 'ReportScreen');
-          // Continue tanpa gambar
+        if (_uploadedImageUrl != null &&
+            _uploadedImagePath == _selectedImage!.path) {
+          imageUrl = _uploadedImageUrl;
+        } else {
+          Logger.info('Uploading report image...', tag: 'ReportScreen');
+          final tempReportId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+          try {
+            imageUrl = await reportRepository.uploadReportImage(
+              _selectedImage!,
+              tempReportId,
+            );
+            if (imageUrl != null) {
+              _uploadedImagePath = _selectedImage!.path;
+              _uploadedImageUrl = imageUrl;
+            }
+          } catch (e) {
+            Logger.log('Skipping image upload: $e', tag: 'ReportScreen');
+            // Continue tanpa gambar
+          }
         }
       } else {
         Logger.info('No image selected', tag: 'ReportScreen');
@@ -185,10 +198,10 @@ class _ReportScreenState extends State<ReportScreen> {
         'imageUrl': imageUrl,
       };
 
-      Logger.info('Submitting report data...', tag: 'ReportScreen');
-      Logger.log('reporterName: $reporterName', tag: 'ReportScreen');
-      Logger.log('category: ${reportData['category']}', tag: 'ReportScreen');
-      Logger.log('imageUrl: $imageUrl', tag: 'ReportScreen');
+      Logger.info(
+        'Submitting report data (category: ${reportData['category']}, hasImage: ${imageUrl != null})...',
+        tag: 'ReportScreen',
+      );
 
       // Ambil lokasi dari nama gunung aktif
       final lokasiFromVolcano = _getLokasiFromVolcano(
@@ -212,6 +225,8 @@ class _ReportScreenState extends State<ReportScreen> {
       setState(() {
         _isSubmitting = false;
         _selectedImage = null;
+        _uploadedImagePath = null;
+        _uploadedImageUrl = null;
       });
       _descController.clear();
       _selectedCategories.clear();

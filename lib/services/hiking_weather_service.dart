@@ -5,6 +5,28 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/hiking_weather.dart';
 
+/// Penyebab gagal memuat prakiraan cuaca terbaru.
+enum HikingWeatherFailure {
+  /// Koordinat di luar radius area prakiraan pendakian (backend HTTP 404).
+  outsideArea,
+
+  /// Jaringan, server, atau format respons bermasalah.
+  unavailable,
+}
+
+/// Dilempar [HikingWeatherService.load] saat data terbaru gagal dimuat.
+/// [fallback] berisi data tersimpan (ditandai stale) bila tersedia.
+class HikingWeatherException implements Exception {
+  const HikingWeatherException(this.failure, {this.fallback, this.cause});
+
+  final HikingWeatherFailure failure;
+  final HikingWeatherForecast? fallback;
+  final Object? cause;
+
+  @override
+  String toString() => 'HikingWeatherException($failure, cause: $cause)';
+}
+
 class HikingWeatherService {
   static const _cachePrefix = 'hiking_weather_cache_v1_';
 
@@ -61,10 +83,26 @@ class HikingWeatherService {
       );
       await prefs.setString(key, jsonEncode(result.toJson()));
       return result;
-    } catch (_) {
-      if (cached != null) return cached.withStale(true);
-      rethrow;
+    } catch (error) {
+      throw HikingWeatherException(
+        _classifyFailure(error),
+        fallback: cached?.withStale(true),
+        cause: error,
+      );
     }
+  }
+
+  HikingWeatherFailure _classifyFailure(Object error) {
+    if (error is FunctionException && error.status == 404) {
+      // Bedakan dari 404 gateway (function belum dideploy) lewat pesan backend.
+      final details = error.details;
+      final message =
+          details is Map ? details['error']?.toString() : details?.toString();
+      if (message != null && message.toLowerCase().contains('outside')) {
+        return HikingWeatherFailure.outsideArea;
+      }
+    }
+    return HikingWeatherFailure.unavailable;
   }
 
   String _normalizeRegion(String region) {

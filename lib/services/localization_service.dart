@@ -213,6 +213,54 @@ class LocalizationService {
       'Puncak Rinjani': 'Mount Rinjani Summit',
       'Pura Pasar Agung': 'Pasar Agung Temple',
       'Puncak Gunung Agung': 'Mount Agung Summit',
+      'Gerbang': 'Gate',
+      'Pos 1': 'Post 1',
+      'Pos 2': 'Post 2',
+      'Pos 3': 'Post 3',
+      'Plawangan': 'Crater Rim',
+      'Puncak · 3.726m': 'Summit · 3,726m',
+      'Pura Agung': 'Agung Temple',
+      'Puncak · 3.142m': 'Summit · 3,142m',
+      'Di luar radius pendakian': 'Outside hiking boundary',
+      'Titik Terdekat': 'Nearby Places',
+      'Beda Elevasi': 'Elevation Gain',
+      'Pusatkan Peta': 'Focus Map',
+      'dari Anda': 'away',
+      'ditempuh': 'covered',
+      'jam': 'hours',
+      'menit': 'minutes',
+      'meter': 'meters',
+      'Posisi Anda Saat Ini': 'Your Current Position',
+      'Sinyal GPS aktif': 'GPS signal active',
+      'Menunggu GPS terbaru': 'Waiting for fresh GPS',
+      'GERBANG JALUR': 'TRAILHEAD',
+      'PURA & GERBANG': 'TEMPLE GATE',
+      'POS PENDAKIAN': 'TRAIL POST',
+      'SUMBER MATA AIR': 'WATER SPRING',
+      'AREA CAMP KAWAH': 'CRATER RIM CAMP',
+      'PUNCAK GUNUNG': 'MOUNTAIN SUMMIT',
+      'POSISI REAL-TIME': 'LIVE POSITION',
+      'LOKASI GPS': 'GPS LOCATION',
+      'TRACKING DIJEDA': 'TRACKING PAUSED',
+      'DI LUAR RADIUS': 'OUTSIDE BOUNDARY',
+      'Pilih Jalur Pendakian': 'Select Hiking Trail',
+      'Sumber jalur': 'Trail source',
+      'titik': 'points',
+      'Jalur Senaru': 'Senaru Trail',
+      'Lintas Senaru-Sembalun': 'Senaru-Sembalun Traverse',
+      'Jalur Pasar Agung': 'Pasar Agung Trail',
+      'Sumber titik jalur': 'Trail waypoint source',
+      'Buka sumber data jalur pendakian': 'Open hiking trail data source',
+      'Gerbang TNGR Senaru': 'Senaru National Park Gate',
+      'Gerbang Senaru': 'Senaru Gate',
+      'Plawangan Senaru': 'Senaru Crater Rim',
+      'Danau Segara Anak': 'Segara Anak Lake',
+      'Mata Air Panas Aiq Kalak': 'Aiq Kalak Hot Springs',
+      'Perluas peta': 'Expand map',
+      'Ringkas peta': 'Collapse map',
+      'GPS siap': 'GPS ready',
+      'Tracking dijeda': 'Tracking paused',
+      'Terakhir': 'Last',
       '1.050 mdpl': '1,050 m AMSL',
       '1.300 mdpl': '1,300 m AMSL',
       '1.500 mdpl': '1,500 m AMSL',
@@ -293,6 +341,8 @@ class LocalizationService {
       'jam lalu': 'hours ago',
       'hari lalu': 'days ago',
       'Kirim sinyal ke backoffice': 'Send SOS to the back office',
+      'Kirim ulang ke backoffice': 'Resend SOS to the back office',
+      'Sinyal tersimpan di server': 'Signal saved to server',
       'Bagikan lokasi': 'Share location',
       'Coba kirim lagi': 'Try sending again',
       'Tutup panel tidak menghentikan tracking atau membatalkan SOS.':
@@ -1628,6 +1678,14 @@ class LocalizationService {
       'Cuaca belum tersedia. Periksa koneksi lalu coba lagi.':
           'Weather is unavailable. Check your connection and try again.',
       'Menunggu lokasi GPS terbaru.': 'Waiting for a fresh GPS location.',
+      'Posisi Anda di luar radius 15 km area prakiraan pendakian. Kembali ke area pendakian untuk memuat cuaca.':
+          'You are outside the 15 km hiking forecast area. Return to the hiking area to load the weather.',
+      'Posisi Anda di luar radius 15 km area prakiraan. Menampilkan data tersimpan.':
+          'You are outside the 15 km forecast area. Showing saved data.',
+      'Gagal memperbarui cuaca. Menampilkan data tersimpan.':
+          'Could not update the weather. Showing saved data.',
+      'Prakiraan tersimpan sudah kedaluwarsa. Perbarui saat ada koneksi.':
+          'Saved forecast has expired. Refresh when you are online.',
       'Agenda Mendatang': 'Upcoming Events',
       'Akses Mikrofon Ditolak': 'Microphone Access Denied',
       'Akses laporan, AI, dan fitur lengkap':
@@ -1906,6 +1964,54 @@ class LocalizationService {
       'Gagal memuat data edukasi difabel.':
           'Unable to load accessibility education content.',
       'v1.0.0': 'v1.0.0',
+      'Mulai Sekarang': 'Get Started',
+      'MITIGASI BENCANA': 'DISASTER MITIGATION',
+      'DATA REAL-TIME': 'REAL-TIME DATA',
+      'BAHASA DAERAH': 'REGIONAL LANGUAGES',
+      'Sistem Informasi Gunung Berapi & Mitigasi Bencana yang membantu Anda tetap aman dan terinformasi.':
+          'Volcano Information & Disaster Mitigation System that helps you stay safe and informed.',
+      'Dapatkan pemantauan aktivitas gunung berapi secara langsung dan instan berkat integrasi data MAGMA.':
+          'Get live, instant volcanic activity monitoring powered by MAGMA data integration.',
+      'SIGUMI mendukung berbagai bahasa daerah untuk memudahkan akses informasi bagi semua kalangan.':
+          'SIGUMI supports regional languages to make vital safety information accessible to everyone.',
+      'Pantauan Gunung': 'Volcano Monitoring',
+      'Perbarui data pantauan': 'Refresh monitoring data',
+      'VONA belum dirilis': 'VONA not issued yet',
+      'Foto visual VAR MAGMA · Ketuk untuk perbesar':
+          'MAGMA VAR visual photo · Tap to zoom',
+      'Foto referensi · Menunggu foto VAR MAGMA':
+          'Reference photo · Awaiting MAGMA VAR photo',
+      'Memuat periode pengamatan MAGMA...':
+          'Loading MAGMA observation period...',
+      'Menunggu pembaruan laporan VAR MAGMA':
+          'Awaiting latest MAGMA VAR report',
+      'Sumber resmi MAGMA Indonesia · PVMBG':
+          'Official source: MAGMA Indonesia · PVMBG',
+      'Pengamatan Visual': 'Visual Observation',
+      'Kondisi puncak, asap kawah, dan aktivitas permukaan':
+          'Summit visibility, crater smoke, and surface activity',
+      'Memuat pengamatan visual PVMBG...': 'Loading PVMBG visual observation...',
+      'Visibilitas': 'Visibility',
+      'Kondisi Asap Kawah': 'Crater Smoke Condition',
+      'Catatan Guguran / Awan Panas': 'Avalanche / Pyroclastic Notes',
+      'Belum tercatat pada laporan terbaru.':
+          'Not recorded in the latest report.',
+      'Tidak teramati atau belum tercatat.':
+          'Not observed or not recorded yet.',
+      'Tidak teramati guguran lava atau awan panas.':
+          'No lava avalanches or pyroclastic flows observed.',
+      'Kegempaan Harian': 'Daily Seismicity',
+      'Jumlah kejadian terekam seismograf':
+          'Events recorded by station seismographs',
+      'kejadian': 'events',
+      'Memuat data kegempaan PVMBG...': 'Loading PVMBG seismicity data...',
+      'Guguran': 'Avalanche',
+      'Hembusan': 'Emission',
+      'Vulkanik': 'Volcanic',
+      'Tektonik': 'Tectonic',
+      'kali': 'times',
+      'Rincian jumlah gempa belum tercantum pada laporan terbaru.':
+          'Detailed seismic counts are not listed in the latest report.',
     },
     'jv': {
       'Si Gumi sedang berbicara...': 'Si Gumi lagi ngomong...',
@@ -2111,6 +2217,53 @@ class LocalizationService {
       'Tanya Si Gumi': 'Takon Si Gumi',
       'Tentang Tempat Ini': 'Babagan Papan Iki',
       'Ya, Reset': 'Ya, Reset',
+      'Mulai Sekarang': 'Miwiti Saiki',
+      'MITIGASI BENCANA': 'MITIGASI BENCANA',
+      'DATA REAL-TIME': 'DATA SAKNYATANE',
+      'BAHASA DAERAH': 'BASA DAERAH',
+      'Sistem Informasi Gunung Berapi & Mitigasi Bencana yang membantu Anda tetap aman dan terinformasi.':
+          'Sistem Informasi Gunung Geni lan Mitigasi Bencana sing mbantu sampeyan tetep aman lan ngerti informasi.',
+      'Dapatkan pemantauan aktivitas gunung berapi secara langsung dan instan berkat integrasi data MAGMA.':
+          'Entuk pemantauan aktivitas gunung geni langsung lan cepet kanthi integrasi data MAGMA.',
+      'SIGUMI mendukung berbagai bahasa daerah untuk memudahkan akses informasi bagi semua kalangan.':
+          'SIGUMI ndhukung maneka basa daerah supaya informasi gampang diakses kabeh wong.',
+      'Pantauan Gunung': 'Pantauan Gunung',
+      'Perbarui data pantauan': 'Anyari data pantauan',
+      'VONA belum dirilis': 'VONA durung dirilis',
+      'Foto visual VAR MAGMA · Ketuk untuk perbesar':
+          'Foto visual VAR MAGMA · Tutul kanggo nggedhekake',
+      'Foto referensi · Menunggu foto VAR MAGMA':
+          'Foto referensi · Ngenteni foto VAR MAGMA',
+      'Memuat periode pengamatan MAGMA...':
+          'Ngemot wektu pengamatan MAGMA...',
+      'Menunggu pembaruan laporan VAR MAGMA':
+          'Ngenteni laporan VAR MAGMA paling anyar',
+      'Sumber resmi MAGMA Indonesia · PVMBG':
+          'Sumber resmi MAGMA Indonesia · PVMBG',
+      'Pengamatan Visual': 'Pengamatan Visual',
+      'Kondisi puncak, asap kawah, dan aktivitas permukaan':
+          'Kahanan pucuk, kukus kawah, lan aktivitas lumahing gunung',
+      'Memuat pengamatan visual PVMBG...': 'Ngemot pengamatan visual PVMBG...',
+      'Visibilitas': 'Kejelasan Pucuk',
+      'Kondisi Asap Kawah': 'Kahanan Kukus Kawah',
+      'Catatan Guguran / Awan Panas': 'Cathetan Guguran / Wedhus Gembel',
+      'Belum tercatat pada laporan terbaru.':
+          'Durung kacathet ing laporan paling anyar.',
+      'Tidak teramati atau belum tercatat.':
+          'Ora katon utawa durung kacathet.',
+      'Tidak teramati guguran lava atau awan panas.':
+          'Ora katon guguran lava utawa awan panas.',
+      'Kegempaan Harian': 'Lindhu Saben Dina',
+      'Jumlah kejadian terekam seismograf': 'Cacahe lindhu karekam seismograf',
+      'kejadian': 'kedadeyan',
+      'Memuat data kegempaan PVMBG...': 'Ngemot data lindhu PVMBG...',
+      'Guguran': 'Guguran',
+      'Hembusan': 'Hembusan',
+      'Vulkanik': 'Vulkanik',
+      'Tektonik': 'Tektonik',
+      'kali': 'ping',
+      'Rincian jumlah gempa belum tercantum pada laporan terbaru.':
+          'Rincian cacah lindhu durung kacathet ing laporan paling anyar.',
     },
     'ba': {
       'Si Gumi sedang berbicara...': 'Si Gumi sedeng maos...',
@@ -2317,6 +2470,52 @@ class LocalizationService {
       'Tanya Si Gumi': 'Takon Si Gumi',
       'Tentang Tempat Ini': 'Indik Genah Puniki',
       'Ya, Reset': 'Inggih, Reset',
+      'Mulai Sekarang': 'Ngawitin Mangkin',
+      'MITIGASI BENCANA': 'MITIGASI BENCANA',
+      'DATA REAL-TIME': 'DATA WAKTU NYATA',
+      'BAHASA DAERAH': 'BASA DAERAH',
+      'Sistem Informasi Gunung Berapi & Mitigasi Bencana yang membantu Anda tetap aman dan terinformasi.':
+          'Sistem Informasi Gunung Api miwah Mitigasi Bencana sane ngwantu ragane tetep aman miwah uning gatra.',
+      'Dapatkan pemantauan aktivitas gunung berapi secara langsung dan instan berkat integrasi data MAGMA.':
+          'Polihang pamantauan aktivitas gunung api langsung miwah gelis saking integrasi data MAGMA.',
+      'SIGUMI mendukung berbagai bahasa daerah untuk memudahkan akses informasi bagi semua kalangan.':
+          'SIGUMI nyokong makudang basa daerah mangda gatra dangan kaakses sareng sami.',
+      'Pantauan Gunung': 'Pantauan Gunung',
+      'Perbarui data pantauan': 'Anyarang data pantauan',
+      'VONA belum dirilis': 'VONA durung kawedar',
+      'Foto visual VAR MAGMA · Ketuk untuk perbesar':
+          'Foto visual VAR MAGMA · Tutul mangda agengang',
+      'Foto referensi · Menunggu foto VAR MAGMA':
+          'Foto referensi · Nyantos foto VAR MAGMA',
+      'Memuat periode pengamatan MAGMA...': 'Ngemuat kala pamantauan MAGMA...',
+      'Menunggu pembaruan laporan VAR MAGMA':
+          'Nyantos laporan VAR MAGMA sane anyar',
+      'Sumber resmi MAGMA Indonesia · PVMBG':
+          'Sumber resmi MAGMA Indonesia · PVMBG',
+      'Pengamatan Visual': 'Pamantauan Visual',
+      'Kondisi puncak, asap kawah, dan aktivitas permukaan':
+          'Kahanan puncak, andus kawah, miwah aktivitas gunung',
+      'Memuat pengamatan visual PVMBG...': 'Ngemuat pamantauan visual PVMBG...',
+      'Visibilitas': 'Visibilitas',
+      'Kondisi Asap Kawah': 'Kahanan Andus Kawah',
+      'Catatan Guguran / Awan Panas': 'Catetan Guguran / Awan Panas',
+      'Belum tercatat pada laporan terbaru.':
+          'Durung kacatet ring laporan anyar.',
+      'Tidak teramati atau belum tercatat.':
+          'Nenten kacingak utawi durung kacatet.',
+      'Tidak teramati guguran lava atau awan panas.':
+          'Nenten kacingak guguran lava utawi awan panas.',
+      'Kegempaan Harian': 'Linuh Rahina',
+      'Jumlah kejadian terekam seismograf': 'Akeh linuh karekam seismograf',
+      'kejadian': 'kedadeyan',
+      'Memuat data kegempaan PVMBG...': 'Ngemuat data linuh PVMBG...',
+      'Guguran': 'Guguran',
+      'Hembusan': 'Hembusan',
+      'Vulkanik': 'Vulkanik',
+      'Tektonik': 'Tektonik',
+      'kali': 'pisan',
+      'Rincian jumlah gempa belum tercantum pada laporan terbaru.':
+          'Rincian akeh linuh durung kacatet ring laporan anyar.',
     },
     'sa': {
       'Si Gumi sedang berbicara...': 'Si Gumi sedang bebaos...',
@@ -2522,6 +2721,53 @@ class LocalizationService {
       'Tanya Si Gumi': 'Takon Si Gumi',
       'Tentang Tempat Ini': 'Tentang Tempat Ini',
       'Ya, Reset': 'Ya, Reset',
+      'Mulai Sekarang': 'Mulai Niki',
+      'MITIGASI BENCANA': 'MITIGASI BENCANA',
+      'DATA REAL-TIME': 'DATA LANGSUNG',
+      'BAHASA DAERAH': 'BASA DAERAH',
+      'Sistem Informasi Gunung Berapi & Mitigasi Bencana yang membantu Anda tetap aman dan terinformasi.':
+          'Sistem Informasi Gunung Api le Mitigasi Bencana sak bantun side tetep aman le ngerti kabar.',
+      'Dapatkan pemantauan aktivitas gunung berapi secara langsung dan instan berkat integrasi data MAGMA.':
+          'Pade dapet pantauan aktivitas gunung api langsung le cepat saking integrasi data MAGMA.',
+      'SIGUMI mendukung berbagai bahasa daerah untuk memudahkan akses informasi bagi semua kalangan.':
+          'SIGUMI dukung bermacam basa daerah mangkin gampang akses kabar kanggo semeton.',
+      'Pantauan Gunung': 'Pantauan Gunung',
+      'Perbarui data pantauan': 'Perbarui data pantauan',
+      'VONA belum dirilis': 'VONA ndek man rilis',
+      'Foto visual VAR MAGMA · Ketuk untuk perbesar':
+          'Foto visual VAR MAGMA · Ketuk kanggo pebeleq',
+      'Foto referensi · Menunggu foto VAR MAGMA':
+          'Foto referensi · Nunggu foto VAR MAGMA',
+      'Memuat periode pengamatan MAGMA...':
+          'Muat waktu pengamatan MAGMA...',
+      'Menunggu pembaruan laporan VAR MAGMA':
+          'Nunggu laporan VAR MAGMA terbaru',
+      'Sumber resmi MAGMA Indonesia · PVMBG':
+          'Sumber resmi MAGMA Indonesia · PVMBG',
+      'Pengamatan Visual': 'Pengamatan Visual',
+      'Kondisi puncak, asap kawah, dan aktivitas permukaan':
+          'Keadaan puncak, asap kawah, le aktivitas gunung',
+      'Memuat pengamatan visual PVMBG...': 'Muat pengamatan visual PVMBG...',
+      'Visibilitas': 'Visibilitas',
+      'Kondisi Asap Kawah': 'Keadaan Asap Kawah',
+      'Catatan Guguran / Awan Panas': 'Catatan Guguran / Awan Panas',
+      'Belum tercatat pada laporan terbaru.':
+          'Ndek man tercatat leq laporan terbaru.',
+      'Tidak teramati atau belum tercatat.':
+          'Ndek ketaon atau ndek man tercatat.',
+      'Tidak teramati guguran lava atau awan panas.':
+          'Ndek ketaon guguran lava atau awan panas.',
+      'Kegempaan Harian': 'Lindur Harian',
+      'Jumlah kejadian terekam seismograf': 'Jumlah lindur terekam seismograf',
+      'kejadian': 'kejadian',
+      'Memuat data kegempaan PVMBG...': 'Muat data lindur PVMBG...',
+      'Guguran': 'Guguran',
+      'Hembusan': 'Hembusan',
+      'Vulkanik': 'Vulkanik',
+      'Tektonik': 'Tektonik',
+      'kali': 'kali',
+      'Rincian jumlah gempa belum tercantum pada laporan terbaru.':
+          'Rincian jumlah lindur ndek man ara leq laporan terbaru.',
     },
   };
 

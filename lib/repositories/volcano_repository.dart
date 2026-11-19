@@ -65,6 +65,8 @@ class VolcanoRepository {
           .select()
           .eq('volcano_key', volcanoKey)
           .order('report_date', ascending: false)
+          .order('period_start', ascending: false)
+          .order('fetched_at', ascending: false)
           .limit(limit);
 
       return (response as List)
@@ -75,6 +77,27 @@ class VolcanoRepository {
       // debugPrint('[VolcanoRepository] getVolcanoSummaries: $e');
       return [];
     }
+  }
+
+  /// Pilih ringkasan terbaru paling lengkap dari daftar terurut terbaru → lama.
+  /// Mengutamakan baris yang sudah memiliki kolom terstruktur VAR/VONA MAGMA
+  /// dari database (foto/visual/seismik/VONA) dibanding baris placeholder lama
+  /// yang hanya memiliki teks narasi `summary`.
+  static VolcanoSummarizer? selectBestLatestSummary(
+    List<VolcanoSummarizer> rows,
+  ) {
+    if (rows.isEmpty) return null;
+    for (final row in rows) {
+      final hasDbStructuredVar =
+          (row.visualPhotoUrl != null && row.visualPhotoUrl!.isNotEmpty) ||
+          (row.visibility != null && row.visibility!.isNotEmpty) ||
+          (row.craterSmoke != null && row.craterSmoke!.isNotEmpty) ||
+          (row.avalancheNotes != null && row.avalancheNotes!.isNotEmpty) ||
+          (row.vonaColorCode != null && row.vonaColorCode!.isNotEmpty) ||
+          (row.seismicity?.hasAnyData ?? false);
+      if (hasDbStructuredVar) return row;
+    }
+    return rows.first;
   }
 
   /// Fetch ringkasan terbaru untuk gunung tertentu
@@ -94,13 +117,23 @@ class VolcanoRepository {
           .select()
           .eq('volcano_key', volcanoKey)
           .order('report_date', ascending: false)
-          .limit(1);
+          .order('period_start', ascending: false)
+          .order('fetched_at', ascending: false)
+          .limit(10);
 
       if ((response as List).isEmpty) {
         return null;
       }
 
-      return VolcanoSummarizer.fromJson(response.first);
+      final parsed =
+          response
+              .map(
+                (json) => VolcanoSummarizer.fromJson(
+                  Map<String, dynamic>.from(json as Map),
+                ),
+              )
+              .toList();
+      return selectBestLatestSummary(parsed);
     } catch (e) {
       // Tabel mungkin belum ada atau belum ada data
       // debugPrint('[VolcanoRepository] getLatestVolcanoSummary: $e');

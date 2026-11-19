@@ -3,57 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../config/fonts.dart';
 import '../../config/theme_extensions.dart';
 import '../../models/volcano_summarizer.dart';
 import '../../providers/volcano_provider.dart';
-
-// ── Helpers Format ────────────────────────────────────────────────────────────
-
-String _formatDate(DateTime date) {
-  const months = [
-    'Januari',
-    'Februari',
-    'Maret',
-    'April',
-    'Mei',
-    'Juni',
-    'Juli',
-    'Agustus',
-    'September',
-    'Oktober',
-    'November',
-    'Desember',
-  ];
-  return '${date.day} ${months[date.month - 1]} ${date.year}';
-}
-
-Color _getStatusColor(int levelCode) {
-  switch (levelCode) {
-    case 1:
-      return const Color(0xFF34C759); // iOS Green (Normal)
-    case 2:
-      return const Color(0xFFFF9500); // iOS Amber (Waspada)
-    case 3:
-      return const Color(0xFFFF6A00); // iOS Orange (Siaga)
-    case 4:
-      return const Color(0xFFFF3B30); // iOS Red (Awas)
-    default:
-      return const Color(0xFF8E8E93); // iOS Neutral Gray
-  }
-}
-
-Future<void> _openExternalUrl(String urlString) async {
-  try {
-    final uri = Uri.parse(urlString);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  } catch (e) {
-    debugPrint('[VolcanoSummarizer] Gagal buka URL $urlString: $e');
-  }
-}
+import 'volcano_monitoring_cards.dart';
 
 // ══════════════════════════════════════════════════════════════════════════════
 // 1. KARTU RINGKASAN AKTIVITAS (Apple HIG Minimalist Card)
@@ -100,7 +54,7 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
   @override
   Widget build(BuildContext context) {
     final summary = widget.summary;
-    final statusColor = context.adaptUiColor(_getStatusColor(summary.levelCode));
+    final statusColor = context.statusColor(summary.levelCode);
 
     // Kumpulkan metrik observasi yang tersedia
     final metrics = <_ObservationMetric>[];
@@ -234,7 +188,7 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
                           ),
                           const SizedBox(width: 6),
                           Text(
-                            'Level ${summary.levelCode} • ${summary.levelLabel.toUpperCase()}',
+                            'Level ${summary.levelRoman} • ${summary.levelLabel.toUpperCase()}',
                             style: AppFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -249,7 +203,7 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
                 ),
                 const SizedBox(height: 6),
 
-                // Baris Tanggal & Jam Pengamatan
+                // Baris Tanggal & Periode Pengamatan Asli
                 Row(
                   children: [
                     Icon(
@@ -259,7 +213,7 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      _formatDate(summary.reportDate),
+                      formatMagmaReportDate(summary.reportDate),
                       style: AppFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
@@ -282,12 +236,16 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
                       color: context.textTertiary,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      '00.00',
-                      style: AppFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                        color: context.textSecondary,
+                    Flexible(
+                      child: Text(
+                        summary.periodDisplay,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: context.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -509,7 +467,7 @@ class _VolcanoSummarizerCardState extends State<VolcanoSummarizerCard> {
                   GestureDetector(
                     onTap: () {
                       HapticFeedback.lightImpact();
-                      _openExternalUrl(summary.detailUrl!);
+                      openMagmaExternalUrl(summary.detailUrl!);
                     },
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -629,12 +587,14 @@ class VolcanoLatestSummaryWithHistoryButton extends StatefulWidget {
   final String volcanoKey;
   final int limit;
   final String? title;
+  final bool autoFetch;
 
   const VolcanoLatestSummaryWithHistoryButton({
     super.key,
     required this.volcanoKey,
     this.limit = 30,
     this.title,
+    this.autoFetch = true,
   });
 
   @override
@@ -647,11 +607,27 @@ class _VolcanoLatestSummaryWithHistoryButtonState
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<VolcanoProvider>().fetchLatestVolcanoSummary(
-        widget.volcanoKey,
-      );
-    });
+    if (widget.autoFetch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<VolcanoProvider>().fetchLatestVolcanoSummary(
+          widget.volcanoKey,
+        );
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant VolcanoLatestSummaryWithHistoryButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.autoFetch && oldWidget.volcanoKey != widget.volcanoKey) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<VolcanoProvider>().fetchLatestVolcanoSummary(
+          widget.volcanoKey,
+        );
+      });
+    }
   }
 
   void _openHistory(BuildContext context, VolcanoProvider provider) {
@@ -664,7 +640,13 @@ class _VolcanoLatestSummaryWithHistoryButtonState
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
-        final latest = provider.latestVolcanoSummary;
+        final rawLatest = provider.latestVolcanoSummary;
+        final latest =
+            rawLatest != null &&
+                    rawLatest.volcanoKey.toLowerCase() ==
+                        widget.volcanoKey.toLowerCase()
+                ? rawLatest
+                : null;
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1194,6 +1176,7 @@ class _VolcanoLatestSummaryCardState extends State<VolcanoLatestSummaryCard> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<VolcanoProvider>().fetchLatestVolcanoSummary(
         widget.volcanoKey,
       );
@@ -1204,7 +1187,13 @@ class _VolcanoLatestSummaryCardState extends State<VolcanoLatestSummaryCard> {
   Widget build(BuildContext context) {
     return Consumer<VolcanoProvider>(
       builder: (context, provider, _) {
-        final latest = provider.latestVolcanoSummary;
+        final rawLatest = provider.latestVolcanoSummary;
+        final latest =
+            rawLatest != null &&
+                    rawLatest.volcanoKey.toLowerCase() ==
+                        widget.volcanoKey.toLowerCase()
+                ? rawLatest
+                : null;
 
         if (provider.isLoadingSummaries) {
           return const Center(

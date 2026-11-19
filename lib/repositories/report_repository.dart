@@ -17,16 +17,10 @@ class ReportRepository {
     String? lokasi,
   }) async {
     try {
-      Logger.info('Creating report...', tag: 'ReportRepository');
-      Logger.log('Data: {', tag: 'ReportRepository');
-      Logger.log('  reporter_name: $reporterName', tag: 'ReportRepository');
-      Logger.log('  category: $category', tag: 'ReportRepository');
-      Logger.log('  title: $title', tag: 'ReportRepository');
-      Logger.log('  description: $description', tag: 'ReportRepository');
-      Logger.log('  location: $location', tag: 'ReportRepository');
-      Logger.log('  image_url: $imageUrl', tag: 'ReportRepository');
-      Logger.log('  lokasi: $lokasi', tag: 'ReportRepository');
-      Logger.log('}', tag: 'ReportRepository');
+      Logger.info(
+        'Creating report (category: $category, lokasi: $lokasi, hasImage: ${imageUrl != null})...',
+        tag: 'ReportRepository',
+      );
 
       final response =
           await _supabase
@@ -45,9 +39,10 @@ class ReportRepository {
               .select()
               .single();
 
-      Logger.success('Report created successfully: ${response['id']}', tag: 'ReportRepository');
-      Logger.log('By: ${response['reporter_name']}', tag: 'ReportRepository');
-      Logger.log('Lokasi: ${response['lokasi']}', tag: 'ReportRepository');
+      Logger.success(
+        'Report created successfully: ${response['id']} (lokasi: ${response['lokasi']})',
+        tag: 'ReportRepository',
+      );
       return response;
     } on PostgrestException catch (e) {
       Logger.error('Database error: ${e.message}', tag: 'ReportRepository');

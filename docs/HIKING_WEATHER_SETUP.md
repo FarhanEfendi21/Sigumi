@@ -2,7 +2,7 @@
 
 ## Prakiraan
 
-1. Terapkan `migrations/20261028_hiking_weather.sql` setelah migrasi tracking pendakian.
+1. Terapkan `supabase/migrations/20261028_hiking_weather.sql` setelah migrasi tracking pendakian.
 2. Deploy Edge Function `hiking-weather`.
 3. Fungsi memilih kode wilayah desa terdekat yang didukung: Umbulharjo, Cangkringan (`34.04.17.2005`, WIB) untuk Merapi, Sembalun Lawang (`52.03.15.2002`, WITA) untuk Rinjani, dan Sebudi (`51.07.07.2004`, WITA) untuk Agung. Kartu menamai wilayah sumber; data ini adalah prakiraan desa, bukan observasi pada kawah atau ketinggian pendaki.
 

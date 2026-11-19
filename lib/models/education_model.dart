@@ -61,6 +61,11 @@ class EducationItem {
     this.updatedAt,
   });
 
+  /// Plain-text excerpt for compact surfaces such as education cards.
+  /// The original [content] is kept intact because detail views render its HTML,
+  /// including inline images uploaded through the backoffice.
+  String get contentPreview => _stripHtml(content);
+
   factory EducationItem.fromJson(Map<String, dynamic> json) {
     return EducationItem(
       id: json['id'] as String,
@@ -68,7 +73,7 @@ class EducationItem {
       category: json['category'] != null
           ? _stripHtml(json['category'] as String)
           : null,
-      content: _stripHtml(json['content'] as String? ?? ''),
+      content: json['content'] as String? ?? '',
       imageUrl: json['image_url'] as String?,
       lokasi: json['lokasi'] as String?,
       audience: json['audience'] as String?,

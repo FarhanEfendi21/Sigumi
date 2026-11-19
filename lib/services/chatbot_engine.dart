@@ -26,11 +26,13 @@ class ChatbotEngine {
     String ageCategory = 'dewasa',
     String? locationContext,
     List<ChatMessage>? conversationHistory,
+    bool? hasInternetOverride,
   }) async {
     // ══════════════════════════════════════════════════════════
     // STEP 1: Coba Cloud LLM (Primary)
     // ══════════════════════════════════════════════════════════
-    final hasInternet = await ConnectivityService.hasInternet();
+    final hasInternet =
+        hasInternetOverride ?? await ConnectivityService.hasInternet();
 
     if (hasInternet) {
       debugPrint('[ChatbotEngine] 🌐 Online — trying Cloud LLM...');

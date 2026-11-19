@@ -730,6 +730,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: _HikingSpotlightCard(
+                            selectedRegion: provider.selectedRegion,
                             onTap:
                                 () => Navigator.pushNamed(
                                   context,
@@ -1808,15 +1809,24 @@ class _FeaturedMenuCard extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────
 class _HikingSpotlightCard extends StatelessWidget {
   final VoidCallback onTap;
+  final String selectedRegion;
 
-  const _HikingSpotlightCard({required this.onTap});
+  const _HikingSpotlightCard({
+    required this.onTap,
+    required this.selectedRegion,
+  });
 
   String _formatDuration(Duration d) {
     final hours = d.inHours.toString().padLeft(2, '0');
     final minutes = (d.inMinutes % 60).toString().padLeft(2, '0');
     final seconds = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return d.inHours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
+    return '$hours:$minutes:$seconds';
   }
+
+  String _formatDistance(double distanceKm) =>
+      distanceKm < 1
+          ? '${(distanceKm * 1000).round()} m'
+          : '${distanceKm.toStringAsFixed(2)} km';
 
   @override
   Widget build(BuildContext context) {
@@ -1829,7 +1839,19 @@ class _HikingSpotlightCard extends StatelessWidget {
       tracking = null;
     }
 
-    final isActive = tracking?.isActive ?? false;
+    final sessionRegion = tracking?.trackingRegion?.trim().toLowerCase();
+    final activeMountainName = switch (sessionRegion) {
+      'bali' => 'Gunung Agung',
+      'lombok' => 'Gunung Rinjani',
+      _ => null,
+    };
+    final hasKnownActiveSession =
+        tracking?.isActive == true && activeMountainName != null;
+    final isActive =
+        hasKnownActiveSession &&
+        selectedRegion.trim().toLowerCase() == sessionRegion;
+    final isActiveInAnotherRegion = hasKnownActiveSession && !isActive;
+    final activeDistanceLabel = _formatDistance(tracking?.distanceKm ?? 0);
 
     return Material(
       color: Colors.transparent,
@@ -1950,7 +1972,7 @@ class _HikingSpotlightCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Flexible(
+                            Expanded(
                               child: Text(
                                 context.tr('hiking_tracking_section'),
                                 style: AppFonts.plusJakartaSans(
@@ -1961,57 +1983,58 @@ class _HikingSpotlightCard extends StatelessWidget {
                                           ? context.textPrimary
                                           : Colors.white,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                softWrap: true,
                               ),
                             ),
-                            if (isActive) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 7,
-                                  vertical: 2.5,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      isHighContrast
-                                          ? Colors.white.withAlpha(20)
-                                          : Colors.red.withAlpha(50),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    _PulseDot(
-                                      color:
-                                          isHighContrast
-                                              ? context.textPrimary
-                                              : const Color(0xFFFF5252),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      _formatDuration(
-                                        tracking?.elapsed ?? Duration.zero,
-                                      ),
-                                      style: AppFonts.plusJakartaSans(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            isHighContrast
-                                                ? context.textPrimary
-                                                : const Color(0xFFFF8A80),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ],
                         ),
+                        if (isActive) ...[
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color:
+                                  isHighContrast
+                                      ? Colors.white.withAlpha(20)
+                                      : Colors.red.withAlpha(50),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _PulseDot(
+                                  color:
+                                      isHighContrast
+                                          ? context.textPrimary
+                                          : const Color(0xFFFF5252),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  _formatDuration(
+                                    tracking?.elapsed ?? Duration.zero,
+                                  ),
+                                  style: AppFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        isHighContrast
+                                            ? context.textPrimary
+                                            : const Color(0xFFFF8A80),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         const SizedBox(height: 3),
                         Text(
                           isActive
-                              ? 'Aktif merekam • ${(tracking?.distanceKm ?? 0).toStringAsFixed(2)} km terlewati'
+                              ? 'Aktif merekam • $activeDistanceLabel terlewati'
+                              : isActiveInAnotherRegion
+                              ? 'Sesi tracking tetap aktif di $activeMountainName'
                               : context.tr('hiking_subtitle'),
                           style: AppFonts.plusJakartaSans(
                             fontSize: 13,
@@ -2022,6 +2045,7 @@ class _HikingSpotlightCard extends StatelessWidget {
                                     ? context.textSecondary
                                     : Colors.white.withAlpha(190),
                           ),
+                          softWrap: true,
                         ),
                       ],
                     ),

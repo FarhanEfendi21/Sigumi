@@ -139,6 +139,93 @@ function asUtcIso(value: string) {
   return /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}Z`;
 }
 
+function filterUpcomingSlots(slots: WeatherSlot[], nowMs = Date.now()): WeatherSlot[] {
+  if (!Array.isArray(slots) || slots.length === 0) return [];
+  const upcoming = slots.filter((slot) => {
+    if (!slot?.utc_datetime) return true;
+    const ms = Date.parse(asUtcIso(slot.utc_datetime));
+    if (!Number.isFinite(ms)) return true;
+    // Keep slot if its 3-hour window has not ended yet
+    return ms + 3 * 60 * 60_000 > nowMs;
+  });
+  return upcoming.length > 0 ? upcoming : slots;
+}
+
+function isSevereSlot(slot: WeatherSlot): boolean {
+  const c = (slot.condition || slot.condition_en || "").toLowerCase();
+  const wind = slot.wind_kmh ?? 0;
+  return (
+    c.includes("hujan lebat") ||
+    c.includes("hujan sangat lebat") ||
+    c.includes("hujan petir") ||
+    c.includes("petir") ||
+    c.includes("kilat") ||
+    c.includes("badai") ||
+    c.includes("ekstrem") ||
+    c.includes("heavy rain") ||
+    c.includes("thunderstorm") ||
+    wind >= 35
+  );
+}
+
+function isModerateHazardSlot(slot: WeatherSlot): boolean {
+  if (isSevereSlot(slot)) return false;
+  const c = (slot.condition || slot.condition_en || "").toLowerCase();
+  const wind = slot.wind_kmh ?? 0;
+  return (
+    c.includes("hujan sedang") ||
+    c.includes("kabut tebal") ||
+    c.includes("moderate rain") ||
+    c.includes("dense fog") ||
+    wind >= 25
+  );
+}
+
+function buildForecastWarnings(
+  area: { adm4: string; name: string },
+  slots: WeatherSlot[],
+) {
+  const candidates = slots.slice(0, 2);
+  const target =
+    candidates.find((s) => isSevereSlot(s)) ??
+    candidates.find((s) => isModerateHazardSlot(s));
+  if (!target) return [];
+
+  const severe = isSevereSlot(target);
+  const condLabel =
+    target.condition?.trim() ||
+    (severe ? "Cuaca Ekstrem" : "Cuaca Kurang Bersahabat");
+  const windInfo =
+    target.wind_kmh != null && target.wind_kmh >= 20
+      ? ` disertai angin ${Math.round(target.wind_kmh)} km/j`
+      : "";
+  const slotTimeIso = target.utc_datetime
+    ? asUtcIso(target.utc_datetime)
+    : new Date().toISOString();
+  const slotStartMs = Date.parse(slotTimeIso);
+  const expiresAtIso = Number.isFinite(slotStartMs)
+    ? new Date(slotStartMs + 3 * 60 * 60_000).toISOString()
+    : null;
+
+  return [
+    {
+      identifier: `forecast_hazard_${area.adm4}_${target.utc_datetime || "current"}`,
+      revision: slotTimeIso,
+      headline: severe
+        ? `Peringatan Cuaca Pendakian: ${condLabel}`
+        : `Waspada Cuaca Pendakian: ${condLabel}`,
+      description: severe
+        ? `Prakiraan BMKG di wilayah ${area.name} menunjukkan potensi ${condLabel.toLowerCase()}${windInfo}. Waspadai jalur licin, risiko hipotermia, jarak pandang terbatas, serta bahaya petir di area terbuka.`
+        : `Prakiraan BMKG di wilayah ${area.name} menunjukkan potensi ${condLabel.toLowerCase()}${windInfo}. Siapkan perlengkapan pelindung hujan dan pantau kondisi jalur.`,
+      severity: severe ? "Severe" : "Moderate",
+      urgency: severe ? "Immediate" : "Expected",
+      effective_at: slotTimeIso,
+      expires_at: expiresAtIso,
+      area_desc: area.name,
+    },
+  ];
+}
+
 function pointInPolygon(lat: number, lng: number, polygon: Array<[number, number]>) {
   let inside = false;
   for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
@@ -439,13 +526,19 @@ Deno.serve(async (req) => {
         if (error) throw error;
       }
 
+      let activeForecastSlots: WeatherSlot[] = [];
       if (payload && typeof payload === "object") {
         const cachedPayload = payload as Record<string, unknown>;
+        const rawForecast = Array.isArray(cachedPayload.forecast)
+          ? (cachedPayload.forecast as WeatherSlot[])
+          : [];
+        activeForecastSlots = filterUpcomingSlots(rawForecast);
         const cachedArea = cachedPayload.area && typeof cachedPayload.area === "object"
           ? cachedPayload.area as Record<string, unknown>
           : {};
         payload = {
           ...cachedPayload,
+          forecast: activeForecastSlots,
           area: {
             ...cachedArea,
             adm4: area.adm4,
@@ -462,12 +555,15 @@ Deno.serve(async (req) => {
         .gt("expires_at", new Date().toISOString())
         .gte("updated_at", new Date(Date.now() - 15 * 60_000).toISOString());
       if (alertsError) throw alertsError;
-      const warnings = (alertRows ?? []).filter((alert) => {
+      const capWarnings = (alertRows ?? []).filter((alert) => {
         const effective = alert.effective_at ? Date.parse(alert.effective_at) : 0;
         const expires = alert.expires_at ? Date.parse(alert.expires_at) : Number.POSITIVE_INFINITY;
         return effective <= Date.now() && expires > Date.now() &&
           Array.isArray(alert.polygons) && alert.polygons.some((polygon) => pointInPolygon(latitude, longitude, polygon));
       }).map(({ polygons: _polygons, ...alert }) => alert);
+      const warnings = capWarnings.length > 0
+        ? capWarnings
+        : buildForecastWarnings(area, activeForecastSlots);
       return json({ ...payload, fetched_at: fetchedAt, warnings });
     }
 

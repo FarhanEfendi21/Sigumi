@@ -24,6 +24,9 @@ class CloudLlmService {
   final String _modelName;
   final String _user;
   final String _pass;
+  final http.Client? _httpClient;
+  final Duration _defaultTimeout;
+  final Duration _retryDelay;
 
   // ── Singleton factory ──
   static void init({
@@ -31,12 +34,18 @@ class CloudLlmService {
     required String modelName,
     String user = '',
     String pass = '',
+    http.Client? httpClient,
+    Duration defaultTimeout = const Duration(seconds: 90),
+    Duration retryDelay = const Duration(seconds: 1),
   }) {
     _instance = CloudLlmService._(
       baseUrl: baseUrl,
       modelName: modelName,
       user: user,
       pass: pass,
+      httpClient: httpClient,
+      defaultTimeout: defaultTimeout,
+      retryDelay: retryDelay,
     );
     debugPrint('[CloudLLM] ✅ Initialized — Ollama at $baseUrl, model: $modelName');
   }
@@ -48,10 +57,16 @@ class CloudLlmService {
     required String modelName,
     String user = '',
     String pass = '',
+    http.Client? httpClient,
+    Duration defaultTimeout = const Duration(seconds: 90),
+    Duration retryDelay = const Duration(seconds: 1),
   })  : _baseUrl = baseUrl.endsWith('/') ? baseUrl.substring(0, baseUrl.length - 1) : baseUrl,
         _modelName = modelName,
         _user = user,
-        _pass = pass;
+        _pass = pass,
+        _httpClient = httpClient,
+        _defaultTimeout = defaultTimeout,
+        _retryDelay = retryDelay;
 
   // ══════════════════════════════════════════════════════════════
   // SYSTEM PROMPT — Konteks kebencanaan SIGUMI
@@ -116,8 +131,9 @@ $ageContext
     String ageCategory = 'dewasa',
     String? locationContext,
     List<ChatMessage>? conversationHistory,
-    Duration timeout = const Duration(seconds: 120),
+    Duration? timeout,
   }) async {
+    final effectiveTimeout = timeout ?? _defaultTimeout;
     // Coba pertama
     final result = await _doRequest(
       userMessage: userMessage,
@@ -125,14 +141,16 @@ $ageContext
       ageCategory: ageCategory,
       locationContext: locationContext,
       conversationHistory: conversationHistory,
-      timeout: timeout,
+      timeout: effectiveTimeout,
     );
 
     if (result != null) return result;
 
-    // Retry 1x dengan backoff 1 detik
-    debugPrint('[CloudLLM] 🔄 Retrying after 1s backoff...');
-    await Future.delayed(const Duration(seconds: 1));
+    // Retry 1x dengan backoff
+    debugPrint('[CloudLLM] 🔄 Retrying after backoff...');
+    if (_retryDelay > Duration.zero) {
+      await Future.delayed(_retryDelay);
+    }
 
     final retryResult = await _doRequest(
       userMessage: userMessage,
@@ -140,12 +158,12 @@ $ageContext
       ageCategory: ageCategory,
       locationContext: locationContext,
       conversationHistory: conversationHistory,
-      timeout: timeout + const Duration(seconds: 10), // Tambah 10s untuk retry
+      timeout: effectiveTimeout,
     );
 
     if (retryResult != null) return retryResult;
 
-    throw Exception('ERROR_CONNECTION');
+    return null;
   }
 
   /// Eksekusi satu request ke Ollama API (`POST /api/chat`).
@@ -198,11 +216,11 @@ $ageContext
         headers['Authorization'] = 'Basic $basicAuth';
       }
 
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: body,
-      ).timeout(timeout);
+      final client = _httpClient;
+      final response = await (client != null
+              ? client.post(url, headers: headers, body: body)
+              : http.post(url, headers: headers, body: body))
+          .timeout(timeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

@@ -19,3 +19,9 @@ flutter run --dart-define=SUPABASE_URL=http://187.53.141.200:8000 --dart-define=
 Pada VPS self-hosted, anon key dapat dilihat di file konfigurasi Supabase (`ANON_KEY`). Ganti `ANON_PUBLIC_KEY_VPS` dengan nilainya saat menjalankan perintah.
 
 > **Keamanan:** `ANON_KEY`/publishable key memang digunakan oleh aplikasi client. Jangan pernah menggunakan atau membagikan `service_role` key di aplikasi, build arguments yang disimpan publik, atau Git. Jaga password Ollama tetap privat.
+
+## 📖 Dokumentasi Fitur & Sistem
+
+Seluruh dokumentasi arsitektur, panduan integrasi fitur, spesifikasi (PRD), dan laporan pengujian telah dikelompokkan secara rapi di dalam folder [`docs/`](./docs/README.md).
+
+Lihat [**Katalog Dokumentasi SIGUMI**](./docs/README.md) untuk daftar lengkapnya.

@@ -81,7 +81,16 @@ class LocationService extends ChangeNotifier {
 
   // ── Stream subscription ──
   StreamSubscription<Position>? _positionStream;
+  Timer? _hikingPollTimer;
+  bool _isPollingPosition = false;
   bool _hikingTracking = false;
+  int _activeDistanceFilterMeters = 50;
+  bool _isUpdatingSupabaseLocation = false;
+  DateTime? _lastSupabaseLocationSyncAt;
+  double? _lastSupabaseSyncedLat;
+  double? _lastSupabaseSyncedLng;
+  static const Duration _minSupabaseSyncInterval = Duration(seconds: 10);
+  static const double _minSupabaseSyncDistanceKm = 0.02; // 20 meter
 
   // ── Getters ──
   double get userLat => _userLat;
@@ -95,7 +104,8 @@ class LocationService extends ChangeNotifier {
     final updatedAt = _lastUpdated;
     if (!_isUsingRealGps || updatedAt == null) return false;
     final age = DateTime.now().difference(updatedAt);
-    return !age.isNegative && age <= _maxPositionAgeForHiking;
+    return age >= const Duration(seconds: -30) &&
+        age <= _maxPositionAgeForHiking;
   }
 
   GpsStatus get gpsStatus => _gpsStatus;
@@ -290,10 +300,16 @@ class LocationService extends ChangeNotifier {
         _userLat = position.latitude;
         _userLng = position.longitude;
         _isUsingRealGps = true;
-        _lastUpdated = position.timestamp.toLocal();
+        _lastUpdated = _resolveFixTimestamp(
+          position.timestamp,
+          isLiveStream: true,
+        );
         _accuracyMeters = _validAccuracy(position.accuracy);
         _gpsStatus = GpsStatus.active;
+        _isRetrying = false;
         _consecutiveErrors = 0;
+        _calculateLocalDistance();
+        notifyListeners();
       }
 
       // Update ke Supabase & hitung zona risiko
@@ -317,13 +333,20 @@ class LocationService extends ChangeNotifier {
     bool hikingTracking = false,
   }) {
     if (_isTracking) {
+      final shouldRestartForHiking = hikingTracking;
+      final shouldTightenFilter =
+          !_hikingTracking && distanceFilterMeters < _activeDistanceFilterMeters;
       _hikingTracking = _hikingTracking || hikingTracking;
-      if (hikingTracking) _startPositionStream(distanceFilterMeters);
+      if (shouldRestartForHiking || shouldTightenFilter) {
+        _activeDistanceFilterMeters = distanceFilterMeters;
+        _startPositionStream(distanceFilterMeters);
+      }
       return;
     }
 
     _isTracking = true;
     _hikingTracking = hikingTracking;
+    _activeDistanceFilterMeters = distanceFilterMeters;
     _consecutiveErrors = 0;
     _startPositionStream(distanceFilterMeters);
     notifyListeners();
@@ -332,6 +355,7 @@ class LocationService extends ChangeNotifier {
   /// Internal: start/restart position stream
   void _startPositionStream(int distanceFilterMeters) {
     _positionStream?.cancel();
+    _startHikingPollTimerIfNeeded();
     _positionStream = Geolocator.getPositionStream(
       locationSettings:
           _hikingTracking
@@ -342,22 +366,7 @@ class LocationService extends ChangeNotifier {
               ),
     ).listen(
       (Position position) async {
-        _userLat = position.latitude;
-        _userLng = position.longitude;
-        _isUsingRealGps = true;
-        _lastUpdated = position.timestamp.toLocal();
-        _accuracyMeters = _validAccuracy(position.accuracy);
-
-        // Reset error state saat berhasil dapat posisi baru
-        _locationError = null;
-        _consecutiveErrors = 0;
-        _isRetrying = false;
-        _gpsStatus = GpsStatus.active;
-
-        // Notify GPS listeners immediately so hiking geofence checks do not
-        // wait for the network round-trip to Supabase.
-        notifyListeners();
-        unawaited(_updateLocationToSupabase());
+        _applyLivePosition(position);
       },
       onError: (error) {
         debugPrint('[LocationService] Stream error: $error');
@@ -366,19 +375,74 @@ class LocationService extends ChangeNotifier {
     );
   }
 
+  void _applyLivePosition(Position position) {
+    _userLat = position.latitude;
+    _userLng = position.longitude;
+    _isUsingRealGps = true;
+    _lastUpdated = _resolveFixTimestamp(
+      position.timestamp,
+      isLiveStream: true,
+    );
+    _accuracyMeters = _validAccuracy(position.accuracy);
+
+    // Reset error state saat berhasil dapat posisi baru
+    _locationError = null;
+    _consecutiveErrors = 0;
+    _isRetrying = false;
+    _gpsStatus = GpsStatus.active;
+    _calculateLocalDistance();
+
+    // Notify GPS listeners immediately so hiking geofence checks do not
+    // wait for the network round-trip to Supabase.
+    notifyListeners();
+    unawaited(_updateLocationToSupabase());
+  }
+
+  void _startHikingPollTimerIfNeeded() {
+    _hikingPollTimer?.cancel();
+    _hikingPollTimer = null;
+    if (!_isTracking || !_hikingTracking) return;
+    _hikingPollTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      if (!_isTracking || !_hikingTracking || _isPollingPosition) return;
+      final lastUpdate = _lastUpdated;
+      if (lastUpdate != null &&
+          DateTime.now().difference(lastUpdate) < const Duration(seconds: 2)) {
+        return;
+      }
+      _isPollingPosition = true;
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.bestForNavigation,
+            distanceFilter: 0,
+            timeLimit: Duration(seconds: 3),
+          ),
+        );
+        if (_isTracking && _hikingTracking) {
+          _applyLivePosition(position);
+        }
+      } catch (_) {
+        // Ignore poll timeout; stream remains active.
+      } finally {
+        _isPollingPosition = false;
+      }
+    });
+  }
+
   LocationSettings _hikingLocationSettings(int distanceFilterMeters) {
+    final effectiveFilter = distanceFilterMeters < 0 ? 0 : 0;
     if (kIsWeb) {
       return LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: distanceFilterMeters,
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: effectiveFilter,
       );
     }
 
     if (defaultTargetPlatform == TargetPlatform.android) {
       return AndroidSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: distanceFilterMeters,
-        intervalDuration: const Duration(seconds: 5),
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: effectiveFilter,
+        intervalDuration: const Duration(seconds: 2),
         foregroundNotificationConfig: const ForegroundNotificationConfig(
           notificationTitle: 'Tracking Pendakian Aktif',
           notificationText: 'SIGUMI sedang merekam jalur pendakian',
@@ -392,8 +456,8 @@ class LocationService extends ChangeNotifier {
     if (defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS) {
       return AppleSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: distanceFilterMeters,
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: effectiveFilter,
         activityType: ActivityType.fitness,
         pauseLocationUpdatesAutomatically: false,
         allowBackgroundLocationUpdates: true,
@@ -402,8 +466,8 @@ class LocationService extends ChangeNotifier {
     }
 
     return LocationSettings(
-      accuracy: LocationAccuracy.high,
-      distanceFilter: distanceFilterMeters,
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: effectiveFilter,
     );
   }
 
@@ -453,6 +517,8 @@ class LocationService extends ChangeNotifier {
   /// RETRY MANUAL — Dipanggil saat user tap "Coba Lagi"
   /// ──────────────────────────────────────────────
   Future<void> retryTracking() async {
+    final preserveHiking = _hikingTracking;
+    final preserveFilter = _activeDistanceFilterMeters;
     _consecutiveErrors = 0;
     _isRetrying = true;
     _locationError = null;
@@ -465,7 +531,10 @@ class LocationService extends ChangeNotifier {
     // Jika berhasil, restart tracking
     if (_gpsStatus == GpsStatus.active) {
       stopTracking();
-      startTracking(distanceFilterMeters: 30);
+      startTracking(
+        distanceFilterMeters: preserveHiking ? preserveFilter : 30,
+        hikingTracking: preserveHiking,
+      );
     } else {
       _isRetrying = false;
       notifyListeners();
@@ -486,11 +555,17 @@ class LocationService extends ChangeNotifier {
   void stopTracking() {
     _positionStream?.cancel();
     _positionStream = null;
+    _hikingPollTimer?.cancel();
+    _hikingPollTimer = null;
+    _isPollingPosition = false;
     _retryTimer?.cancel();
     _retryTimer = null;
     _isTracking = false;
     _hikingTracking = false;
     _isRetrying = false;
+    if (_isUsingRealGps && _lastUpdated != null) {
+      _lastUpdated = DateTime.now();
+    }
     notifyListeners();
   }
 
@@ -530,7 +605,7 @@ class LocationService extends ChangeNotifier {
     _lastUpdated = DateTime.now();
     _accuracyMeters = null;
 
-    await _updateLocationToSupabase();
+    await _updateLocationToSupabase(force: true);
     notifyListeners();
   }
 
@@ -541,26 +616,53 @@ class LocationService extends ChangeNotifier {
   /// 1. Simpan lokasi ke profiles.last_location
   /// 2. Hitung gunung terdekat & zona risiko via PostGIS
   /// 3. Return info risiko dalam satu atomic call
-  Future<void> _updateLocationToSupabase() async {
+  Future<void> _updateLocationToSupabase({bool force = false}) async {
+    _calculateLocalDistance();
+    if (_isUpdatingSupabaseLocation) return;
+
+    final now = DateTime.now();
+    if (!force &&
+        _lastSupabaseLocationSyncAt != null &&
+        now.difference(_lastSupabaseLocationSyncAt!) <
+            _minSupabaseSyncInterval &&
+        _lastSupabaseSyncedLat != null &&
+        _lastSupabaseSyncedLng != null &&
+        _haversineDistance(
+              _lastSupabaseSyncedLat!,
+              _lastSupabaseSyncedLng!,
+              _userLat,
+              _userLng,
+            ) <
+            _minSupabaseSyncDistanceKm) {
+      return;
+    }
+
+    _isUpdatingSupabaseLocation = true;
     try {
-      final client = Supabase.instance.client;
+      SupabaseClient? client;
+      try {
+        client = Supabase.instance.client;
+      } catch (_) {
+        client = null;
+      }
+      if (client == null) return;
 
       // Update data lokasi ke Supabase jika login
       if (client.auth.currentUser != null) {
+        final lat = _userLat;
+        final lng = _userLng;
         await client.rpc(
           'update_user_location',
-          params: {'p_lat': _userLat, 'p_lng': _userLng},
+          params: {'p_lat': lat, 'p_lng': lng},
         );
+        _lastSupabaseLocationSyncAt = DateTime.now();
+        _lastSupabaseSyncedLat = lat;
+        _lastSupabaseSyncedLng = lng;
       }
-
-      // KEMBALIKAN LOGIKA LOKASI:
-      // Selalu gunakan kalkulasi lokal agar jarak yang ditampilkan
-      // secara real-time selalu mengacu pada gunung yang dipilih user
-      // (active volcano) dan tidak di-override oleh hasil RPC Supabase.
-      _calculateLocalDistance();
     } catch (e) {
       debugPrint('[LocationService] Supabase update error: $e');
-      _calculateLocalDistance();
+    } finally {
+      _isUpdatingSupabaseLocation = false;
     }
   }
 
@@ -675,7 +777,10 @@ class LocationService extends ChangeNotifier {
         _userLat = position.latitude;
         _userLng = position.longitude;
         _isUsingRealGps = true;
-        _lastUpdated = position.timestamp.toLocal();
+        _lastUpdated = _resolveFixTimestamp(
+          position.timestamp,
+          isLiveStream: true,
+        );
         _accuracyMeters = _validAccuracy(position.accuracy);
         _locationError = null;
         _gpsStatus = GpsStatus.active;
@@ -697,18 +802,41 @@ class LocationService extends ChangeNotifier {
     }
   }
 
+  DateTime _resolveFixTimestamp(
+    DateTime? timestamp, {
+    bool isLiveStream = false,
+  }) {
+    final now = DateTime.now();
+    var resolved = timestamp?.toLocal() ?? now;
+    if (resolved.isAfter(now)) {
+      resolved = now;
+    }
+    if (isLiveStream) {
+      if (now.difference(resolved) > _maxPositionAgeForHiking) {
+        resolved = now;
+      }
+      if (_lastUpdated != null && !resolved.isAfter(_lastUpdated!)) {
+        resolved =
+            now.isAfter(_lastUpdated!)
+                ? now
+                : _lastUpdated!.add(const Duration(milliseconds: 1));
+      }
+    }
+    return resolved;
+  }
+
   double? _validAccuracy(double accuracy) =>
-      accuracy.isFinite && accuracy > 0 ? accuracy : null;
+      accuracy.isFinite && accuracy >= 0 ? accuracy : null;
 
   /// Singleton tidak memanggil super.dispose() karena akan membuat
   /// ChangeNotifier tidak bisa dipakai lagi setelah logout/re-init.
   /// Cukup stop tracking saja.
   @override
+  // ignore: must_call_super
   void dispose() {
     stopTracking();
     // CATATAN: sengaja TIDAK memanggil super.dispose() karena
     // LocationService adalah singleton — jika dispose dipanggil,
     // instance tetap hidup dan harus tetap bisa notify listeners.
-    super.dispose();
   }
 }

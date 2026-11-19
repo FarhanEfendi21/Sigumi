@@ -40,6 +40,7 @@ class VolcanoProvider extends ChangeNotifier {
   List<VolcanoSummarizer> _volcanoSummaries = [];
   VolcanoSummarizer? _latestVolcanoSummary;
   bool _isLoadingSummaries = false;
+  int _latestSummaryGeneration = 0;
 
   // ── Nomor Telepon Darurat ──
   List<EmergencyContact> _emergencyContacts = [];
@@ -1205,18 +1206,26 @@ class VolcanoProvider extends ChangeNotifier {
   /// [volcanoKey] — kunci unik gunung (contoh: 'merapi')
   /// Returns null jika tidak ada data
   Future<void> fetchLatestVolcanoSummary(String volcanoKey) async {
+    final generation = ++_latestSummaryGeneration;
+    if (_latestVolcanoSummary != null &&
+        _latestVolcanoSummary!.volcanoKey.toLowerCase() !=
+            volcanoKey.toLowerCase()) {
+      _latestVolcanoSummary = null;
+    }
     _isLoadingSummaries = true;
     notifyListeners();
 
     try {
-      _latestVolcanoSummary = await _volcanoRepo.getLatestVolcanoSummary(
-        volcanoKey,
-      );
+      final fetched = await _volcanoRepo.getLatestVolcanoSummary(volcanoKey);
+      if (generation != _latestSummaryGeneration) return;
+      _latestVolcanoSummary = fetched;
     } catch (e) {
+      if (generation != _latestSummaryGeneration) return;
       debugPrint('[VolcanoProvider] fetchLatestVolcanoSummary error: $e');
       _latestVolcanoSummary = null;
     }
 
+    if (generation != _latestSummaryGeneration) return;
     _isLoadingSummaries = false;
     notifyListeners();
   }

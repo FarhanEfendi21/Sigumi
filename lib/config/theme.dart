@@ -1,3 +1,4 @@
+import 'dart:ui' show lerpDouble;
 import 'package:flutter/material.dart';
 import 'fonts.dart';
 
@@ -16,7 +17,15 @@ class SigumiTheme {
   static const Color surface = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1B2E7B); // Navy for headings
   static const Color textBody = Color(0xFF3A3A3A); // Dark gray for body text
-  static const Color textSecondary = Color(0xFF8E8E93); // Placeholder gray
+  static const Color textSecondary = Color(
+    0xFF5C5E6B,
+  ); // Accessible muted gray (>= 5.9:1 on light surfaces)
+  static const Color inkPrimary = Color(0xFF1E1E2C); // Crisp Swiss editorial ink
+  static const Color inkSecondary = Color(0xFF4B4B5A); // Body copy ink
+  static const Color borderSubtle = Color(0xFFD8DCE6); // Hairline rule
+  static const Color borderControl = Color(
+    0xFF767A8C,
+  ); // Interactive control outline (>= 4.0:1 non-text contrast)
   static const Color divider = Color(0xFFE5E5EA);
 
   // Gradient Colors (from Figma background)
@@ -104,7 +113,19 @@ class SigumiTheme {
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: background,
+      focusColor: primaryBlue.withValues(alpha: 0.14),
+      hoverColor: primaryBlue.withValues(alpha: 0.05),
+      highlightColor: primaryBlue.withValues(alpha: 0.08),
+      splashColor: primaryBlue.withValues(alpha: 0.10),
+      extensions: const <ThemeExtension<dynamic>>[SigumiTokens.light],
       textTheme: const TextTheme().copyWith(
+        displaySmall: AppFonts.plusJakartaSans(
+          fontSize: 28,
+          fontWeight: FontWeight.w800,
+          color: inkPrimary,
+          height: 1.15,
+          letterSpacing: -0.6,
+        ),
         headlineLarge: AppFonts.plusJakartaSans(
           fontSize: 28,
           fontWeight: FontWeight.w700,
@@ -139,6 +160,40 @@ class SigumiTheme {
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: white,
+        ),
+        labelMedium: AppFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: textSecondary,
+          letterSpacing: 0.8,
+        ),
+        labelSmall: AppFonts.plusJakartaSans(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: textSecondary,
+          letterSpacing: 1.4,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryBlue,
+          minimumSize: const Size(48, 48),
+          textStyle: AppFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: inkPrimary,
+          minimumSize: const Size(48, 48),
+          side: const BorderSide(color: borderControl, width: 1),
+          textStyle: AppFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -237,10 +292,22 @@ class SigumiTheme {
         onInverseSurface: hcBackground,
       ),
       scaffoldBackgroundColor: hcBackground,
+      focusColor: hcSecondary.withValues(alpha: 0.28),
+      hoverColor: hcSecondary.withValues(alpha: 0.14),
+      highlightColor: hcSecondary.withValues(alpha: 0.20),
+      splashColor: hcSecondary.withValues(alpha: 0.24),
+      extensions: const <ThemeExtension<dynamic>>[SigumiTokens.highContrast],
       // Jadikan Theme normal sebagai baseline agar struktur seluruh TextStyle
       // (termasuk style yang tidak dioverride di bawah) tetap sama saat Flutter
       // menginterpolasi ThemeData pada perpindahan mode kontras.
       textTheme: lightTheme.textTheme.copyWith(
+        displaySmall: AppFonts.plusJakartaSans(
+          fontSize: 28,
+          fontWeight: FontWeight.w800,
+          color: hcPrimary,
+          height: 1.15,
+          letterSpacing: -0.6,
+        ),
         headlineLarge: AppFonts.plusJakartaSans(
           fontSize: 28,
           fontWeight: FontWeight.w700,
@@ -276,6 +343,19 @@ class SigumiTheme {
           fontWeight: FontWeight.w700,
           color: hcBackground,
         ),
+        labelMedium: AppFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: hcDivider,
+          letterSpacing: 0.8,
+        ),
+        labelSmall: AppFonts.plusJakartaSans(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: hcDivider,
+          letterSpacing: 1.4,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: hcSurface,
@@ -295,12 +375,14 @@ class SigumiTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: hcSecondary,
+          minimumSize: const Size(48, 48),
           textStyle: AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: hcSecondary,
+          minimumSize: const Size(48, 48),
           side: const BorderSide(color: hcBorder, width: 2),
           textStyle: AppFonts.plusJakartaSans(fontWeight: FontWeight.w700),
         ),
@@ -601,5 +683,610 @@ class SigumiTheme {
       default:
         return 'Level I • Normal';
     }
+  }
+}
+
+/// Token semantik desain SIGUMI yang terintegrasi ke ThemeData.extensions.
+/// Menyediakan skala warna, tipografi, spasi (4/8dp grid), radius, elevasi/garis,
+/// serta status interaksi & durasi gerak untuk mode normal dan kontras tinggi.
+@immutable
+class SigumiTokens extends ThemeExtension<SigumiTokens> {
+  // ── Semantic Colors ──
+  final Color canvasBg;
+  final Color subtleSurface;
+  final Color inkPrimary;
+  final Color inkSecondary;
+  final Color inkMuted;
+  final Color accentPrimary;
+  final Color onAccent;
+  final Color borderSubtle;
+  final Color borderControl;
+  final Color borderStrong;
+  final Color focusRing;
+  final Color hoverFill;
+  final Color pressedFill;
+  final Color selectedFill;
+  final Color disabledFill;
+  final Color disabledInk;
+  final Color artworkPlateBg;
+  final Color artworkPlateInk;
+  final Color ambientHighlightBlue;
+  final Color ambientHighlightYellow;
+
+  // ── Semantic Typography ──
+  final TextStyle displayHeadline;
+  final TextStyle sectionTitle;
+  final TextStyle cardTitle;
+  final TextStyle bodyRegular;
+  final TextStyle bodyCompact;
+  final TextStyle overlineIndex;
+  final TextStyle watermarkIndex;
+  final TextStyle buttonLabel;
+
+  // ── Spacing & Sizing Scale (4dp / 8dp grid) ──
+  final double spaceXs;
+  final double spaceSm;
+  final double spaceMd;
+  final double spaceLg;
+  final double spaceXl;
+  final double space2xl;
+  final double space3xl;
+  final double contentMaxWidth;
+  final double iconSm;
+  final double iconMd;
+  final double iconLg;
+  final double iconHero;
+  final double ctaHeight;
+
+  // ── Radius Scale (Minimalism & Swiss Style) ──
+  final double radiusNone;
+  final double radiusXs;
+  final double radiusSm;
+  final double radiusMd;
+  final double radiusLg;
+  final double radiusPill;
+
+  // ── Shadows & Hairlines ──
+  final List<BoxShadow> flatShadow;
+  final List<BoxShadow> subtleShadow;
+  final List<BoxShadow> ctaShadow;
+  final double hairlineWidth;
+  final double selectedBorderWidth;
+  final double focusRingWidth;
+
+  // ── Interaction & Motion ──
+  final double minTouchTarget;
+  final Duration motionFast;
+  final Duration motionMedium;
+  final Duration motionPage;
+  final Curve motionCurve;
+
+  const SigumiTokens({
+    required this.canvasBg,
+    required this.subtleSurface,
+    required this.inkPrimary,
+    required this.inkSecondary,
+    required this.inkMuted,
+    required this.accentPrimary,
+    required this.onAccent,
+    required this.borderSubtle,
+    required this.borderControl,
+    required this.borderStrong,
+    required this.focusRing,
+    required this.hoverFill,
+    required this.pressedFill,
+    required this.selectedFill,
+    required this.disabledFill,
+    required this.disabledInk,
+    required this.artworkPlateBg,
+    required this.artworkPlateInk,
+    required this.ambientHighlightBlue,
+    required this.ambientHighlightYellow,
+    required this.displayHeadline,
+    required this.sectionTitle,
+    required this.cardTitle,
+    required this.bodyRegular,
+    required this.bodyCompact,
+    required this.overlineIndex,
+    required this.watermarkIndex,
+    required this.buttonLabel,
+    required this.spaceXs,
+    required this.spaceSm,
+    required this.spaceMd,
+    required this.spaceLg,
+    required this.spaceXl,
+    required this.space2xl,
+    required this.space3xl,
+    required this.contentMaxWidth,
+    required this.iconSm,
+    required this.iconMd,
+    required this.iconLg,
+    required this.iconHero,
+    required this.ctaHeight,
+    required this.radiusNone,
+    required this.radiusXs,
+    required this.radiusSm,
+    required this.radiusMd,
+    required this.radiusLg,
+    required this.radiusPill,
+    required this.flatShadow,
+    required this.subtleShadow,
+    required this.ctaShadow,
+    required this.hairlineWidth,
+    required this.selectedBorderWidth,
+    required this.focusRingWidth,
+    required this.minTouchTarget,
+    required this.motionFast,
+    required this.motionMedium,
+    required this.motionPage,
+    required this.motionCurve,
+  });
+
+  static const SigumiTokens light = SigumiTokens(
+    canvasBg: SigumiTheme.white,
+    subtleSurface: SigumiTheme.background,
+    inkPrimary: SigumiTheme.inkPrimary,
+    inkSecondary: SigumiTheme.inkSecondary,
+    inkMuted: SigumiTheme.textSecondary,
+    accentPrimary: SigumiTheme.primaryBlue,
+    onAccent: SigumiTheme.white,
+    borderSubtle: SigumiTheme.borderSubtle,
+    borderControl: SigumiTheme.borderControl,
+    borderStrong: SigumiTheme.primaryBlue,
+    focusRing: SigumiTheme.primaryBlue,
+    hoverFill: Color(0x0D1B2E7B),
+    pressedFill: Color(0x1A1B2E7B),
+    selectedFill: Color(0x0F1B2E7B),
+    disabledFill: Color(0xFFEEF0F5),
+    disabledInk: Color(0xFF6B6E7B),
+    artworkPlateBg: Colors.transparent,
+    artworkPlateInk: SigumiTheme.primaryBlue,
+    ambientHighlightBlue: Color(0xFF1F6FD2),
+    ambientHighlightYellow: Color(0xFFFFC928),
+    displayHeadline: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 30,
+      fontWeight: FontWeight.w800,
+      color: SigumiTheme.inkPrimary,
+      height: 1.12,
+      letterSpacing: -0.8,
+    ),
+    sectionTitle: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 20,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.inkPrimary,
+      height: 1.2,
+      letterSpacing: -0.3,
+    ),
+    cardTitle: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.inkPrimary,
+      height: 1.25,
+      letterSpacing: -0.1,
+    ),
+    bodyRegular: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 15,
+      fontWeight: FontWeight.w400,
+      color: SigumiTheme.inkSecondary,
+      height: 1.55,
+    ),
+    bodyCompact: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+      color: SigumiTheme.textSecondary,
+      height: 1.4,
+    ),
+    overlineIndex: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.textSecondary,
+      height: 1.2,
+      letterSpacing: 1.4,
+      fontFeatures: [FontFeature.tabularFigures()],
+    ),
+    watermarkIndex: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 84,
+      fontWeight: FontWeight.w800,
+      color: Color(0x0F1B2E7B),
+      height: 0.9,
+      letterSpacing: -3.0,
+      fontFeatures: [FontFeature.tabularFigures()],
+    ),
+    buttonLabel: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 15,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.white,
+      height: 1.2,
+      letterSpacing: 0.2,
+    ),
+    spaceXs: 4.0,
+    spaceSm: 8.0,
+    spaceMd: 12.0,
+    spaceLg: 16.0,
+    spaceXl: 24.0,
+    space2xl: 32.0,
+    space3xl: 48.0,
+    contentMaxWidth: 560.0,
+    iconSm: 16.0,
+    iconMd: 20.0,
+    iconLg: 24.0,
+    iconHero: 56.0,
+    ctaHeight: 54.0,
+    radiusNone: 0.0,
+    radiusXs: 2.0,
+    radiusSm: 8.0,
+    radiusMd: 12.0,
+    radiusLg: 16.0,
+    radiusPill: 28.0,
+    flatShadow: <BoxShadow>[],
+    subtleShadow: <BoxShadow>[
+      BoxShadow(
+        color: Color(0x0B1B2E7B),
+        blurRadius: 20,
+        offset: Offset(0, 6),
+      ),
+    ],
+    ctaShadow: <BoxShadow>[
+      BoxShadow(
+        color: Color(0x2E1B2E7B),
+        blurRadius: 18,
+        offset: Offset(0, 8),
+      ),
+    ],
+    hairlineWidth: 1.0,
+    selectedBorderWidth: 2.0,
+    focusRingWidth: 2.5,
+    minTouchTarget: 48.0,
+    motionFast: Duration(milliseconds: 150),
+    motionMedium: Duration(milliseconds: 260),
+    motionPage: Duration(milliseconds: 520),
+    motionCurve: Curves.easeOutCubic,
+  );
+
+  static const SigumiTokens highContrast = SigumiTokens(
+    canvasBg: SigumiTheme.hcBackground,
+    subtleSurface: SigumiTheme.hcSurface,
+    inkPrimary: SigumiTheme.hcPrimary,
+    inkSecondary: SigumiTheme.hcPrimary,
+    inkMuted: SigumiTheme.hcDivider,
+    accentPrimary: SigumiTheme.hcSecondary,
+    onAccent: SigumiTheme.hcBackground,
+    borderSubtle: SigumiTheme.hcBorder,
+    borderControl: SigumiTheme.hcBorder,
+    borderStrong: SigumiTheme.hcSecondary,
+    focusRing: SigumiTheme.hcSecondary,
+    hoverFill: Color(0x24FFD600),
+    pressedFill: Color(0x3DFFD600),
+    selectedFill: SigumiTheme.hcSurface,
+    disabledFill: SigumiTheme.hcSurface,
+    disabledInk: SigumiTheme.hcDivider,
+    artworkPlateBg: SigumiTheme.white,
+    artworkPlateInk: SigumiTheme.inkPrimary,
+    ambientHighlightBlue: Colors.transparent,
+    ambientHighlightYellow: Colors.transparent,
+    displayHeadline: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 30,
+      fontWeight: FontWeight.w800,
+      color: SigumiTheme.hcPrimary,
+      height: 1.12,
+      letterSpacing: -0.8,
+    ),
+    sectionTitle: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 20,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.hcPrimary,
+      height: 1.2,
+      letterSpacing: -0.3,
+    ),
+    cardTitle: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.hcPrimary,
+      height: 1.25,
+      letterSpacing: -0.1,
+    ),
+    bodyRegular: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 15,
+      fontWeight: FontWeight.w500,
+      color: SigumiTheme.hcPrimary,
+      height: 1.55,
+    ),
+    bodyCompact: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      color: SigumiTheme.hcDivider,
+      height: 1.4,
+    ),
+    overlineIndex: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.hcDivider,
+      height: 1.2,
+      letterSpacing: 1.4,
+      fontFeatures: [FontFeature.tabularFigures()],
+    ),
+    watermarkIndex: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 84,
+      fontWeight: FontWeight.w800,
+      color: Color(0x1FFFFFFF),
+      height: 0.9,
+      letterSpacing: -3.0,
+      fontFeatures: [FontFeature.tabularFigures()],
+    ),
+    buttonLabel: TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 15,
+      fontWeight: FontWeight.w700,
+      color: SigumiTheme.hcBackground,
+      height: 1.2,
+      letterSpacing: 0.2,
+    ),
+    spaceXs: 4.0,
+    spaceSm: 8.0,
+    spaceMd: 12.0,
+    spaceLg: 16.0,
+    spaceXl: 24.0,
+    space2xl: 32.0,
+    space3xl: 48.0,
+    contentMaxWidth: 560.0,
+    iconSm: 16.0,
+    iconMd: 20.0,
+    iconLg: 24.0,
+    iconHero: 56.0,
+    ctaHeight: 54.0,
+    radiusNone: 0.0,
+    radiusXs: 2.0,
+    radiusSm: 8.0,
+    radiusMd: 12.0,
+    radiusLg: 16.0,
+    radiusPill: 28.0,
+    flatShadow: <BoxShadow>[],
+    subtleShadow: <BoxShadow>[],
+    ctaShadow: <BoxShadow>[],
+    hairlineWidth: 2.0,
+    selectedBorderWidth: 2.5,
+    focusRingWidth: 3.0,
+    minTouchTarget: 48.0,
+    motionFast: Duration(milliseconds: 150),
+    motionMedium: Duration(milliseconds: 260),
+    motionPage: Duration(milliseconds: 520),
+    motionCurve: Curves.easeOutCubic,
+  );
+
+  @override
+  SigumiTokens copyWith({
+    Color? canvasBg,
+    Color? subtleSurface,
+    Color? inkPrimary,
+    Color? inkSecondary,
+    Color? inkMuted,
+    Color? accentPrimary,
+    Color? onAccent,
+    Color? borderSubtle,
+    Color? borderControl,
+    Color? borderStrong,
+    Color? focusRing,
+    Color? hoverFill,
+    Color? pressedFill,
+    Color? selectedFill,
+    Color? disabledFill,
+    Color? disabledInk,
+    Color? artworkPlateBg,
+    Color? artworkPlateInk,
+    Color? ambientHighlightBlue,
+    Color? ambientHighlightYellow,
+    TextStyle? displayHeadline,
+    TextStyle? sectionTitle,
+    TextStyle? cardTitle,
+    TextStyle? bodyRegular,
+    TextStyle? bodyCompact,
+    TextStyle? overlineIndex,
+    TextStyle? watermarkIndex,
+    TextStyle? buttonLabel,
+    double? spaceXs,
+    double? spaceSm,
+    double? spaceMd,
+    double? spaceLg,
+    double? spaceXl,
+    double? space2xl,
+    double? space3xl,
+    double? contentMaxWidth,
+    double? iconSm,
+    double? iconMd,
+    double? iconLg,
+    double? iconHero,
+    double? ctaHeight,
+    double? radiusNone,
+    double? radiusXs,
+    double? radiusSm,
+    double? radiusMd,
+    double? radiusLg,
+    double? radiusPill,
+    List<BoxShadow>? flatShadow,
+    List<BoxShadow>? subtleShadow,
+    List<BoxShadow>? ctaShadow,
+    double? hairlineWidth,
+    double? selectedBorderWidth,
+    double? focusRingWidth,
+    double? minTouchTarget,
+    Duration? motionFast,
+    Duration? motionMedium,
+    Duration? motionPage,
+    Curve? motionCurve,
+  }) {
+    return SigumiTokens(
+      canvasBg: canvasBg ?? this.canvasBg,
+      subtleSurface: subtleSurface ?? this.subtleSurface,
+      inkPrimary: inkPrimary ?? this.inkPrimary,
+      inkSecondary: inkSecondary ?? this.inkSecondary,
+      inkMuted: inkMuted ?? this.inkMuted,
+      accentPrimary: accentPrimary ?? this.accentPrimary,
+      onAccent: onAccent ?? this.onAccent,
+      borderSubtle: borderSubtle ?? this.borderSubtle,
+      borderControl: borderControl ?? this.borderControl,
+      borderStrong: borderStrong ?? this.borderStrong,
+      focusRing: focusRing ?? this.focusRing,
+      hoverFill: hoverFill ?? this.hoverFill,
+      pressedFill: pressedFill ?? this.pressedFill,
+      selectedFill: selectedFill ?? this.selectedFill,
+      disabledFill: disabledFill ?? this.disabledFill,
+      disabledInk: disabledInk ?? this.disabledInk,
+      artworkPlateBg: artworkPlateBg ?? this.artworkPlateBg,
+      artworkPlateInk: artworkPlateInk ?? this.artworkPlateInk,
+      ambientHighlightBlue: ambientHighlightBlue ?? this.ambientHighlightBlue,
+      ambientHighlightYellow:
+          ambientHighlightYellow ?? this.ambientHighlightYellow,
+      displayHeadline: displayHeadline ?? this.displayHeadline,
+      sectionTitle: sectionTitle ?? this.sectionTitle,
+      cardTitle: cardTitle ?? this.cardTitle,
+      bodyRegular: bodyRegular ?? this.bodyRegular,
+      bodyCompact: bodyCompact ?? this.bodyCompact,
+      overlineIndex: overlineIndex ?? this.overlineIndex,
+      watermarkIndex: watermarkIndex ?? this.watermarkIndex,
+      buttonLabel: buttonLabel ?? this.buttonLabel,
+      spaceXs: spaceXs ?? this.spaceXs,
+      spaceSm: spaceSm ?? this.spaceSm,
+      spaceMd: spaceMd ?? this.spaceMd,
+      spaceLg: spaceLg ?? this.spaceLg,
+      spaceXl: spaceXl ?? this.spaceXl,
+      space2xl: space2xl ?? this.space2xl,
+      space3xl: space3xl ?? this.space3xl,
+      contentMaxWidth: contentMaxWidth ?? this.contentMaxWidth,
+      iconSm: iconSm ?? this.iconSm,
+      iconMd: iconMd ?? this.iconMd,
+      iconLg: iconLg ?? this.iconLg,
+      iconHero: iconHero ?? this.iconHero,
+      ctaHeight: ctaHeight ?? this.ctaHeight,
+      radiusNone: radiusNone ?? this.radiusNone,
+      radiusXs: radiusXs ?? this.radiusXs,
+      radiusSm: radiusSm ?? this.radiusSm,
+      radiusMd: radiusMd ?? this.radiusMd,
+      radiusLg: radiusLg ?? this.radiusLg,
+      radiusPill: radiusPill ?? this.radiusPill,
+      flatShadow: flatShadow ?? this.flatShadow,
+      subtleShadow: subtleShadow ?? this.subtleShadow,
+      ctaShadow: ctaShadow ?? this.ctaShadow,
+      hairlineWidth: hairlineWidth ?? this.hairlineWidth,
+      selectedBorderWidth: selectedBorderWidth ?? this.selectedBorderWidth,
+      focusRingWidth: focusRingWidth ?? this.focusRingWidth,
+      minTouchTarget: minTouchTarget ?? this.minTouchTarget,
+      motionFast: motionFast ?? this.motionFast,
+      motionMedium: motionMedium ?? this.motionMedium,
+      motionPage: motionPage ?? this.motionPage,
+      motionCurve: motionCurve ?? this.motionCurve,
+    );
+  }
+
+  @override
+  SigumiTokens lerp(covariant ThemeExtension<SigumiTokens>? other, double t) {
+    if (other is! SigumiTokens) return this;
+    return SigumiTokens(
+      canvasBg: Color.lerp(canvasBg, other.canvasBg, t) ?? canvasBg,
+      subtleSurface:
+          Color.lerp(subtleSurface, other.subtleSurface, t) ?? subtleSurface,
+      inkPrimary: Color.lerp(inkPrimary, other.inkPrimary, t) ?? inkPrimary,
+      inkSecondary:
+          Color.lerp(inkSecondary, other.inkSecondary, t) ?? inkSecondary,
+      inkMuted: Color.lerp(inkMuted, other.inkMuted, t) ?? inkMuted,
+      accentPrimary:
+          Color.lerp(accentPrimary, other.accentPrimary, t) ?? accentPrimary,
+      onAccent: Color.lerp(onAccent, other.onAccent, t) ?? onAccent,
+      borderSubtle:
+          Color.lerp(borderSubtle, other.borderSubtle, t) ?? borderSubtle,
+      borderControl:
+          Color.lerp(borderControl, other.borderControl, t) ?? borderControl,
+      borderStrong:
+          Color.lerp(borderStrong, other.borderStrong, t) ?? borderStrong,
+      focusRing: Color.lerp(focusRing, other.focusRing, t) ?? focusRing,
+      hoverFill: Color.lerp(hoverFill, other.hoverFill, t) ?? hoverFill,
+      pressedFill: Color.lerp(pressedFill, other.pressedFill, t) ?? pressedFill,
+      selectedFill:
+          Color.lerp(selectedFill, other.selectedFill, t) ?? selectedFill,
+      disabledFill:
+          Color.lerp(disabledFill, other.disabledFill, t) ?? disabledFill,
+      disabledInk:
+          Color.lerp(disabledInk, other.disabledInk, t) ?? disabledInk,
+      artworkPlateBg:
+          Color.lerp(artworkPlateBg, other.artworkPlateBg, t) ?? artworkPlateBg,
+      artworkPlateInk:
+          Color.lerp(artworkPlateInk, other.artworkPlateInk, t) ??
+          artworkPlateInk,
+      ambientHighlightBlue:
+          Color.lerp(ambientHighlightBlue, other.ambientHighlightBlue, t) ??
+          ambientHighlightBlue,
+      ambientHighlightYellow:
+          Color.lerp(ambientHighlightYellow, other.ambientHighlightYellow, t) ??
+          ambientHighlightYellow,
+      displayHeadline:
+          TextStyle.lerp(displayHeadline, other.displayHeadline, t) ??
+          displayHeadline,
+      sectionTitle:
+          TextStyle.lerp(sectionTitle, other.sectionTitle, t) ?? sectionTitle,
+      cardTitle: TextStyle.lerp(cardTitle, other.cardTitle, t) ?? cardTitle,
+      bodyRegular:
+          TextStyle.lerp(bodyRegular, other.bodyRegular, t) ?? bodyRegular,
+      bodyCompact:
+          TextStyle.lerp(bodyCompact, other.bodyCompact, t) ?? bodyCompact,
+      overlineIndex:
+          TextStyle.lerp(overlineIndex, other.overlineIndex, t) ??
+          overlineIndex,
+      watermarkIndex:
+          TextStyle.lerp(watermarkIndex, other.watermarkIndex, t) ??
+          watermarkIndex,
+      buttonLabel:
+          TextStyle.lerp(buttonLabel, other.buttonLabel, t) ?? buttonLabel,
+      spaceXs: lerpDouble(spaceXs, other.spaceXs, t) ?? spaceXs,
+      spaceSm: lerpDouble(spaceSm, other.spaceSm, t) ?? spaceSm,
+      spaceMd: lerpDouble(spaceMd, other.spaceMd, t) ?? spaceMd,
+      spaceLg: lerpDouble(spaceLg, other.spaceLg, t) ?? spaceLg,
+      spaceXl: lerpDouble(spaceXl, other.spaceXl, t) ?? spaceXl,
+      space2xl: lerpDouble(space2xl, other.space2xl, t) ?? space2xl,
+      space3xl: lerpDouble(space3xl, other.space3xl, t) ?? space3xl,
+      contentMaxWidth:
+          lerpDouble(contentMaxWidth, other.contentMaxWidth, t) ??
+          contentMaxWidth,
+      iconSm: lerpDouble(iconSm, other.iconSm, t) ?? iconSm,
+      iconMd: lerpDouble(iconMd, other.iconMd, t) ?? iconMd,
+      iconLg: lerpDouble(iconLg, other.iconLg, t) ?? iconLg,
+      iconHero: lerpDouble(iconHero, other.iconHero, t) ?? iconHero,
+      ctaHeight: lerpDouble(ctaHeight, other.ctaHeight, t) ?? ctaHeight,
+      radiusNone: lerpDouble(radiusNone, other.radiusNone, t) ?? radiusNone,
+      radiusXs: lerpDouble(radiusXs, other.radiusXs, t) ?? radiusXs,
+      radiusSm: lerpDouble(radiusSm, other.radiusSm, t) ?? radiusSm,
+      radiusMd: lerpDouble(radiusMd, other.radiusMd, t) ?? radiusMd,
+      radiusLg: lerpDouble(radiusLg, other.radiusLg, t) ?? radiusLg,
+      radiusPill: lerpDouble(radiusPill, other.radiusPill, t) ?? radiusPill,
+      flatShadow: t < 0.5 ? flatShadow : other.flatShadow,
+      subtleShadow: t < 0.5 ? subtleShadow : other.subtleShadow,
+      ctaShadow: t < 0.5 ? ctaShadow : other.ctaShadow,
+      hairlineWidth:
+          lerpDouble(hairlineWidth, other.hairlineWidth, t) ?? hairlineWidth,
+      selectedBorderWidth:
+          lerpDouble(selectedBorderWidth, other.selectedBorderWidth, t) ??
+          selectedBorderWidth,
+      focusRingWidth:
+          lerpDouble(focusRingWidth, other.focusRingWidth, t) ?? focusRingWidth,
+      minTouchTarget:
+          lerpDouble(minTouchTarget, other.minTouchTarget, t) ?? minTouchTarget,
+      motionFast: t < 0.5 ? motionFast : other.motionFast,
+      motionMedium: t < 0.5 ? motionMedium : other.motionMedium,
+      motionPage: t < 0.5 ? motionPage : other.motionPage,
+      motionCurve: t < 0.5 ? motionCurve : other.motionCurve,
+    );
   }
 }

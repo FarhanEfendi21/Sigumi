@@ -20,22 +20,49 @@ class AuthRepository {
   static const String _emailDomain = 'sigumi.app';
 
   /// Akses Supabase client
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient get _client {
+    try {
+      if (!Supabase.instance.isInitialized) {
+        throw StateError('Supabase is not initialized');
+      }
+      return Supabase.instance.client;
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   /// Akses GoTrue auth
   GoTrueClient get _auth => _client.auth;
 
   /// User yang sedang login (null jika belum login)
-  User? get currentUser => _auth.currentUser;
+  User? get currentUser {
+    try {
+      return Supabase.instance.isInitialized ? _auth.currentUser : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Session aktif
-  Session? get currentSession => _auth.currentSession;
+  Session? get currentSession {
+    try {
+      return Supabase.instance.isInitialized ? _auth.currentSession : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   /// Apakah user sudah login
   bool get isLoggedIn => currentUser != null;
 
   /// Stream auth state changes (untuk reactive UI)
-  Stream<AuthState> get onAuthStateChange => _auth.onAuthStateChange;
+  Stream<AuthState> get onAuthStateChange {
+    try {
+      return Supabase.instance.isInitialized ? _auth.onAuthStateChange : const Stream.empty();
+    } catch (_) {
+      return const Stream.empty();
+    }
+  }
 
   /// ──────────────────────────────────────────────
   /// LOGIN — Nomor Telepon + Kata Sandi
