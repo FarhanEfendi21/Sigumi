@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,6 +36,12 @@ class StressFakeLocationService extends ChangeNotifier
 
   @override
   bool get isTracking => _tracking;
+
+  @override
+  bool get isHikingTracking => false;
+
+  @override
+  bool get isPausedForBackground => false;
 
   @override
   DateTime? get lastUpdated => _lastUpdated;
@@ -165,7 +172,11 @@ class StressFakeLocationService extends ChangeNotifier
   String? detectRegion() => 'Lombok';
 
   @override
-  Future<void> initialize() async {
+  Future<LocationPermission> checkPermissionStatus() async =>
+      LocationPermission.whileInUse;
+
+  @override
+  Future<void> initialize({bool requestPermission = true}) async {
     _gpsStatus = GpsStatus.active;
     _lastUpdated ??= DateTime.now();
     notifyListeners();
@@ -178,6 +189,12 @@ class StressFakeLocationService extends ChangeNotifier
   }) {
     _tracking = true;
   }
+
+  @override
+  void pauseForegroundTrackingForBackground() {}
+
+  @override
+  void resumeForegroundTrackingFromBackground() {}
 
   @override
   void stopTracking() {
@@ -201,7 +218,7 @@ class StressFakeLocationService extends ChangeNotifier
   Future<void> setManualLocation(double lat, double lng) async {}
 
   @override
-  Future<void> refreshLocation() async {}
+  Future<void> refreshLocation({bool requestPermission = true}) async {}
 
   void emitFix({
     required double lat,

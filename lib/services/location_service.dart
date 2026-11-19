@@ -84,6 +84,7 @@ class LocationService extends ChangeNotifier {
   Timer? _hikingPollTimer;
   bool _isPollingPosition = false;
   bool _hikingTracking = false;
+  bool _pausedForBackground = false;
   int _activeDistanceFilterMeters = 50;
   bool _isUpdatingSupabaseLocation = false;
   DateTime? _lastSupabaseLocationSyncAt;
@@ -97,6 +98,8 @@ class LocationService extends ChangeNotifier {
   double get userLng => _userLng;
   bool get isUsingRealGps => _isUsingRealGps;
   bool get isTracking => _isTracking;
+  bool get isHikingTracking => _hikingTracking;
+  bool get isPausedForBackground => _pausedForBackground;
   String? get locationError => _locationError;
   DateTime? get lastUpdated => _lastUpdated;
   double? get accuracyMeters => _accuracyMeters;
@@ -241,14 +244,31 @@ class LocationService extends ChangeNotifier {
     }
   }
 
+  /// Cek status izin lokasi saat ini tanpa memicu dialog sistem.
+  Future<LocationPermission> checkPermissionStatus() async {
+    try {
+      return await Geolocator.checkPermission();
+    } catch (e) {
+      debugPrint('[LocationService] checkPermissionStatus error: $e');
+      return LocationPermission.denied;
+    }
+  }
+
   /// ──────────────────────────────────────────────
   /// INISIALISASI — Request permission & mulai tracking
   /// ──────────────────────────────────────────────
-  Future<void> initialize() async {
+  Future<void> initialize({bool requestPermission = true}) async {
     try {
       // 1. Cek & request izin lokasi (Runtime Permission)
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
+        if (!requestPermission) {
+          _locationError = null;
+          _gpsStatus = GpsStatus.denied;
+          _calculateLocalDistance();
+          notifyListeners();
+          return;
+        }
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           _locationError = 'Izin lokasi ditolak.';
@@ -332,6 +352,7 @@ class LocationService extends ChangeNotifier {
     int distanceFilterMeters = 50,
     bool hikingTracking = false,
   }) {
+    _pausedForBackground = false;
     if (_isTracking) {
       final shouldRestartForHiking = hikingTracking;
       final shouldTightenFilter =
@@ -549,6 +570,29 @@ class LocationService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Jeda stream GPS biasa saat aplikasi ke latar belakang.
+  /// Sesi tracking pendakian (yang memakai Foreground Service) tetap dibiarkan berjalan.
+  void pauseForegroundTrackingForBackground() {
+    if (!_isTracking || _hikingTracking) return;
+    _positionStream?.cancel();
+    _positionStream = null;
+    _retryTimer?.cancel();
+    _retryTimer = null;
+    _isTracking = false;
+    _isRetrying = false;
+    _pausedForBackground = true;
+    notifyListeners();
+  }
+
+  /// Lanjutkan stream GPS biasa ketika aplikasi kembali ke foreground.
+  void resumeForegroundTrackingFromBackground() {
+    if (!_pausedForBackground) return;
+    _pausedForBackground = false;
+    if (!_isTracking && !_hikingTracking && _gpsStatus == GpsStatus.active) {
+      startTracking(distanceFilterMeters: _activeDistanceFilterMeters);
+    }
+  }
+
   /// ──────────────────────────────────────────────
   /// STOP TRACKING
   /// ──────────────────────────────────────────────
@@ -562,6 +606,7 @@ class LocationService extends ChangeNotifier {
     _retryTimer = null;
     _isTracking = false;
     _hikingTracking = false;
+    _pausedForBackground = false;
     _isRetrying = false;
     if (_isUsingRealGps && _lastUpdated != null) {
       _lastUpdated = DateTime.now();
@@ -726,10 +771,17 @@ class LocationService extends ChangeNotifier {
   /// ──────────────────────────────────────────────
   /// REFRESH LOKASI — Ambil posisi terbaru sekali
   /// ──────────────────────────────────────────────
-  Future<void> refreshLocation() async {
+  Future<void> refreshLocation({bool requestPermission = true}) async {
     try {
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
+        if (!requestPermission) {
+          _locationError = null;
+          _gpsStatus = GpsStatus.denied;
+          _calculateLocalDistance();
+          notifyListeners();
+          return;
+        }
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           _locationError = 'Izin lokasi ditolak.';

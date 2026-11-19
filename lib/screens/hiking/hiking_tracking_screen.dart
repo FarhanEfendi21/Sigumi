@@ -20,6 +20,7 @@ import '../../widgets/hiking_map_markers.dart';
 import '../../widgets/hiking_point_detail_sheet.dart';
 import '../../widgets/hiking_weather_card.dart';
 import '../../widgets/hiking_sos_panel.dart';
+import '../../widgets/location_disclosure_dialog.dart';
 
 class HikingTrackingScreen extends StatelessWidget {
   const HikingTrackingScreen({super.key});
@@ -190,6 +191,12 @@ class _HikingUnavailableViewState extends State<_HikingUnavailableView> {
 
   Future<void> _refreshGps(BuildContext context) async {
     if (_isRefreshing) return;
+    final allowed = await LocationDisclosureDialog.ensurePermissionConsent(
+      context,
+      widget.locationService,
+      forceShowIfDenied: true,
+    );
+    if (!context.mounted || !allowed) return;
     setState(() => _isRefreshing = true);
     try {
       await widget.locationService.retryTracking();
@@ -918,6 +925,12 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
   ) async {
     if (_isRefreshingPage) return;
     final location = tracking.locationService;
+    final allowed = await LocationDisclosureDialog.ensurePermissionConsent(
+      context,
+      location,
+      forceShowIfDenied: true,
+    );
+    if (!context.mounted || !allowed) return;
     setState(() {
       _isRefreshingPage = true;
     });
@@ -1695,6 +1708,15 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
                                       ? null
                                       : () async {
                                         if (tracking.isPaused) {
+                                          final allowed =
+                                              await LocationDisclosureDialog.ensurePermissionConsent(
+                                                context,
+                                                tracking.locationService,
+                                                forceShowIfDenied: true,
+                                              );
+                                          if (!context.mounted || !allowed) {
+                                            return;
+                                          }
                                           await tracking.resume();
                                         } else {
                                           await tracking.pause();
@@ -1920,6 +1942,12 @@ class _HikingTrackingViewState extends State<_HikingTrackingView> {
     BuildContext context,
     HikingTrackingService tracking,
   ) async {
+    final allowed = await LocationDisclosureDialog.ensurePermissionConsent(
+      context,
+      tracking.locationService,
+      forceShowIfDenied: true,
+    );
+    if (!context.mounted || !allowed) return;
     final volcanoProvider = context.read<VolcanoProvider>();
     final started = await tracking.start(
       region: volcanoProvider.selectedRegion,

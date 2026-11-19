@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigumi/models/volcano_model.dart';
 import 'package:sigumi/models/shelter_model.dart';
@@ -86,6 +87,12 @@ class _FakeLocationForFunctional extends ChangeNotifier implements LocationServi
   bool get isTracking => true;
 
   @override
+  bool get isHikingTracking => false;
+
+  @override
+  bool get isPausedForBackground => false;
+
+  @override
   DateTime? get lastUpdated => _lastUpdated;
 
   @override
@@ -152,10 +159,20 @@ class _FakeLocationForFunctional extends ChangeNotifier implements LocationServi
   String? detectRegion() => 'Lombok';
 
   @override
-  Future<void> initialize() async {}
+  Future<LocationPermission> checkPermissionStatus() async =>
+      LocationPermission.whileInUse;
+
+  @override
+  Future<void> initialize({bool requestPermission = true}) async {}
 
   @override
   void startTracking({int distanceFilterMeters = 50, bool hikingTracking = false}) {}
+
+  @override
+  void pauseForegroundTrackingForBackground() {}
+
+  @override
+  void resumeForegroundTrackingFromBackground() {}
 
   @override
   void stopTracking() {}
@@ -173,7 +190,7 @@ class _FakeLocationForFunctional extends ChangeNotifier implements LocationServi
   Future<void> setManualLocation(double lat, double lng) async {}
 
   @override
-  Future<void> refreshLocation() async {}
+  Future<void> refreshLocation({bool requestPermission = true}) async {}
 
   void emitFix(double lat, double lng) {
     _lat = lat;

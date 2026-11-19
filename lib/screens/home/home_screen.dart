@@ -15,6 +15,7 @@ import '../../services/location_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/vibration_alert_service.dart';
 import '../../models/news_item.dart';
+import '../../widgets/location_disclosure_dialog.dart';
 import 'widgets/news_carousel.dart';
 import 'widgets/vibration_alert_modal.dart';
 import 'widgets/home_ambient_painter.dart';
@@ -44,9 +45,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
-      // 2. Inisialisasi GPS & minta izin lokasi
+      // 2. Tampilkan penjelasan izin lokasi sebelum meminta izin sistem, lalu inisialisasi GPS
+      final locationService = context.read<LocationService>();
+      final allowLocationRequest =
+          await LocationDisclosureDialog.ensurePermissionConsent(
+            context,
+            locationService,
+          );
+
+      if (!mounted) return;
+
       final volcanoProvider = context.read<VolcanoProvider>();
-      await volcanoProvider.autoDetectAndSetRegion();
+      await volcanoProvider.autoDetectAndSetRegion(
+        requestPermission: allowLocationRequest,
+      );
 
       if (!mounted) return;
 
@@ -55,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (!mounted) return;
 
-      // 3. Pasang callback modal tanpa mengubah preferensi getar pengguna.
+      // 4. Pasang callback modal tanpa mengubah preferensi getar pengguna.
       VibrationAlertService().onAlertTriggered = (volcanoName, distanceKm) {
         // Pastikan mounted dan tidak ada dialog aktif sebelum show modal
         if (!mounted) return;
@@ -69,9 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       };
 
-      // Mulai background GPS tracking agar jarak realtime selalu aktif saat bergerak
-      final locationService = context.read<LocationService>();
-      locationService.startTracking(distanceFilterMeters: 25);
+      // Mulai GPS tracking saat aplikasi aktif di foreground agar jarak realtime terbarui
+      if (locationService.gpsStatus == GpsStatus.active) {
+        locationService.startTracking(distanceFilterMeters: 25);
+      }
 
       // Fetch news dari Supabase, filtered by selected region
       final newsProvider = context.read<NewsProvider>();

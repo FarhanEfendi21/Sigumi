@@ -486,10 +486,10 @@ class VolcanoProvider extends ChangeNotifier {
   /// ──────────────────────────────────────────────────────────────
   /// Inisialisasi GPS dan deteksi daerah otomatis.
   /// Akan auto-set region berdasarkan gunung terdekat terlepas dari seberapa jauh.
-  Future<void> autoDetectAndSetRegion() async {
+  Future<void> autoDetectAndSetRegion({bool requestPermission = true}) async {
     if (_locationInitialized) return; // Jangan double-init
 
-    await _locationService.initialize();
+    await _locationService.initialize(requestPermission: requestPermission);
     _locationInitialized = true;
 
     // 1. Pastikan daftar gunung dari Supabase selalu dimuat saat startup

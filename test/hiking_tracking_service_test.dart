@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sigumi/services/hiking_tracking_service.dart';
@@ -28,6 +29,12 @@ class FakeLocationService extends ChangeNotifier implements LocationService {
 
   @override
   bool get isTracking => _fakeTracking;
+
+  @override
+  bool get isHikingTracking => false;
+
+  @override
+  bool get isPausedForBackground => false;
 
   @override
   DateTime? get lastUpdated => _fakeLastUpdated;
@@ -158,7 +165,11 @@ class FakeLocationService extends ChangeNotifier implements LocationService {
   String? detectRegion() => 'Lombok';
 
   @override
-  Future<void> initialize() async {
+  Future<LocationPermission> checkPermissionStatus() async =>
+      LocationPermission.whileInUse;
+
+  @override
+  Future<void> initialize({bool requestPermission = true}) async {
     _fakeGpsStatus = GpsStatus.active;
     _fakeLastUpdated ??= DateTime.now();
     notifyListeners();
@@ -171,6 +182,12 @@ class FakeLocationService extends ChangeNotifier implements LocationService {
   }) {
     _fakeTracking = true;
   }
+
+  @override
+  void pauseForegroundTrackingForBackground() {}
+
+  @override
+  void resumeForegroundTrackingFromBackground() {}
 
   @override
   void stopTracking() {
@@ -194,7 +211,7 @@ class FakeLocationService extends ChangeNotifier implements LocationService {
   Future<void> setManualLocation(double lat, double lng) async {}
 
   @override
-  Future<void> refreshLocation() async {}
+  Future<void> refreshLocation({bool requestPermission = true}) async {}
 
   void emitFix({
     required double lat,

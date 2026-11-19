@@ -1227,6 +1227,19 @@ class LocalizationService {
       'choose_your_language': 'Pilih bahasa Anda',
       'caution_zone': 'Zona Perhatian',
       'safe_zone': 'Zona Aman',
+      'location_disclosure_title': 'Izinkan Akses Lokasi',
+      'location_disclosure_intro':
+          'SIGUMI menggunakan lokasi perangkat Anda saat aplikasi digunakan untuk:',
+      'location_disclosure_bullet_region':
+          'Mendeteksi wilayah gunung berapi terdekat secara otomatis',
+      'location_disclosure_bullet_risk':
+          'Menghitung jarak ke puncak, zona bahaya, dan titik evakuasi terdekat',
+      'location_disclosure_bullet_hiking':
+          'Merekam rute selama sesi Tracking Pendakian aktif dengan notifikasi status di layar',
+      'location_disclosure_note':
+          'Lokasi tidak diakses secara diam-diam saat aplikasi ditutup. Anda dapat mengubah izin ini kapan saja di pengaturan perangkat.',
+      'location_disclosure_decline': 'Nanti Saja',
+      'location_disclosure_allow': 'Lanjutkan',
     },
     'en': {
       'login_failed': 'Sign in failed. Check your phone number and password.',
@@ -1297,6 +1310,19 @@ class LocalizationService {
       'choose_your_language': 'Choose your language',
       'caution_zone': 'Caution zone',
       'safe_zone': 'Safe zone',
+      'location_disclosure_title': 'Allow Location Access',
+      'location_disclosure_intro':
+          'SIGUMI uses your device location while using the app to:',
+      'location_disclosure_bullet_region':
+          'Automatically detect your nearest volcano region',
+      'location_disclosure_bullet_risk':
+          'Calculate distance to the summit, hazard zones, and nearest evacuation points',
+      'location_disclosure_bullet_hiking':
+          'Record your trail during active Hiking Tracking sessions with an ongoing status notification',
+      'location_disclosure_note':
+          'Location is not accessed silently when the app is closed. You can change this permission anytime in device settings.',
+      'location_disclosure_decline': 'Not Now',
+      'location_disclosure_allow': 'Continue',
     },
     'jv': {
       'danger_zone': 'Zona Bebaya',
@@ -1391,6 +1417,19 @@ class LocalizationService {
       'finish_tracking': 'Rampungake Pelacakan',
       'gps_point': 'Titik GPS',
       'select_birth_date': 'Pilih Tanggal Lair',
+      'location_disclosure_title': 'Idini Akses Lokasi',
+      'location_disclosure_intro':
+          'SIGUMI nggunakake lokasi piranti nalika aplikasi digunakake kanggo:',
+      'location_disclosure_bullet_region':
+          'Ndeteksi wilayah gunung geni paling cedhak kanthi otomatis',
+      'location_disclosure_bullet_risk':
+          'Ngetung jarak menyang puncak, zona bebaya, lan titik evakuasi paling cedhak',
+      'location_disclosure_bullet_hiking':
+          'Ngerekam jalur nalika sesi Pelacakan Pendakian aktif nganggo notifikasi status',
+      'location_disclosure_note':
+          'Lokasi ora diakses kanthi meneng-meneng nalika aplikasi ditutup. Sampeyan bisa ngowahi idin iki kapan wae ing setelan piranti.',
+      'location_disclosure_decline': 'Mengko Wae',
+      'location_disclosure_allow': 'Terusake',
     },
     'ba': {
       'danger_zone': 'Zona Bhaya',
@@ -1489,6 +1528,19 @@ class LocalizationService {
       'finish_tracking': 'Pungkasin Pelacakan',
       'gps_point': 'Titik GPS',
       'select_birth_date': 'Pilih Tanggal Lahir',
+      'location_disclosure_title': 'Lugrayang Akses Genah',
+      'location_disclosure_intro':
+          'SIGUMI nganggen genah piranti ritatkala aplikasi kaanggen antuk:',
+      'location_disclosure_bullet_region':
+          'Ndeteksi wewidangan gunung api sane pinih nampek secara otomatis',
+      'location_disclosure_bullet_risk':
+          'Ngitung jarak ka puncak, zona bhaya, miwah genah evakuasi pinih nampek',
+      'location_disclosure_bullet_hiking':
+          'Ngerekam jalur ritatkala sesi Pelacakan Pendakian aktif antuk notifikasi status',
+      'location_disclosure_note':
+          'Genah ten kaakses meneng-meneng ritatkala aplikasi katutup. Ragane prasida ngubah ijin puniki ring setelan piranti.',
+      'location_disclosure_decline': 'Nyanan',
+      'location_disclosure_allow': 'Lanturang',
     },
     'sa': {
       'danger_zone': 'Zona Bahaya',
@@ -1583,6 +1635,19 @@ class LocalizationService {
       'finish_tracking': 'Tuntasin Pelacakan',
       'gps_point': 'Titik GPS',
       'select_birth_date': 'Pilih Tanggal Lahir',
+      'location_disclosure_title': 'Izinang Akses Lokasi',
+      'location_disclosure_intro':
+          'SIGUMI nganggo lokasi piranti waktu aplikasi tepake untuk:',
+      'location_disclosure_bullet_region':
+          'Deteksi wilayah gunung api paling deket secara otomatis',
+      'location_disclosure_bullet_risk':
+          'Ngitung jarak jok puncak, zona bahaya, le titik evakuasi paling deket',
+      'location_disclosure_bullet_hiking':
+          'Ngerekam jalur waktu sesi Pelacakan Pendakian aktif sik notifikasi status',
+      'location_disclosure_note':
+          'Lokasi ndek teakses diem-diem waktu aplikasi ketutup. Side bau ubah izin nike kapan doang leq pengaturan piranti.',
+      'location_disclosure_decline': 'Nanti Doang',
+      'location_disclosure_allow': 'Lanjutang',
     },
   };
 

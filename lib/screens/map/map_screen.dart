@@ -15,6 +15,7 @@ import '../../config/volcano_data.dart';
 import '../../models/volcano_model.dart';
 import '../../providers/volcano_provider.dart';
 import '../../services/location_service.dart';
+import '../../widgets/location_disclosure_dialog.dart';
 import '../visual/visual_merapi_screen.dart';
 
 import 'widgets/blur_top_bar.dart';
@@ -77,8 +78,18 @@ class _MapScreenState extends State<MapScreen>
     // Listen ke perubahan lokasi untuk auto-update peta
     locationService.addListener(_onLocationChanged);
 
-    await locationService.initialize();
-    locationService.startTracking(distanceFilterMeters: 30);
+    final allowRequest = await LocationDisclosureDialog.ensurePermissionConsent(
+      context,
+      locationService,
+    );
+    if (!mounted) return;
+
+    await locationService.initialize(requestPermission: allowRequest);
+    if (!mounted) return;
+
+    if (locationService.gpsStatus == GpsStatus.active) {
+      locationService.startTracking(distanceFilterMeters: 30);
+    }
 
     // Tampilkan error awal jika ada, tapi hanya sekali sebagai snackbar
     if (locationService.locationError != null && !_hasShownInitialError) {
@@ -173,8 +184,15 @@ class _MapScreenState extends State<MapScreen>
                 ? SnackBarAction(
                   label: context.trSafe('try_again'),
                   textColor: foregroundColor,
-                  onPressed: () {
+                  onPressed: () async {
                     final ls = context.read<LocationService>();
+                    final allowed =
+                        await LocationDisclosureDialog.ensurePermissionConsent(
+                          context,
+                          ls,
+                          forceShowIfDenied: true,
+                        );
+                    if (!mounted || !allowed) return;
                     ls.retryTracking();
                     _hasShownInitialError = false;
                   },
@@ -199,13 +217,22 @@ class _MapScreenState extends State<MapScreen>
   double _kmToMeter(double km) => km * 1000;
 
   /// Recenter peta ke posisi user saat ini
-  void _recenterToUser(LocationService locationService) {
-    locationService.refreshLocation().then((_) {
-      if (mounted) {
-        final pos = LatLng(locationService.userLat, locationService.userLng);
-        _mapController.move(pos, 13);
+  Future<void> _recenterToUser(LocationService locationService) async {
+    final allowed = await LocationDisclosureDialog.ensurePermissionConsent(
+      context,
+      locationService,
+      forceShowIfDenied: true,
+    );
+    if (!mounted || !allowed) return;
+    await locationService.refreshLocation();
+    if (mounted) {
+      if (locationService.gpsStatus == GpsStatus.active &&
+          !locationService.isTracking) {
+        locationService.startTracking(distanceFilterMeters: 30);
       }
-    });
+      final pos = LatLng(locationService.userLat, locationService.userLng);
+      _mapController.move(pos, 13);
+    }
   }
 
   // ───────────────────────────────────────────────────────
@@ -1453,7 +1480,14 @@ class _MapScreenState extends State<MapScreen>
     return GestureDetector(
       onTap:
           showRetry
-              ? () {
+              ? () async {
+                final allowed =
+                    await LocationDisclosureDialog.ensurePermissionConsent(
+                      context,
+                      locationService,
+                      forceShowIfDenied: true,
+                    );
+                if (!mounted || !allowed) return;
                 locationService.retryTracking();
                 _hasShownInitialError = false;
               }

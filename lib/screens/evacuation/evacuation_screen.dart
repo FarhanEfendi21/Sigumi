@@ -17,6 +17,7 @@ import '../../models/shelter_model.dart';
 import '../../providers/volcano_provider.dart';
 import '../../repositories/shelter_repository.dart';
 import '../../services/location_service.dart';
+import '../../widgets/location_disclosure_dialog.dart';
 import '../map/widgets/blur_top_bar.dart';
 import '../map/widgets/map_controls.dart';
 
@@ -71,7 +72,13 @@ class _EvacuationScreenState extends State<EvacuationScreen>
 
   Future<void> _initData() async {
     final locationService = context.read<LocationService>();
-    await locationService.refreshLocation();
+    final allowRequest = await LocationDisclosureDialog.ensurePermissionConsent(
+      context,
+      locationService,
+    );
+    if (!mounted) return;
+    await locationService.refreshLocation(requestPermission: allowRequest);
+    if (!mounted) return;
     await _loadShelters();
     if (_shelters.isEmpty) {
       _recenterMap();
@@ -200,10 +207,16 @@ class _EvacuationScreenState extends State<EvacuationScreen>
   Future<void> _refreshNearestShelter() async {
     if (_isRefreshing) return;
     HapticFeedback.mediumImpact();
+    final locService = context.read<LocationService>();
+    final allowed = await LocationDisclosureDialog.ensurePermissionConsent(
+      context,
+      locService,
+      forceShowIfDenied: true,
+    );
+    if (!mounted || !allowed) return;
     setState(() => _isRefreshing = true);
 
     try {
-      final locService = context.read<LocationService>();
       await locService.refreshLocation();
       if (mounted) {
         await _loadShelters(forceReload: true);
@@ -376,10 +389,17 @@ class _EvacuationScreenState extends State<EvacuationScreen>
                       ShadcnMapButton(
                         icon: Icons.my_location_rounded,
                         tooltip: context.tr('your_location'),
-                        onTap: () {
+                        onTap: () async {
                           HapticFeedback.lightImpact();
-                          locService.refreshLocation();
-                          _recenterMap();
+                          final allowed =
+                              await LocationDisclosureDialog.ensurePermissionConsent(
+                                context,
+                                locService,
+                                forceShowIfDenied: true,
+                              );
+                          if (!mounted || !allowed) return;
+                          await locService.refreshLocation();
+                          if (mounted) _recenterMap();
                         },
                       ),
                       const SizedBox(height: 8),
